@@ -2,127 +2,206 @@
 
 [中文](README.zh-CN.md)
 
-OmniDev Kit is an advanced AI coding assistant enhancement toolkit that integrates the core essence of top open-source AI frameworks.
+OmniDev Kit is an AI-driven development workflow toolkit that transforms the AI from a "typist who only writes code on command" into a **"senior R&D engineer who understands cost control, architecture design, writes their own tests, and never forgets."**
 
-It upgrades the AI from a "typist who only writes code on command" to a **"senior R&D engineer who understands cost control, architecture design, writes their own tests, and never forgets."**
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────┐
+│                   OmniDev (/od)                     │
+│              Orchestration & Core Rules              │
+│  ┌───────────┬──────────┬───────────┬────────────┐  │
+│  │ First     │ i18n     │ Lazy      │ Interactive│  │
+│  │ Principles│ (zh/en)  │ Loading   │ Mode       │  │
+│  └───────────┴──────────┴───────────┴────────────┘  │
+│                        │                             │
+│  ┌─────────────────────▼───────────────────────────┐│
+│  │         Phase Engine (on-demand loading)         ││
+│  │  Phase 0 → Phase 1 → Phase 2 → Phase 3 → Ph.4  ││
+│  │ Assess    Blueprint   Plan       Dev      Test   ││
+│  └──────────────────────────────────────────────────┘│
+│                        │                             │
+│  ┌─────────────────────▼───────────────────────────┐│
+│  │       Dynamic Skill Composition (B.11)          ││
+│  │  Detect intent → Scan local skills → Confirm    ││
+│  │  → Load & execute → Bridge back to OmniDev      ││
+│  └──────────────────────────────────────────────────┘│
+│                        │                             │
+│  ┌─────────────────────▼───────────────────────────┐│
+│  │            Self-Evolution Engine                 ││
+│  │  Observe → Learn → Propose → Apply (with user)  ││
+│  └──────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────┘
+```
 
 ## Core Features
 
-### 1. Project Type Awareness & Adaptive Constraints
-- **Smart Memory & Differentiation**: During initialization, the AI determines whether the current project is a "Greenfield Project" or a "Legacy Project" and permanently remembers this state in `00-project-context.md`.
-- **Legacy Projects (Baseline First)**: When facing an old project, the AI acts like a **"sensible veteran employee"**, 100% following the historical directory structure, naming conventions, and existing utilities. **It is strictly prohibited** from forcing modern OmniDev conventions (like DDD or specific test frameworks) into old projects, preventing code style fragmentation.
-- **Greenfield Projects (Spec-Driven)**: For new projects, the AI transforms into a "strict architect", fully enabling OmniDev's modern software engineering conventions, mandating TDD/DDD and high-coverage testing.
+### 1. First Principles — Safety Guardrails
 
-### 2. Minimalist Interaction (One-Command Trigger)
-- **One-Click Install & Non-Destructive Merge**: Just feed `INSTALL.md` to the AI, and it will automatically recognize the platform and merge the rules with your existing `.cursorrules` seamlessly. You can also install directly from a remote Git URL — no need to clone the repository first.
-- **Short Commands & Multi-Persona**: Instantly wake up the standard workflow with `/od`. Supports `/od --fast` (skip blueprint, code directly), `/od change` (mid-stream requirement changes), and `/od review` (act as an architect for Code Review).
-- **Built-in Help**: Type `/od help` at any time to view all available commands and their meanings.
+Two fundamental rules that govern all AI behavior, preventing reckless execution:
 
-### 3. Legacy Project Onboarding
-- **Autonomous Learning**: With the `/od onboard` command, the AI actively scans the legacy project's directory structure, dependencies, and configuration files to extract architectural patterns and coding conventions, solidifying them into a context guide.
+- **Requirement Alignment (B.3)**: When requirements are vague, ambiguous, or missing key info, the AI is **prohibited** from guessing or self-interpreting. It must proactively confirm the core problem, final goal, delivery criteria, and root cause with the user before proceeding.
+- **Problem Fix Protocol (B.4)**: For any bug fix, security patch, or behavior correction, the AI is **prohibited** from shipping a quick patch. It must first produce a complete solution plan with root cause analysis, impact scope, and regression risk. When multiple approaches exist, it ranks them with clear justification and waits for user approval.
 
-### 4. Self-Learning & Retrospective
-- **AI Pitfall Guide**: Triggered by the `/od learn` command or automatically after a large task, the AI scans development logs for errors, blockers, and user corrections. It extracts lessons learned and solidifies them into its own "Pitfall Guide". **"The AI will never fall into the same trap twice."**
+### 2. Internationalization (i18n)
 
-### 5. Adaptive Scheduling (Token & Cost Optimization)
-- **Dynamic Complexity Assessment (T-Shirt Sizing)**: The AI evaluates the complexity (S/M/L) upon receiving a requirement.
-- **No Dogmatism**: For a typo (Size S), the AI fixes and tests it directly; for a large new feature (Size L), it strictly follows the "Blueprint -> Plan -> Develop -> Test" full lifecycle.
+Full bilingual support (Chinese / English), switchable at runtime:
+
+- **`/od cfg -l zh`** / **`/od cfg -l en`** to switch languages.
+- Phase instruction files are organized under `phases/{locale}/` and `engine/{locale}/`. Only **one locale is loaded at a time** — never both, saving tokens.
+- All user-facing output (checkpoints, prompts, reports, Q&A menus) adapts to the active locale.
+
+### 3. Dynamic Skill Composition (B.11)
+
+OmniDev is not a monolith — it acts as an **orchestrator** that dynamically discovers and combines specialized skills:
+
+- **Auto-detect** troubleshooting / debugging / fix intents from user input keywords.
+- **Scan local skills** across 4 directories (project-level, user-level Cursor/Claude/Agents skills).
+- **Rank matches**: 🎯 Direct match (full troubleshooting workflow) vs 🔧 Supporting (log query, pod status, etc.).
+- **User confirms** before any skill is loaded (multi-select supported).
+- **Seamless bridge**: After external skill completes, user can transition into OmniDev dev workflow for the fix.
+
+### 4. Project Type Awareness & Adaptive Constraints
+
+- **Legacy Projects**: The AI acts like a "sensible veteran employee", 100% following existing conventions. No forced DDD/TDD.
+- **Greenfield Projects**: Full modern conventions — Spec-Driven Development, TDD/DDD, high test coverage.
+- Stack detection during `/od onboard` identifies fullstack / frontend-only / backend-only / monorepo.
+
+### 5. Adaptive Scheduling (T-Shirt Sizing)
+
+- **S**: Fix directly, skip blueprint/plan.
+- **M**: Skip blueprint → Plan → Dev → Test.
+- **L/XL**: Full workflow: Blueprint → Plan → Dev → Test → Deploy.
 
 ### 6. Spec-Driven Engineering Discipline
-- **Forced Brainstorming & Blueprinting**: Prohibits the AI from writing code immediately. It must first consider edge cases, exceptions, and user experience, outputting a global blueprint.
-- **Change Management**: Supports adding or modifying requirements mid-development. The AI will output an impact assessment document first, and upon confirmation, automatically archive the old plan and generate a new blueprint to prevent architectural decay.
-- **Auto-Checkpointing**: Before modifying code, the AI is forced to execute a Git Commit backup. If things get messy, you can use `git reset --hard` or your IDE's version control to rollback.
 
-### 7. Powerful Cross-Session Memory (State Persistence)
-- **Dual-State Storage**: Uses `YAML Frontmatter + Markdown` to record state, ensuring 100% accurate machine reading while remaining human-readable.
-- **Context Pruning**: When long sessions cause state files to bloat, it automatically triggers "memory compression" to archive historical details, preventing AI hallucinations and saving Tokens.
-- **Session Recovery**: Type **`/od resume`** so OmniDev rules apply; the AI reads progress files, compares with Git, and restores context. (Bare `/resume` does not load this toolkit's rules.)
+- **Forced Brainstorming**: The AI must think about edge cases, exceptions, and UX before writing any code.
+- **Change Management** (`/od ch`): Mid-development requirement changes trigger impact assessment, old plan archival, and new blueprint generation.
+- **Auto-Checkpointing**: Git commit before any code modification.
 
-### 8. Closed-Loop Quality Assurance (Automated Verification)
-- **No "Blind Confidence"**: Forces the AI to write test cases or use MCP to simulate real data flows (e.g., inserting data into DB, calling Playwright for UI clicks) for verification.
-- **Security Guardrails**: Strictly prohibits hardcoding real API keys or sensitive information in state files or generated code.
+### 7. Cross-Session Memory & State Persistence
 
-### 9. Change Impact Summary (Modification Awareness)
-- **Auto-Generated After Every Task Group**: After each development task group completes, the AI automatically outputs a structured **Change Impact Summary** — listing all modified files, affected features, dependency changes, and configuration changes.
-- **Pre-Push Visibility**: Before every `/od push`, the AI shows a complete impact summary so you know exactly what you're committing. No surprises — every file change is categorized, and functional impact is mapped to business features.
-- **Dependency & Config Tracking**: Automatically detects new dependencies, environment variable changes, and database migration scripts, ensuring nothing is overlooked during deployment.
+- **Dual-State Storage**: `YAML Frontmatter + Markdown` — machine-precise and human-readable.
+- **Context Pruning**: Auto-archive when state files exceed 200 lines, preventing hallucinations.
+- **Session Recovery**: `/od resume` restores context from state files + git status comparison.
 
-### 10. DevOps-Ready Deliverables (Deployment Readiness)
-- **Automated Release Notes**: After development, it automatically summarizes `.env` changes, new dependencies, database migration scripts, etc.
-- **Efficiency Bill (ROI)**: Outputs an intuitive ROI bill upon delivery (e.g., "Saved you 15,000 Tokens and 2.5 hours"), making the AI's value clearly visible.
+### 8. Lazy Context Loading (B.7)
 
-### 11. Enterprise-Grade Reporting & Manual Updates
-- **One-Click Weekly Reports**: Using `/od report`, the AI combines Git commit history with state files to automatically generate a beautifully formatted, **management-ready project status report**. The report not only covers overall progress, blockers, and next week's plan, but also **specifically aggregates all AI-assisted tasks completed via OmniDev**, highlighting R&D efficiency gains.
-- **Tool Manual Update**: Use `/od update` to fetch the latest rules from the remote repository. Updates are never automatic — the user must explicitly trigger them. The update will overwrite same-name files and delete obsolete local files that no longer exist in the remote.
+Every phase declares exactly what files it needs via `context_requires`. The AI:
+- Loads only the listed files, skips everything else.
+- Caches across phases within the same session.
+- Never pre-reads downstream artifacts.
+- Token usage stays proportional to the current phase's actual needs.
 
-### 12. Interactive Mode (Structured Choice UI)
-- **On by Default**: Enabled by default. The AI presents structured choice UIs at every decision point — complexity assessment, phase navigation, change management, and more. Disable with `/od cfg -i off` if you prefer typing commands manually.
-- **One-Click Decisions**: Instead of typing commands like `/od 继续` or `/od 跳过`, the AI presents clickable options for you to choose from, reducing friction and keeping the entire conversation in a single request flow.
-- **Auto Q&A Loop**: After every `/od` command completes, the AI doesn't just stop — it enters a **Q&A loop**, actively asking what you need next. You can keep asking questions or giving instructions, and the AI continues using tools to handle them. Type `/od x` to exit the loop when you're done.
-- **Persistent Preference**: Your choice is stored in `docs/omnidev-state/config.json` and persists across sessions. Disable both interactive mode and auto ask mode anytime with `/od cfg -i off`.
+### 9. Interactive Mode & Auto Q&A Loop
 
-### 13. Self-Evolution Engine (Auto-Evolution)
-- **Passive Learning**: During **`/od`** work only, the AI may log corrections, repeated patterns, and error resolutions to `evolution-log.jsonl` (no OmniDev logging on plain chat).
-- **Smart Proposals**: When signals accumulate (5+ of the same category, or any single high-confidence signal), the AI generates concrete rule/skill improvement proposals — rule amendments, new pitfall entries, workflow tweaks, or even new skills.
-- **User-Controlled**: All rule modifications require explicit user approval. Use `/od ln` to review proposals, selectively adopt or reject them. The AI never silently changes its own behavioral rules.
-- **Safety Guardrails**: The evolution engine cannot weaken core safety rules (like the `/od` prefix mandate or security guardrails). Every evolution is logged with rollback capability via `/od ln --rb [N]`.
-- **"The more you use it, the smarter it gets"** — OmniDev adapts to your project's unique conventions, coding style, and architectural patterns over time.
+- **Interactive Mode** (default on): Structured choice UI via `AskQuestion` tool at all decision points — saves a round-trip.
+- **Auto Q&A Loop** (default on): After every `/od` command, the AI presents context-adaptive next actions instead of silently stopping.
+- Both can be toggled with `/od cfg -i on|off`.
+
+### 10. DevSecOps & Resilience
+
+Phase 3 enforces security and resilience coding:
+- **Security by Design**: IDOR/BOLA prevention, injection prevention, SSRF/CSRF protection, sensitive data masking.
+- **Standard Level**: Structured errors, timeout control, graceful failure, input validation.
+- **High Level** (user-requested): Circuit breaker, retry with backoff, bulkhead isolation, graceful degradation, rate limiting.
+
+### 11. Quality Assurance — Testing (Phase 4)
+
+- **Dependency topology mapping** before writing any test.
+- **Mock strategy hierarchy**: Interface mock → In-memory fake → Container stub → HTTP stub → MCP-driven.
+- **Scenario coverage matrix**: Happy path, validation, conflict, dependency failure, security (IDOR/SQLi), concurrency.
+- **System-level resilience testing**: Network latency, timeout, high concurrency (P99 < 200ms), memory pressure.
+- **Coverage gate**: >= 90% statement/branch coverage.
+
+### 12. Self-Evolution Engine
+
+- **Passive Learning**: Logs corrections, patterns, error resolutions during `/od` sessions.
+- **Smart Proposals**: Generates rule/skill improvement proposals when signals accumulate.
+- **User-Controlled**: All changes require explicit approval via `/od ln`.
+- **Safety Guardrails**: Cannot weaken core rules. Full rollback via `/od ln --rb [N]`.
+
+### 13. Enterprise Reporting & Ops
+
+- **Weekly Reports** (`/od rp`): Management-ready reports combining git history + state files.
+- **Push Flow** (`/od ps`): Change impact summary → stage → commit message generation → push.
+- **Efficiency Bill**: ROI metrics appended to `metrics.json` after each delivery.
+- **Manual Update** (`/od up`): Preview diff before applying, user must confirm.
 
 ## Command Reference
 
-All commands support **short aliases** (1-2 letters). Users can reply with **numbers** at checkpoints.
-
 | Command | Alias | Description |
-| --- | --- | --- |
-| `/od h` | `/od help` | 📖 Show all commands |
-| `/od ob` | `/od onboard` | 🔍 Scan project, generate context document |
-| `/od ln` | `/od learn` | 🧠 Self-learning: retrospective + rule extraction + evolution proposals |
-| `/od ln -r` | — | 🔍 View learning log and pending proposals |
-| `/od ln --rb [N]` | — | ⏪ Rollback evolution #N |
-| `/od rp` | `/od report` | 📊 Generate weekly report |
-| `/od up` | `/od update` | 🔄 Update OmniDev Kit to latest version |
-| `/od i <url>` | `/od install` | 📥 Install from remote Git repo |
-| `/od [requirement]` | — | 🚀 Guided workflow (auto-assess complexity) |
-| `/od -f [req]` | — | ⚡ Fast mode: skip blueprint/plan, develop directly |
-| `/od -p [req]` | — | 📝 Plan only: output blueprint and plan, no coding |
-| `/od ch [new req]` | `/od change` | 🔄 Change management |
-| `/od <Issue-URL>` | — | 🔗 Parse GitHub/Jira link into requirement blueprint |
-| `/od rv` | `/od review` | 🧐 Code review (read-only) |
-| `/od qa` | — | 🧪 Dependency analysis → Mock → Scenario coverage → Resilience testing |
-| `/od ps` | `/od push` | 📤 Commit and push code |
-| `/od st` | `/od stash` | 📦 Stash current task context |
-| `/od po` | `/od pop` | 📦 Restore stashed task context |
-| `/od sy` | `/od sync` | 🔗 Sync output to Jira/GitHub Issue |
-| `/od db` | `/od dashboard` | 📈 Generate global efficiency ROI dashboard |
-| `/od re` | `/od resume` | 🔄 Restore last interrupted session |
-| `/od cfg` | `/od config` | ⚙️ View current OmniDev configuration |
-| `/od cfg -i on/off` | — | 🎛️ Enable/disable interactive mode + auto ask mode (default: on) |
+|---------|-------|-------------|
+| `/od [requirement]` | — | Guided workflow: assess complexity → recommend phases |
+| `/od -f [requirement]` | — | Fast mode: skip blueprint/plan, dev directly |
+| `/od -p [requirement]` | — | Plan only: output blueprint and plan, no code |
+| `/od h` | `/od help` | Show all commands |
+| `/od ob` | `/od onboard` | Scan project, generate context doc |
+| `/od rv` | `/od review` | Code review (read-only) |
+| `/od qa` | — | Dependency analysis → Mock → Test → Report |
+| `/od ch [new req]` | `/od change` | Change management |
+| `/od ln` | `/od learn` | Self-learning: retrospective + evolution proposals |
+| `/od rp` | `/od report` | Generate weekly report |
+| `/od ps` | `/od push` | Commit and push code |
+| `/od re` | `/od resume` | Resume interrupted session |
+| `/od up` | `/od update` | Update OmniDev Kit |
+| `/od i <url>` | `/od install` | Install from remote Git repo |
+| `/od cfg` | `/od config` | View/edit configuration |
+| `/od cfg -l zh\|en` | — | Switch language |
+| `/od cfg -i on\|off` | — | Toggle interactive + auto Q&A mode |
+| `/od st` | `/od stash` | Stash current task context |
+| `/od po` | `/od pop` | Restore stashed context |
+| `/od sy` | `/od sync` | Sync output to Jira/GitHub Issue |
+| `/od db` | `/od dashboard` | Generate efficiency ROI dashboard |
 
 ## Directory Structure
 
 ```text
 omnidev-kit/
-├── INSTALL.md                      # Installation guide (Feed this to AI)
-├── README.md                       # This file
-├── README.zh-CN.md                 # Chinese documentation
-├── rules/                          # Lightweight trigger (alwaysApply: false)
-│   └── 01-omnidev-workflow.mdc     # Trigger rule — points to SKILL.md on /od
-└── skills/                         # Full specification (loaded on-demand)
+├── INSTALL.md
+├── README.md
+├── README.zh-CN.md
+├── rules/
+│   └── 01-omnidev-workflow.mdc       # Lightweight trigger (alwaysApply: false)
+└── skills/
     └── od/
-        └── SKILL.md                # /od skill — complete OmniDev workflow spec
+        ├── SKILL.md                  # Main spec — single source of truth
+        ├── phases/
+        │   ├── 00-assessment.md      # Root-level fallback
+        │   ├── 01-02-planning.md
+        │   ├── 03-development.md
+        │   ├── 04-testing.md
+        │   ├── zh/                   # Chinese locale
+        │   │   ├── 00-assessment.md
+        │   │   ├── 01-02-planning.md
+        │   │   ├── 03-development.md
+        │   │   └── 04-testing.md
+        │   └── en/                   # English locale
+        │       ├── 00-assessment.md
+        │       ├── 01-02-planning.md
+        │       ├── 03-development.md
+        │       └── 04-testing.md
+        └── engine/
+            ├── evolution.md          # Root-level fallback
+            ├── special-flows.md
+            ├── zh/
+            │   ├── evolution.md
+            │   └── special-flows.md
+            └── en/
+                ├── evolution.md
+                └── special-flows.md
 ```
 
 ## Quick Start
 
 **Option 1: Install from Remote URL (Recommended)**
 
-Type the following command in your AI assistant:
-> `/od install https://github.com/zy-eagle/omnidev-kit.git`
-
-The AI will automatically clone the repository, install the rules and skills into your project, and clean up — no manual cloning required.
+```
+/od install https://github.com/zy-eagle/omnidev-kit.git
+```
 
 **Option 2: Install from Local Directory**
 
-Drag the `INSTALL.md` file into your AI assistant's chat (Cursor / Claude Code, etc.) and say: "Please help me install this toolkit." The AI will automatically read the rules and configure them in your project.
+Drag `INSTALL.md` into your AI assistant chat and say: "Please help me install this toolkit."
 
-Afterward, you can experience the brand-new structured AI coding workflow by typing `/od` or directly stating your requirements.
+Then type `/od` or state your requirement to begin.
