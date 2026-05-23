@@ -197,7 +197,7 @@ omnidev-kit/
 **方式一：通过远程仓库地址安装（推荐）**
 
 ```
-/od install https://github.com/zy-eagle/omnidev-kit.git
+/od install https://github.com/zayeagle/omnidev-kit.git
 ```
 
 **方式二：从本地目录安装**

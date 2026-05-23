@@ -92,7 +92,7 @@ context_requires:
     - all other state files
 ```
 
-**Source**: Always use the `update_source_url` from `config.json`. If not set, default to `https://github.com/zy-eagle/omnidev-kit.git`.
+**Source**: Always use the `update_source_url` from `config.json`. If not set, default to `https://github.com/zayeagle/omnidev-kit.git`.
 
 **Steps**:
 

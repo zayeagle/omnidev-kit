@@ -197,7 +197,7 @@ omnidev-kit/
 **Option 1: Install from Remote URL (Recommended)**
 
 ```
-/od install https://github.com/zy-eagle/omnidev-kit.git
+/od install https://github.com/zayeagle/omnidev-kit.git
 ```
 
 **Option 2: Install from Local Directory**

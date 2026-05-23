@@ -173,7 +173,7 @@ OmniDev stores user preferences in `docs/omnidev-state/config.json`. If the file
   "interactive_mode": true,
   "ask_mode_after_od": true,
   "locale": "zh",
-  "update_source_url": "https://github.com/zy-eagle/omnidev-kit.git"
+  "update_source_url": "https://github.com/zayeagle/omnidev-kit.git"
 }
 ```
 
@@ -182,7 +182,7 @@ OmniDev stores user preferences in `docs/omnidev-state/config.json`. If the file
 | `interactive_mode` | boolean | `true` | When `true`, use the **AskQuestion** tool to present structured choice UIs at decision points instead of numbered text prompts. Saves requests and tokens. |
 | `ask_mode_after_od` | boolean | `true` | When `true`, enter a **Q&A loop** after every `/od` command — present actionable options and accept free-form input so the user stays in an interactive workflow with full tool access until `/od x`. |
 | `locale` | string | `"zh"` | UI language for all user-facing output. `"zh"` = Chinese, `"en"` = English. Controls which language variant of phase/engine instruction files to load (`phases/{locale}/`, `engine/{locale}/`) and which language to use for checkpoints, prompts, and reports. |
-| `update_source_url` | string | `"https://github.com/zy-eagle/omnidev-kit.git"` | Remote Git repository URL used by `/od up` to fetch the latest version. Written automatically during `/od install`. |
+| `update_source_url` | string | `"https://github.com/zayeagle/omnidev-kit.git"` | Remote Git repository URL used by `/od up` to fetch the latest version. Written automatically during `/od install`. |
 
 #### Config Commands
 

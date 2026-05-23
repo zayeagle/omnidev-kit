@@ -27,14 +27,14 @@ AI Assistant, please execute the following steps:
 
 ### Method A: Install from Remote Repository URL (Recommended)
 
-If the user provides a **Git repository URL** (e.g., `https://github.com/zy-eagle/omnidev-kit.git`) instead of a local path, execute the following steps:
+If the user provides a **Git repository URL** (e.g., `https://github.com/zayeagle/omnidev-kit.git`) instead of a local path, execute the following steps:
 
 1. Use the Shell tool to clone the repository to a **temporary directory** (e.g., `_omnidev-kit-tmp` in the system temp folder or project root).
 2. Follow the same installation steps as **Method B** below, using the cloned temporary directory as the source. **Important**: In step 7, use the Git URL provided by the user as the `update_source_url` value.
 3. After installation is complete, **delete the temporary directory** to keep the project clean.
 
 This allows users to install OmniDev Kit with the command:
-> `/od install https://github.com/zy-eagle/omnidev-kit.git`
+> `/od install https://github.com/zayeagle/omnidev-kit.git`
 
 ### Method B: Install from Local Directory
 
