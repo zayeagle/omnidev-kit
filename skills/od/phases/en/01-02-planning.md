@@ -25,10 +25,26 @@ context_requires:
     - 00-project-context.md
     - 01-blueprint.md                # if Phase 1 ran
   scan:
-    - frontend entry files            # learn API client, router, state patterns
-    - backend route/handler files     # existing API surface
+    - src/{pages,views,app}/**/index.{ts,tsx,js,jsx,vue}  # frontend entry files (max 5)
+    - src/{routes,router,api}/*.{ts,js}                    # frontend API client / router
+    - cmd/**/main.go, internal/{handler,controller,route}/**/*.go  # Go backend routes
+    - src/{routes,controllers,handlers}/*.{ts,js}          # Node backend routes
+    - "**/routes.{py,rb}", "**/views.{py,rb}"              # Python/Ruby backend routes
+  scan_limit: 8                      # read at most 8 files from scan results
   skip:
     - 03-progress.md, 04-design.md, 05-test-report.md, 06-release-notes.md
+  unload:                             # ✅ safe to ignore — raw outputs from prior phase
+    - "Phase 0 instruction file (00-assessment.md) full text"
+    - "Phase 0 project scan tool outputs (Read/Grep raw returns)"
+  summarize_before_exit:
+    target: 02-plan.md               # task decomposition persists here
+    discard_after_write:             # ✅ raw tool outputs, already extracted to plan
+      - "source code scan results (Read/Grep raw returns from this phase)"
+    retain:                          # ❌ cannot unload — downstream phases depend on these
+      - 00-project-context.md        # Phase 3, 4 need this
+      - 02-plan.md                   # Phase 3, 4 need this
+      - 01-blueprint.md              # only Phase 2 needs it; Phase 3+ gets essence from 02-plan.md
+      - "user decisions (phase selection, requirement clarifications)"
 ```
 
 1. **Decompose** into atomic tasks (single clear deliverable).

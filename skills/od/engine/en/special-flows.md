@@ -167,3 +167,71 @@ context_requires:
 ## 6. Install (`/od i <url>`)
 
 **Steps**: Clone to `_omnidev-kit-tmp`, copy rules/skills per INSTALL.md, write `update_source_url` to `config.json`, cleanup temp directory.
+
+## 7. Resume (`/od re`)
+
+```yaml
+context_requires:
+  read:
+    - docs/omnidev-state/config.json          # locale, interactive_mode
+    - docs/omnidev-state/user-preferences.md  # user behavior preferences (if exists)
+    - session-log.md                          # session memory (if exists) — CRITICAL for resume
+    - 00-project-context.md
+    - 02-plan.md                              # resume needs plan to locate position
+    - 03-progress.md                          # current progress
+  skip:
+    - 01-blueprint.md, 04-design.md
+    - 05-test-report.md, 06-release-notes.md
+```
+
+### Steps
+
+1. **Read session-log.md** (if exists):
+   - Extract `last_phase`, `last_task_group`, `status` from YAML frontmatter
+   - Restore decision context from `## Key Decisions`
+   - Restore user preference context from `## User Feedback`
+   - Get specific resume guidance from `## Resume Instructions`
+
+2. **Read state files**: Load plan and progress per `context_requires`
+
+3. **Locate resume point**:
+   - If session-log exists: use `last_phase` + `last_task_group` to locate
+   - If session-log missing: infer from `03-progress.md` and `02-plan.md` (find first incomplete task)
+
+4. **Report to user** and confirm:
+   ```
+   ♻️ Session Resumed
+   Branch: [branch]
+   Last progress: Phase [N] — [description]
+   Remaining: [task list]
+   ```
+   Use AskQuestion (if interactive) to confirm: Continue / Restart / Cancel
+
+5. **Load phase instructions**: Based on resume point, load the corresponding `phases/{L}/` file and enter normal workflow
+
+### Check for unprocessed learning signals
+
+If `evolution-log.jsonl` exists with `processed: false` signals, append a reminder at the end of resume output.
+
+## 8. Session Exit (`/od x`)
+
+When the user ends the session (types `/od x` or selects "End"), execute before outputting closing summary:
+
+1. **Generate session-log.md** (per `engine/session-memory.md` rules):
+   - Record current phase, progress, key decisions, user feedback
+   - Mark status as `in_progress` (if tasks remain) or `completed`
+   - Write to `docs/omnidev-state/[branch]/session-log.md`
+
+2. **Update user-preferences.md** (if new preference signals detected this session):
+   - Check for new preferences per `engine/user-preferences.md` collection rules
+   - If any, silently update `docs/omnidev-state/user-preferences.md`
+
+3. **Output closing summary**:
+   ```
+   ✅ Session Complete
+   Completed: [summary of completed tasks/phases]
+   Remaining: [incomplete items, if any]
+   Session memory saved. Use `/od re` to resume anytime.
+   ```
+
+4. **Q&A Loop does NOT trigger** — `/od x` is a termination signal, do not append Q&A prompt

@@ -10,6 +10,14 @@ context_requires:
     - top-level directory listing     # quick ls for structure signals
   skip:
     - 01-blueprint.md, 02-plan.md, 03-progress.md, 04-design.md  # not yet created
+  summarize_before_exit:
+    target: 00-project-context.md    # stack detection results persist here
+    discard_after_write:
+      - "project scan tool outputs (package.json, go.mod reads, directory listings)"
+    retain:
+      - 00-project-context.md        # ❌ 后续所有 phase 都依赖，永不卸载
+      - "user's complexity/phase selection decisions"  # ❌ 写入 session-log
+  unload: []                         # Phase 0 is first phase, nothing to unload
 ```
 
 ## 1. Project Stack Detection (`/od onboard` or Phase 0 init)

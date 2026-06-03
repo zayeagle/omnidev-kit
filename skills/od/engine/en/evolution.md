@@ -4,13 +4,18 @@
 context_requires:
   read:
     - 00-project-context.md          # project conventions, pitfall guide
-    - evolution-log.jsonl            # all signals to cluster and propose from
-    - evolution-history.md           # past evolutions for dedup
+    - evolution-log.jsonl            # LAST 50 entries only (tail -50); skip older signals
+    - evolution-history.md           # LAST 20 entries only; used for dedup
+  read_limits:
+    evolution-log.jsonl: 50          # max 50 most recent JSONL lines
+    evolution-history.md: 20         # max 20 most recent evolution entries
   scan:
-    - 03-progress.md, archive/*      # errors and user corrections
+    - 03-progress.md                 # current progress only
     - .cursor/rules/*.mdc            # current rules — needed to draft amendments
-    - skills/od/SKILL.md             # current skill — needed for workflow tweaks
+  scan_limit: 5                      # max 5 rule files
   skip:
+    - archive/*                      # do NOT scan archives — too large, diminishing returns
+    - skills/od/SKILL.md             # already in context from activation; do NOT re-read
     - branch-specific state files other than 03-progress.md
 ```
 

@@ -167,3 +167,71 @@ context_requires:
 ## 6. Install (`/od i <url>`)
 
 **Steps**: Clone to `_omnidev-kit-tmp`, copy rules/skills per INSTALL.md, write `update_source_url` to `config.json`, cleanup temp directory.
+
+## 7. Resume (`/od re`)
+
+```yaml
+context_requires:
+  read:
+    - docs/omnidev-state/config.json          # locale, interactive_mode
+    - docs/omnidev-state/user-preferences.md  # user behavior preferences (if exists)
+    - session-log.md                          # session memory (if exists) — CRITICAL for resume
+    - 00-project-context.md
+    - 02-plan.md                              # resume needs plan to locate position
+    - 03-progress.md                          # current progress
+  skip:
+    - 01-blueprint.md, 04-design.md           # not needed for resume
+    - 05-test-report.md, 06-release-notes.md
+```
+
+### 步骤
+
+1. **读取 session-log.md**（如果存在）：
+   - 从 YAML frontmatter 中获取 `last_phase`、`last_task_group`、`status`
+   - 从 `## 关键决策` 恢复决策上下文
+   - 从 `## 用户反馈要点` 恢复用户偏好上下文
+   - 从 `## 恢复指引` 获取具体恢复操作建议
+
+2. **读取 state files**：按 `context_requires` 加载 plan 和 progress
+
+3. **定位恢复点**：
+   - 如果 session-log 存在：使用其中的 `last_phase` + `last_task_group` 定位
+   - 如果 session-log 不存在：从 `03-progress.md` 和 `02-plan.md` 推断（找到第一个未完成的任务）
+
+4. **向用户汇报**并确认恢复：
+   ```
+   ♻️ 会话恢复
+   分支: [branch]
+   上次进度: Phase [N] — [描述]
+   未完成: [任务列表]
+   ```
+   使用 AskQuestion（如果 interactive）确认：继续 / 重新开始 / 取消
+
+5. **加载对应 phase 指令**：根据恢复点加载对应的 `phases/{L}/` 文件，进入正常工作流
+
+### 检查未处理的学习信号
+
+如果 `evolution-log.jsonl` 存在且包含 `processed: false` 的信号，在恢复输出末尾追加提示。
+
+## 8. Session Exit (`/od x`)
+
+当用户结束会话时（输入 `/od x` 或选择"结束"），在输出关闭摘要前执行：
+
+1. **生成 session-log.md**（按 `engine/session-memory.md` 的规则）：
+   - 记录当前阶段、进度、关键决策、用户反馈
+   - 状态标记为 `in_progress`（如果有未完成任务）或 `completed`
+   - 写入 `docs/omnidev-state/[branch]/session-log.md`
+
+2. **更新 user-preferences.md**（如果本次会话有新的偏好信号）：
+   - 按 `engine/user-preferences.md` 的采集规则检查是否有新偏好
+   - 如有，静默更新 `docs/omnidev-state/user-preferences.md`
+
+3. **输出关闭摘要**：
+   ```
+   ✅ 会话结束
+   本次完成: [已完成的任务/阶段摘要]
+   待继续: [未完成项，若有]
+   会话记忆已保存，使用 `/od re` 可随时恢复
+   ```
+
+4. **Q&A Loop 不再触发**——`/od x` 是终止信号，不追加 Q&A prompt

@@ -5,13 +5,32 @@ context_requires:
   read:
     - 00-project-context.md          # conventions, pitfall guide, stability_level
     - 02-plan.md                     # task groups, dependencies
-    - 03-progress.md                 # resume point
-    - 04-design.md                   # architectural constraints
+    - 03-progress.md                 # resume point (if exists)
+    - 04-design.md                   # architectural constraints (if exists)
   scan:
-    - files listed in current group's task `outputs` and `depends`
-  reload: 02-plan.md                 # re-read after each group
+    - ONLY the exact file paths listed in current group's task `outputs` and `depends` fields
+    - DO NOT scan directories broadly; read individual files by path from 02-plan.md
+  scan_limit: 10                     # read at most 10 files per task group
+  reload: 02-plan.md                 # re-read after each group completes
   skip:
-    - 01-blueprint.md, 05-test-report.md, 06-release-notes.md
+    - 01-blueprint.md               # Phase 1 instruction — already consumed, discard
+    - 05-test-report.md, 06-release-notes.md  # downstream artifacts — not yet created
+  unload:                             # ✅ 可安全忽略的前序原始输出
+    - "Phase 1-2 instruction file (01-02-planning.md) full text"
+    - "Phase 1-2 source code scan raw returns (Read/Grep outputs)"
+    - "01-blueprint.md full text"    # Phase 2 已提取精华到 02-plan.md
+  summarize_before_exit:
+    target: 03-progress.md           # dev progress persists here
+    discard_after_write:             # ✅ 原始工具输出，已反映在代码和 state file 中
+      - "per-task code edit tool outputs (StrReplace, Write raw returns)"
+      - "git diff raw outputs from completed task groups"
+      - "intermediate Shell outputs (lint, build logs)"
+    retain:                          # ❌ 不可卸载，Phase 4 依赖
+      - 00-project-context.md        # Phase 4 需要 test conventions, topology
+      - 02-plan.md                   # Phase 4 需要 verify all tasks checked off
+      - 03-progress.md               # Phase 4 需要 blockers
+      - "Change Impact Summary"      # Phase 3 checkpoint 输出，Phase 4 和用户需要参考
+      - "user feedback during dev"   # 写入 session-log
 ```
 
 ## 1. Execution Protocol

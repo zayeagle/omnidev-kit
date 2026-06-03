@@ -5,15 +5,34 @@ context_requires:
   read:
     - 00-project-context.md          # test conventions, topology
     - 02-plan.md                     # verify all tasks checked off
-    - 03-progress.md                 # blockers
-    - evolution-log.jsonl            # unprocessed signals
-    - metrics.json
+    - 03-progress.md                 # blockers (if exists)
   scan:
-    - test directories
-    - files modified in Phase 3
-    - config files for DB/MQ/API connections
+    - "{test,tests,__tests__,spec}/**/*.{test,spec}.{ts,tsx,js,jsx,go,py}"  # test files
+    - "git diff --name-only HEAD~5"  # files modified in recent commits (Phase 3 output)
+    - ".env*", "config/*.{yml,yaml,json,toml}"  # config files for connections
+  scan_limit: 15                     # read at most 15 files from scan results
+  defer:
+    - evolution-log.jsonl            # only read at Phase 4 END (step 4-5), not at start
+    - metrics.json                   # only read at Phase 4 END for reporting
+  unload:                             # ✅ 可安全忽略的前序原始输出
+    - "Phase 3 instruction file (03-development.md) full text"
+    - "Phase 3 code edit tool outputs (StrReplace, Write raw returns)"
+    - "Phase 3 git diff raw outputs"
+    - "Phase 1-2 instruction and scan outputs (if still in context)"
   skip:
-    - 01-blueprint.md, 04-design.md
+    - 01-blueprint.md, 04-design.md  # upstream phase instructions — already consumed
+  summarize_before_exit:
+    target: 05-test-report.md        # test results persist here
+    discard_after_write:             # ✅ 原始工具输出，已提取到 test report
+      - "test execution Shell outputs (raw test runner logs)"
+      - "SAST/lint tool raw outputs"
+      - "coverage report raw data"
+    retain:                          # ❌ 不可卸载，会话结束和 learn 依赖
+      - 05-test-report.md            # 会话结束时的最终交付物
+      - 03-progress.md               # learn 可能需要回顾
+      - 02-plan.md                   # verify task completion status
+      - "Phase 3 Change Impact Summary (checkpoint output)"  # 用户参考
+      - "test failures and their root causes"  # learn 需要
 ```
 
 ## 1. Mock Strategy
