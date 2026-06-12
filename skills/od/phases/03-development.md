@@ -15,34 +15,85 @@ context_requires:
   skip:
     - 01-blueprint.md               # Phase 1 instruction — already consumed, discard
     - 05-test-report.md, 06-release-notes.md  # downstream artifacts — not yet created
-  unload:                             # ✅ 可安全忽略的前序原始输出
+  unload:                             # ✅ safe to ignore — raw outputs from prior phases
     - "Phase 1-2 instruction file (01-02-planning.md) full text"
     - "Phase 1-2 source code scan raw returns (Read/Grep outputs)"
-    - "01-blueprint.md full text"    # Phase 2 已提取精华到 02-plan.md
+    - "01-blueprint.md full text"    # Phase 2 extracted essence into 02-plan.md
   summarize_before_exit:
     target: 03-progress.md           # dev progress persists here
-    discard_after_write:             # ✅ 原始工具输出，已反映在代码和 state file 中
+    discard_after_write:             # ✅ raw tool outputs, already reflected in code and state
       - "per-task code edit tool outputs (StrReplace, Write raw returns)"
       - "git diff raw outputs from completed task groups"
       - "intermediate Shell outputs (lint, build logs)"
-    retain:                          # ❌ 不可卸载，Phase 4 依赖
-      - 00-project-context.md        # Phase 4 需要 test conventions, topology
-      - 02-plan.md                   # Phase 4 需要 verify all tasks checked off
-      - 03-progress.md               # Phase 4 需要 blockers
-      - "Change Impact Summary"      # Phase 3 checkpoint 输出，Phase 4 和用户需要参考
-      - "user feedback during dev"   # 写入 session-log
+    retain:                          # ❌ cannot unload — Phase 4 depends on these
+      - 00-project-context.md        # Phase 4 needs test conventions, topology
+      - 02-plan.md                   # Phase 4 needs to verify all tasks checked off
+      - 03-progress.md               # Phase 4 needs blockers
+      - "Change Impact Summary"      # Phase 3 checkpoint output, Phase 4 and user reference
+      - "user feedback during dev"   # persist to session-log
 ```
 
 ## 1. Execution Protocol
 
 1. Auto-checkpoint: `git commit -m "chore: auto-checkpoint before omnidev task"`.
-2. **Execute by group order** from `02-plan.md`. Dispatch independent tasks in parallel via `Task` tool if possible.
-3. **Frontend sync**: Follow existing conventions (API client wrapper, state management, naming style).
-4. **Aggressive Pruning**: Keep ONLY the last 3 active tasks in `03-progress.md` `## State Snapshot`. When a task completes, mark `[x]` in `02-plan.md` and immediately remove its details from `03-progress.md` to save tokens.
-5. **Change Impact Summary**: After completing each task group, output a structured impact summary (see §2 below).
-6. Checkpoint → WAIT.
+2. **Pre-Development Scope Confirmation**: Before writing any code, present the planned modification scope to the user (see §2.1 below). **STOP — WAIT for user confirmation.** Only proceed after user approves.
+3. **Execute by group order** from `02-plan.md`. Dispatch independent tasks in parallel via `Task` tool if possible.
+4. **Frontend sync**: Follow existing conventions (API client wrapper, state management, naming style).
+5. **Aggressive Pruning**: Keep ONLY the last 3 active tasks in `03-progress.md` `## State Snapshot`. When a task completes, mark `[x]` in `02-plan.md` and immediately remove its details from `03-progress.md` to save tokens.
+6. **Change Impact Summary**: After completing each task group, output a structured impact summary (see §2.2 below). **STOP — WAIT for user confirmation** before proceeding to next group or Phase 4.
+7. Checkpoint → WAIT.
 
-## 2. Change Impact Summary (修改影响总结)
+## 2. Impact Analysis & Confirmation
+
+### 2.1 Pre-Development Scope Confirmation
+
+**Trigger**: Before writing any code in Phase 3 (after reading `02-plan.md` and scanning relevant source files).
+
+**Purpose**: Like a senior engineer who first understands the full picture before touching any code — identify the modification boundary, assess the blast radius, and get explicit user sign-off.
+
+**Steps**:
+1. Read current source files that will be modified (from `02-plan.md` task outputs/depends).
+2. Analyze the existing architecture: module boundaries, call chains, data flow.
+3. Identify ALL files/modules that will be directly modified or indirectly affected.
+4. Assess risks: breaking changes, backward compatibility, performance implications.
+
+**Output format** (display to user):
+
+```
+🔍 **Pre-Development Scope Confirmation**
+
+### Architecture Understanding
+- **Project Structure**: [brief description of relevant module hierarchy and dependencies]
+- **Code Style**: [existing naming conventions, design patterns, error handling approach]
+- **Key Call Chains**: [core call paths involved]
+
+### Planned Modification Scope
+| File Path | Change Type | Description |
+|-----------|------------|-------------|
+| [path] | Add/Modify/Delete | [description] |
+
+### Impact Analysis
+- **Direct Impact**: [modules and features directly touched by this change]
+- **Indirect Impact**: [modules potentially affected through dependency chains]
+- **Frontend Impact**: [whether frontend sync is needed, which pages/components]
+- **API Compatibility**: [any Breaking Changes, whether versioning is needed]
+- **Data Impact**: [any DB schema changes, data migrations]
+
+### Risk Assessment
+- **Regression Risk**: [High/Medium/Low] — [reason]
+- **Performance Impact**: [potential performance implications, how to assess]
+- **Rollback Plan**: [how to revert if issues arise]
+
+⚠️ Please confirm the modification scope and impact analysis above. Development will begin after your approval.
+```
+
+**Confirmation Rules**:
+- **`interactive_mode` = `true`**: Use AskQuestion with options: "Confirm, start development" / "Adjust scope" / "Cancel, re-plan"
+- **`interactive_mode` = `false`**: Output the analysis and explicitly ask: "Please confirm to proceed with this plan. (y/adjust/cancel)"
+- **STOP — WAIT**: Do NOT write any code until user explicitly confirms.
+- **If user requests adjustments**: Revise the scope and present again for confirmation.
+
+### 2.2 Post-Development Change Impact Summary
 
 **Trigger**: Automatically after each task group completes AND before the Phase 3 checkpoint.
 
@@ -52,36 +103,47 @@ context_requires:
 3. Analyze which features, APIs, pages, or services are affected by the changes.
 4. Check for dependency changes (`package.json`, `requirements.txt`, `go.mod`, etc.).
 5. Check for configuration or environment changes (`.env`, config files, migration scripts).
+6. Compare actual changes against the pre-development scope (§2.1) — flag any deviations.
 
 **Output format** (display to user):
 
 ```
-📋 **修改影响总结 (Change Impact Summary)**
+📋 **Change Impact Summary**
 
-### 文件变更
-| 操作 | 文件路径 | 说明 |
-|------|---------|------|
-| 🆕 新增 | src/services/auth.ts | 认证服务模块 |
-| 📝 修改 | src/routes/user.ts | 新增登录接口 |
-| 📝 修改 | src/models/user.ts | 增加 token 字段 |
-| 🗑️ 删除 | src/utils/old-auth.ts | 废弃旧认证逻辑 |
+### File Changes
+| Operation | File Path | Description |
+|-----------|----------|-------------|
+| 🆕 Added | src/services/auth.ts | Authentication service module |
+| 📝 Modified | src/routes/user.ts | Added login endpoint |
+| 📝 Modified | src/models/user.ts | Added token field |
+| 🗑️ Deleted | src/utils/old-auth.ts | Removed legacy auth logic |
 
-### 功能影响
-- **[模块名]**: [具体影响描述]
-- **[模块名]**: [具体影响描述]
-- **前端影响**: [需同步修改 / 无影响]
+### Feature Impact
+- **[Module]**: [specific impact description]
+- **[Module]**: [specific impact description]
+- **Frontend Impact**: [needs sync update / no impact]
 
-### 依赖与配置变更
-- **新增依赖**: [列出新增的包及版本，若无则标注"无"]
-- **环境变量**: [列出新增/修改的 .env 变量，若无则标注"无"]
-- **数据库迁移**: [列出迁移脚本，若无则标注"无"]
+### Dependency & Config Changes
+- **New Dependencies**: [list added packages and versions, or "None"]
+- **Environment Variables**: [list new/modified .env variables, or "None"]
+- **Database Migrations**: [list migration scripts, or "None"]
+
+### Scope Deviation
+- **Exceeded planned scope**: [Yes/No]
+- **Deviation explanation**: [if deviated, explain why and the necessity of extra changes]
+
+⚠️ Please confirm the changes above before proceeding to next task group / testing phase.
 ```
 
-**Rules**:
+**Confirmation Rules**:
+- This summary **blocks the workflow** — user MUST explicitly confirm before proceeding to next task group or Phase 4.
+- **`interactive_mode` = `true`**: Use AskQuestion with options: "Confirm, continue" / "Need to modify/revert some changes" / "Pause, I need to review code"
+- **`interactive_mode` = `false`**: Output the summary and explicitly ask: "Please confirm to continue. (y/modify/pause)"
+- **STOP — WAIT**: Do NOT proceed until user explicitly confirms.
 - Keep the summary concise — no more than 20 file entries. If more, group by directory with counts.
 - Functional impact analysis must map files to business features, not just list paths.
-- If no dependency/config changes exist, still show the section with "无" to confirm nothing was missed.
-- This summary is for **user awareness only** — it does not block the workflow and requires no confirmation.
+- If no dependency/config changes exist, still show the section with "None" to confirm nothing was missed.
+- If scope deviation is detected, highlight it prominently and explain why extra changes were necessary.
 
 ## 3. DevSecOps & Resilience Requirements
 

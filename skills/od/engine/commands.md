@@ -12,6 +12,9 @@ All commands support **short aliases** (1-2 letters). Users can also reply with 
 | `/od h` | `/od help` | 显示所有命令 |
 | `/od ob` | `/od onboard` | 扫描项目，生成上下文文档 |
 | `/od rp` | `/od report` | 生成周报 |
+| `/od gv` | `/od governance` | AI 治理与成本审计（手工触发） |
+| `/od gv --scope <...>` | — | 指定审计范围（phase3 / learning / cost / compliance / quality 等） |
+| `/od gv --since <7d|14d|30d|90d>` | — | 指定审计时间窗口（默认 14d） |
 | `/od rv` | `/od review` | 代码审查（只读，不修改） |
 | `/od qa` | — | 依赖分析 → Mock → 场景覆盖 → 韧性测试 → 测试报告 |
 | `/od ch [新需求]` | `/od change` | 需求变更管理 |
@@ -30,8 +33,6 @@ All commands support **short aliases** (1-2 letters). Users can also reply with 
 | `/od cfg` | `/od config` | 查看当前 OmniDev 配置 / View current config |
 | `/od cfg -i on` | — | 开启交互模式 + 自动问答模式 / Enable interactive + auto Q&A mode |
 | `/od cfg -i off` | — | 关闭交互模式 + 自动问答模式 / Disable interactive + auto Q&A mode |
-| `/od cfg -l zh` | — | 切换为中文模式 / Switch to Chinese |
-| `/od cfg -l en` | — | 切换为英文模式 / Switch to English |
 
 ## Phase Navigation (阶段导航)
 

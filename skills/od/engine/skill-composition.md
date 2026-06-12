@@ -76,7 +76,7 @@ Prompt: zh → `"🔍 检测到问题排查/修复类需求，发现以下可用
 After the user confirms which skills to load:
 
 1. **Read the full `SKILL.md`** of each selected skill (now reading the body, not just frontmatter).
-2. **Set execution context**: The loaded skill's rules and workflow take priority for the current troubleshooting task. OmniDev's core rules (B.1–B.4) remain active as baseline guardrails.
+2. **Set execution context**: The loaded skill's rules and workflow take priority for the current troubleshooting task. OmniDev's core rules (B.0–B.2) remain active as baseline guardrails.
 3. **Execute the loaded skill's workflow**: Follow its steps, checkpoints, and sub-document loading rules exactly as defined in that skill.
 4. **Combine supporting skills on-demand**: If the user selected supporting skills (e.g. `cloud-logging`), invoke them as needed during the primary skill's execution — for example, when `kdb-troubleshoot` reaches its "查日志" step, use the `cloud-logging` skill's rules for the log query.
 
@@ -100,6 +100,6 @@ When the external skill's workflow completes (user selects "end" or the skill re
 ## 7. Skill Composition Constraints
 
 - **Token budget**: Loading an external skill adds to context. If multiple skills are selected, load them lazily — only read a skill's full body when its workflow step is about to execute.
-- **Conflict resolution**: If the external skill's rules conflict with OmniDev's core rules (B.1–B.4), OmniDev's core rules take precedence (they are safety guardrails).
+- **Conflict resolution**: If the external skill's rules conflict with OmniDev's core rules (B.0–B.2), OmniDev's core rules take precedence (they are safety guardrails).
 - **No recursive composition**: An external skill loaded by OmniDev cannot itself trigger §1 to load another skill. Only OmniDev acts as the orchestrator.
 - **Session isolation**: External skill execution does not produce OmniDev state files (`02-plan.md`, `03-progress.md`, etc.). It only produces its own artifacts (if any). OmniDev state files are only written when the user returns to the OmniDev workflow.

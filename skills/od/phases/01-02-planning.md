@@ -33,17 +33,17 @@ context_requires:
   scan_limit: 8                      # read at most 8 files from scan results
   skip:
     - 03-progress.md, 04-design.md, 05-test-report.md, 06-release-notes.md
-  unload:                             # ✅ 可安全忽略的前序原始输出
+  unload:                             # ✅ safe to ignore — raw outputs from prior phase
     - "Phase 0 instruction file (00-assessment.md) full text"
     - "Phase 0 project scan tool outputs (Read/Grep raw returns)"
   summarize_before_exit:
     target: 02-plan.md               # task decomposition persists here
-    discard_after_write:             # ✅ 原始工具输出，已提取到 plan
+    discard_after_write:             # ✅ raw tool outputs, already extracted to plan
       - "source code scan results (Read/Grep raw returns from this phase)"
-    retain:                          # ❌ 不可卸载，后续 phase 依赖
-      - 00-project-context.md        # Phase 3, 4 都需要
-      - 02-plan.md                   # Phase 3, 4 都需要
-      - 01-blueprint.md              # 仅 Phase 2 需要；Phase 3+ 可通过 02-plan.md 获取精华
+    retain:                          # ❌ cannot unload — downstream phases depend on these
+      - 00-project-context.md        # Phase 3, 4 need this
+      - 02-plan.md                   # Phase 3, 4 need this
+      - 01-blueprint.md              # only Phase 2 needs it; Phase 3+ gets essence from 02-plan.md
       - "user decisions (phase selection, requirement clarifications)"
 ```
 
@@ -51,7 +51,7 @@ context_requires:
 2. **Frontend Impact Analysis** (if `fullstack` or `frontend-only`):
    - Auto-create frontend sync tasks for backend API/schema changes.
    - Tag with `[frontend]` and link via `depends` to the backend task.
-   - If purely backend, explicitly note `前端影响: none`.
+   - If purely backend, explicitly note `Frontend impact: none`.
 3. **Dependency Analysis**: Identify inputs, outputs, and `depends` (prerequisite task IDs).
 4. **Parallel / Serial Grouping**:
    - Tasks with NO dependency edges belong to the same parallel group.

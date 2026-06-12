@@ -15,8 +15,8 @@ context_requires:
     discard_after_write:
       - "project scan tool outputs (package.json, go.mod reads, directory listings)"
     retain:
-      - 00-project-context.md        # ❌ 后续所有 phase 都依赖，永不卸载
-      - "user's complexity/phase selection decisions"  # ❌ 写入 session-log
+      - 00-project-context.md        # ❌ all downstream phases depend on this
+      - "user's complexity/phase selection decisions"  # ❌ persist to session-log
   unload: []                         # Phase 0 is first phase, nothing to unload
 ```
 
@@ -41,13 +41,13 @@ Before sizing, scan the project once (results cached in `00-project-context.md` 
 
 **Output format:**
 ```markdown
-## OmniDev Phase 0: 需求解析 & 复杂度评估
-**需求解析**: [1-2 sentences]
-**项目结构**: [fullstack | frontend-only | backend-only | monorepo] — frontend: [fw/none], backend: [fw/none]
-**复杂度评估**: [S/M/L/XL] — [reason]
-**稳定性级别**: [standard | high] — [reason]
-**前端影响**: [yes — 需同步修改前端 | no — 纯后端变更 | n/a]
-**推荐策略**: [phases]
+## OmniDev Phase 0: Requirement Analysis & Complexity Assessment
+**Requirement Analysis**: [1-2 sentences]
+**Project Structure**: [fullstack | frontend-only | backend-only | monorepo] — frontend: [fw/none], backend: [fw/none]
+**Complexity Assessment**: [S/M/L/XL] — [reason]
+**Stability Level**: [standard | high] — [reason]
+**Frontend Impact**: [yes — frontend changes needed | no — backend-only change | n/a]
+**Recommended Strategy**: [phases]
 ```
 
 **If `interactive_mode` is `true`**: Use `AskQuestion` to let the user confirm/adjust complexity and select phases to execute.

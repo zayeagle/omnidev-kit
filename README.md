@@ -11,9 +11,9 @@ OmniDev Kit is an AI-driven development workflow toolkit that transforms the AI 
 │                   OmniDev (/od)                     │
 │              Orchestration & Core Rules              │
 │  ┌──────────┬──────────┬──────────┬──────────────┐  │
-│  │ B.0      │ i18n     │ Context  │ Interactive  │  │
-│  │ Ask when │ (zh/en)  │ Life-    │ + Command    │  │
-│  │ unsure   │          │ cycle    │ Prompt       │  │
+│  │ B.0      │ Context  │ Impact   │ Interactive  │  │
+│  │ Ask when │ Life-    │ Analysis │ Quick-Select │  │
+│  │ unsure   │ cycle    │ & Confirm│              │  │
 │  └──────────┴──────────┴──────────┴──────────────┘  │
 │                        │                             │
 │  ┌─────────────────────▼───────────────────────────┐│
@@ -28,7 +28,7 @@ OmniDev Kit is an AI-driven development workflow toolkit that transforms the AI 
 │  └──────────────────────────────────────────────────┘│
 │                        │                             │
 │  ┌─────────────────────▼───────────────────────────┐│
-│  │       Dynamic Skill Composition (B.11)          ││
+│  │       Dynamic Skill Composition (B.9)           ││
 │  │  Detect intent → Scan local skills → Confirm    ││
 │  │  → Load & execute → Bridge back to OmniDev      ││
 │  └──────────────────────────────────────────────────┘│
@@ -51,10 +51,10 @@ Throughout the entire workflow, whenever the AI encounters anything uncertain, u
 > Rule of thumb: If you need to say "I assume...", "I guess...", "It should be...", you are unsure — stop and ask.
 
 Specific applications:
-- **Requirement Alignment (B.3)**: When requirements are vague, confirm core problem, final goal, delivery criteria, and root cause before proceeding.
-- **Problem Fix Protocol (B.4)**: For bug/security/behavior fixes, produce a complete solution plan with root cause analysis, compare approaches, and wait for user approval.
+- **Requirement Alignment**: When requirements are vague, confirm core problem, final goal, delivery criteria, and root cause before proceeding.
+- **Problem Fix Protocol**: For bug/security/behavior fixes, produce a complete solution plan with root cause analysis, compare approaches, and wait for user approval.
 
-### 2. Context Lifecycle Management (B.7)
+### 2. Context Lifecycle Management (B.5)
 
 Three-layer mechanism to control context bloat while preserving dependency chains:
 
@@ -76,39 +76,19 @@ Three memory modules ensure the AI "never forgets":
 
 | Module | File | Purpose |
 |--------|------|---------|
-| **Session Memory** (B.12) | `session-log.md` | Auto-generates structured summary on session end (goals, decisions, progress, feedback). Read on `/od re` for seamless resume. |
-| **User Preferences** (B.13) | `user-preferences.md` | Passively collects behavioral patterns (code style, phase skip habits, output verbosity). Loaded on every activation (≤ 30 lines). |
-| **Stash/Pop** (B.14) | `stash/` | Multi-task switching: `/od st` saves full snapshot (state files + git stash), `/od po` restores and auto-resumes. |
+| **Session Memory** (B.10) | `session-log.md` | Auto-generates structured summary on session end (goals, decisions, progress, feedback). Read on `/od re` for seamless resume. |
+| **User Preferences** (B.11) | `user-preferences.md` | Passively collects behavioral patterns (code style, phase skip habits, output verbosity). Loaded on every activation (≤ 30 lines). |
+| **Stash/Pop** (B.12) | `stash/` | Multi-task switching: `/od st` saves full snapshot (state files + git stash), `/od po` restores and auto-resumes. |
 
-### 4. Internationalization (i18n)
+### 4. Lightweight Interactive Prompt (B.8)
 
-Full bilingual support (Chinese / English), switchable at runtime:
+After each phase or command completes, the AI presents **2-4 most relevant next actions** via AskQuestion dialog:
 
-- **`/od cfg -l zh`** / **`/od cfg -l en`** to switch languages.
-- Phase instruction files organized under `phases/{locale}/` and `engine/{locale}/`. Only **one locale loaded at a time**.
-- All user-facing output (checkpoints, command prompts, reports) adapts to the active locale.
+- **Focused**: No verbose command lists — only the most reasonable next steps for current state
+- **Context-aware**: Intelligently recommends options based on current progress
+- **Zero memory burden**: Users don't need to memorize commands — just click to continue
 
-### 5. Command Prompt System (B.10)
-
-After each phase or command completes, a **context-aware command menu** is displayed with aliases and descriptions:
-
-```
-📋 Available commands:
- #  | Command        | Description
- 1  | /od n (next)   | Continue to next phase
- 2  | /od ad (adj)   | Revise current output
- 3  | /od sk (skip)  | Skip a phase
- 4  | /od rv (review)| Code review (read-only)
- 5  | /od ps (push)  | Commit & push
- 6  | Type directly  | Other command or question
- 7  | /od x (cancel) | End this task
-```
-
-- **Context-aware**: Only shows commands relevant to current state
-- **Three input methods**: Number (`1`), alias (`/od n`), or full command (`/od next`)
-- **In interactive mode**: Automatically uses AskQuestion structured UI
-
-### 6. Dynamic Skill Composition (B.11)
+### 5. Dynamic Skill Composition (B.9)
 
 OmniDev acts as an **orchestrator** that dynamically discovers and combines specialized skills:
 
@@ -117,32 +97,34 @@ OmniDev acts as an **orchestrator** that dynamically discovers and combines spec
 - **Rank matches**: 🎯 Direct match vs 🔧 Supporting capability.
 - **User confirms** before any skill is loaded (multi-select supported). **On-demand loading to save context.**
 
-### 7. Project Type Awareness & Adaptive Constraints
+### 6. Project Type Awareness & Adaptive Constraints
 
 - **Legacy Projects**: The AI acts like a "sensible veteran employee", 100% following existing conventions. No forced DDD/TDD.
 - **Greenfield Projects**: Full modern conventions — Spec-Driven Development, TDD/DDD, high test coverage.
 - Stack detection during `/od onboard` identifies fullstack / frontend-only / backend-only / monorepo.
 
-### 8. Adaptive Scheduling (T-Shirt Sizing)
+### 7. Adaptive Scheduling (T-Shirt Sizing)
 
 - **S**: Fix directly, skip blueprint/plan.
 - **M**: Skip blueprint → Plan → Dev → Test.
 - **L/XL**: Full workflow: Blueprint → Plan → Dev → Test → Deploy.
 
-### 9. Spec-Driven Engineering Discipline
+### 8. Spec-Driven Engineering Discipline
 
 - **Forced Brainstorming**: The AI must think about edge cases, exceptions, and UX before writing any code.
+- **Pre-Development Scope Confirmation**: Before writing code, must analyze architecture, code style, call chains, identify modification boundaries and impact, present risk assessment — **user must confirm before coding begins**.
+- **Post-Development Impact Confirmation**: After each task group, compare actual changes vs planned scope, flag deviations — **user must confirm before continuing**.
 - **Change Management** (`/od ch`): Mid-development requirement changes trigger impact assessment, old plan archival, and new blueprint generation.
 - **Auto-Checkpointing**: Git commit before any code modification.
 
-### 10. DevSecOps & Resilience
+### 9. DevSecOps & Resilience
 
 Phase 3 enforces security and resilience coding:
 - **Security by Design**: IDOR/BOLA prevention, injection prevention, SSRF/CSRF protection, sensitive data masking.
 - **Standard Level**: Structured errors, timeout control, graceful failure, input validation.
 - **High Level** (user-requested): Circuit breaker, retry with backoff, bulkhead isolation, graceful degradation, rate limiting.
 
-### 11. Quality Assurance — Testing (Phase 4)
+### 10. Quality Assurance — Testing (Phase 4)
 
 - **Dependency topology mapping** before writing any test.
 - **Mock strategy hierarchy**: Interface mock → In-memory fake → Container stub → HTTP stub → MCP-driven.
@@ -150,16 +132,19 @@ Phase 3 enforces security and resilience coding:
 - **System-level resilience testing**: Network latency, timeout, high concurrency (P99 < 200ms), memory pressure.
 - **Coverage gate**: >= 90% statement/branch coverage.
 
-### 12. Self-Evolution Engine
+### 11. Self-Evolution Engine
 
+- **Continuous Phase Learning**: At every phase exit, silently captures domain knowledge, architecture patterns, and business scenarios into `00-project-context.md § Domain Knowledge`.
+- **Compound Effect**: After 3-5 requirements, the AI's domain understanding approaches that of a team member who has been on the project for months — enabling significantly faster bug localization.
 - **Passive Learning**: Logs corrections, patterns, error resolutions during `/od` sessions.
 - **Smart Proposals**: Generates rule/skill improvement proposals when signals accumulate.
-- **User-Controlled**: All changes require explicit approval via `/od ln`.
+- **User-Controlled**: Rule changes require explicit approval via `/od ln`; domain knowledge accumulation is silent and observational.
 - **Safety Guardrails**: Cannot weaken core rules. Full rollback via `/od ln --rb [N]`.
 
-### 13. Enterprise Reporting & Ops
+### 12. Enterprise Reporting & Ops
 
 - **Weekly Reports** (`/od rp`): Management-ready reports combining git history + state files.
+- **AI Governance & Cost Audit** (`/od gv`): Manually triggered audit for token/cost efficiency, process compliance, quality risks, and prioritized improvements. Supports `--scope` and `--since`.
 - **Push Flow** (`/od ps`): Change impact summary → stage → commit message generation → push.
 - **Efficiency Bill**: ROI metrics appended to `metrics.json` after each delivery.
 - **Manual Update** (`/od up`): Preview diff before applying, user must confirm.
@@ -175,6 +160,9 @@ Phase 3 enforces security and resilience coding:
 | `/od -p [requirement]` | — | Plan only: output blueprint and plan, no code |
 | `/od h` | `/od help` | Show all commands |
 | `/od ob` | `/od onboard` | Scan project, generate context doc |
+| `/od gv` | `/od governance` | AI governance & cost audit (manual trigger) |
+| `/od gv --scope <...>` | — | Limit audit domain (phase3 / learning / cost / compliance / quality, etc.) |
+| `/od gv --since <7d\|14d\|30d\|90d>` | — | Set audit time window (default: 14d) |
 | `/od rv` | `/od review` | Code review (read-only) |
 | `/od qa` | — | Dependency analysis → Mock → Test → Report |
 | `/od ch [new req]` | `/od change` | Change management |
@@ -208,8 +196,7 @@ Phase 3 enforces security and resilience coding:
 | Command | Description |
 |---------|-------------|
 | `/od cfg` | View current config and user preferences |
-| `/od cfg -l zh\|en` | Switch language |
-| `/od cfg -i on\|off` | Toggle interactive mode + command prompt |
+| `/od cfg -i on\|off` | Toggle interactive mode |
 
 ## Directory Structure
 
@@ -226,18 +213,20 @@ omnidev-kit/
     └── od/
         ├── SKILL.md                    # Main spec — single source of truth
         ├── phases/
-        │   ├── {00,01-02,03,04}*.md    # Root-level fallback
-        │   ├── zh/                     # Chinese locale phase instructions
-        │   └── en/                     # English locale phase instructions
+        │   ├── 00-assessment.md        # Phase 0: Assessment & Onboard
+        │   ├── 01-02-planning.md       # Phase 1-2: Blueprint & Planning
+        │   ├── 03-development.md       # Phase 3: Development & DevSecOps
+        │   └── 04-testing.md           # Phase 4: Testing & Wrap-up
         └── engine/
             ├── commands.md             # Command reference (on-demand)
-            ├── session-memory.md       # Session memory rules
-            ├── user-preferences.md     # User preference collection rules
-            ├── stash.md                # Stash/Pop implementation
+            ├── context-protocol.md     # Unload/transition/budget rules (on-demand)
+            ├── evolution.md            # Self-evolution engine (on-demand)
+            ├── governance.md           # AI governance & cost audit (on-demand)
+            ├── session-memory.md       # Session memory + resume/exit flows
+            ├── stash.md                # Stash/Pop implementation (on-demand)
             ├── skill-composition.md    # Dynamic skill composition (on-demand)
-            ├── {evolution,special-flows}.md  # Root-level fallback
-            ├── zh/                     # Chinese locale engine instructions
-            └── en/                     # English locale engine instructions
+            ├── special-flows.md        # Push/Change/Report/Update flows
+            └── user-preferences.md     # User preference collection rules
 ```
 
 ## Quick Start

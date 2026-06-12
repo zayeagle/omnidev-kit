@@ -14,7 +14,7 @@ context_requires:
   defer:
     - evolution-log.jsonl            # only read at Phase 4 END (step 4-5), not at start
     - metrics.json                   # only read at Phase 4 END for reporting
-  unload:                             # ✅ 可安全忽略的前序原始输出
+  unload:                             # ✅ safe to ignore — raw outputs from prior phase
     - "Phase 3 instruction file (03-development.md) full text"
     - "Phase 3 code edit tool outputs (StrReplace, Write raw returns)"
     - "Phase 3 git diff raw outputs"
@@ -23,16 +23,16 @@ context_requires:
     - 01-blueprint.md, 04-design.md  # upstream phase instructions — already consumed
   summarize_before_exit:
     target: 05-test-report.md        # test results persist here
-    discard_after_write:             # ✅ 原始工具输出，已提取到 test report
+    discard_after_write:             # ✅ raw tool outputs, already extracted to report
       - "test execution Shell outputs (raw test runner logs)"
       - "SAST/lint tool raw outputs"
       - "coverage report raw data"
-    retain:                          # ❌ 不可卸载，会话结束和 learn 依赖
-      - 05-test-report.md            # 会话结束时的最终交付物
-      - 03-progress.md               # learn 可能需要回顾
+    retain:                          # ❌ cannot unload — session end and learn depend on these
+      - 05-test-report.md            # final deliverable at session end
+      - 03-progress.md               # learn may need to review
       - 02-plan.md                   # verify task completion status
-      - "Phase 3 Change Impact Summary (checkpoint output)"  # 用户参考
-      - "test failures and their root causes"  # learn 需要
+      - "Phase 3 Change Impact Summary (checkpoint output)"  # user reference
+      - "test failures and their root causes"  # learn needs these
 ```
 
 ## 1. Mock Strategy
@@ -59,7 +59,7 @@ Cover: Happy path, Validation (bad input), Conflict (duplicate/concurrent), Depe
 2. Run tests with coverage (Gate: >= 90% statement/branch coverage).
 3. Generate `05-test-report.md`.
 4. Trigger `/od ln` (self-learning).
-5. If `evolution-log.jsonl` has unprocessed signals, append: "🧬 发现 N 条学习信号。使用 `/od ln` 查看提案。"
+5. If `evolution-log.jsonl` has unprocessed signals, append: "🧬 Found N learning signals. Use `/od ln` to review proposals."
 6. Final summary → STOP.
 
 **05-test-report.md Concise Format:**

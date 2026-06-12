@@ -75,3 +75,69 @@ status: in_progress | completed | stashed
 | `/od` (新需求，同分支) | 检查是否存在未完成的 session-log（`status: in_progress`）。如果有，提醒用户："检测到未完成的任务，是否先恢复？"（AskQuestion）。 |
 | `/od st` | session-log 随 stash 一起保存。 |
 | `/od po` | session-log 随 stash 一起恢复。 |
+
+---
+
+## 6. Resume 操作流程 (`/od re`)
+
+```yaml
+context_requires:
+  read:
+    - docs/omnidev-state/config.json
+    - docs/omnidev-state/user-preferences.md
+    - session-log.md
+    - 00-project-context.md
+    - 02-plan.md
+    - 03-progress.md
+  skip:
+    - 01-blueprint.md, 04-design.md
+    - 05-test-report.md, 06-release-notes.md
+```
+
+### Steps
+
+1. **Read session-log.md** (if exists):
+   - Extract `last_phase`, `last_task_group`, `status` from YAML frontmatter
+   - Restore decision context from `## Key Decisions`
+   - Restore user preference context from `## User Feedback`
+   - Get resume guidance from `## Resume Instructions`
+
+2. **Read state files**: Load plan and progress per `context_requires`
+
+3. **Locate resume point**:
+   - If session-log exists: use `last_phase` + `last_task_group`
+   - If missing: infer from `03-progress.md` and `02-plan.md` (first incomplete task)
+
+4. **Report to user** and confirm:
+   ```
+   ♻️ Session Resumed
+   Branch: [branch]
+   Last progress: Phase [N] — [description]
+   Remaining: [task list]
+   ```
+   Use AskQuestion (if interactive): Continue / Restart / Cancel
+
+5. **Load phase instructions**: Based on resume point, load corresponding `phases/` file
+
+6. **Check for unprocessed learning signals**: If `evolution-log.jsonl` has `processed: false` signals, append reminder.
+
+## 7. Session Exit 操作流程 (`/od x`)
+
+When user ends session (`/od x` or selects "End"):
+
+1. **Generate session-log.md** (per §3-§4 rules):
+   - Record current phase, progress, key decisions, user feedback
+   - Mark status: `in_progress` (if tasks remain) or `completed`
+   - Write to `docs/omnidev-state/[branch]/session-log.md`
+
+2. **Update user-preferences.md** (if new preference signals detected this session)
+
+3. **Output closing summary**:
+   ```
+   ✅ Session Complete
+   Completed: [summary of completed tasks/phases]
+   Remaining: [incomplete items, if any]
+   Session memory saved. Use `/od re` to resume anytime.
+   ```
+
+4. **No next-step prompt** — `/od x` is a termination signal.
