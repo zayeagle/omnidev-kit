@@ -112,6 +112,7 @@ When `interactive_mode=true`, use AskQuestion at:
 | Phase 3: Pre-Dev Scope | Confirm / adjust / cancel |
 | Phase 3: Post-Dev Impact | Confirm / modify / pause |
 | `/od ch` Change Mgmt | Proceed / revise / cancel |
+| B.14 Doc Sync Report | Confirm sync results / adjust / redo |
 | `/od ps` Push | Commit / edit message / cancel |
 | `/od ln` Learning | Adopt / reject / adjust |
 
@@ -158,6 +159,67 @@ Command: `/od gv` (alias: `/od governance`). **Manual-only — never auto-trigge
 - Load `engine/governance.md` only on explicit `/od gv`.
 - Parameters: `--scope <all|phase0|...|cost|compliance|quality>`, `--since <7d|14d|30d|90d>`
 - Output: governance audit report (read-only). Rule changes require `/od ln` approval.
+
+### B.14 Document Synchronization on Requirement Changes (需求变更文档同步)
+
+**最高优先级跨阶段规则。AI 必须主动感知需求变化，不依赖用户显式触发。**
+
+#### 自我感知 — AI 主动识别需求变更
+
+**每一轮用户输入，AI 都必须进行需求变更判断**，而非仅在 `/od ch` 时才触发。
+
+**判断方法**: 将用户当前输入与已有 state files 中记录的需求进行比对，出现以下任一信号即判定为需求变更：
+
+| 信号类型 | 典型表现 |
+|----------|----------|
+| **显式变更** | 用户执行 `/od ch`；用户说"改一下/换成/不要了/加个/去掉" |
+| **隐式变更** | 用户在对话中描述了与已有 blueprint/plan 不一致的功能、流程或目标 |
+| **补充需求** | 用户追加了原始需求中未提及的新功能、新约束、新边界条件 |
+| **缩减需求** | 用户表示某功能"不做了/先不管/下期再说" |
+| **技术回调** | 开发/测试中发现技术约束导致原需求不可行，需调整 |
+| **偏差发现** | AI 自身发现当前执行方向与 state files 中记录的需求存在偏差 |
+
+**判断后行为**:
+- 若识别到需求变更 → **立即暂停当前工作**，先执行文档同步协议，再继续。
+- 若无变更 → 正常继续当前 phase 工作。
+- 若不确定是否构成变更 → 遵循 B.0 原则，问用户确认。
+
+#### 同步范围
+需求变更确认后，**必须扫描并同步所有已存在的 state files**：
+
+| State File | 同步内容 |
+|------------|----------|
+| `00-project-context.md` | 项目背景、业务域描述、技术约束 |
+| `01-blueprint.md` | 需求分析、架构设计、流程图 |
+| `02-plan.md` | 任务拆解、排期、依赖关系 |
+| `03-progress.md` | 任务状态、完成度标记 |
+| `04-design.md` | 技术方案、接口设计、数据模型 |
+| `05-test-plan.md` | 测试用例、覆盖范围 |
+| `06-release-notes.md` | 发布说明、变更记录 |
+
+#### 执行协议
+1. **识别**: AI 主动判断用户输入是否包含需求变更信号（见上表）。
+2. **确认**: 向用户明确说明检测到的变更内容，获得确认后执行（遵循 B.0）。
+3. **扫描**: 检查 `docs/omnidev-state/[branch]/` 下所有已存在的文件。
+4. **影响分析**: 判断每个文件是否受本次变更影响。
+5. **同步更新**: 对受影响的文件逐一更新，保持与最新需求一致。
+6. **变更标记**: 在每个被更新的文件中追加变更记录：
+   ```
+   <!-- CHANGE_LOG: [日期] 因需求变更同步更新: [变更摘要] -->
+   ```
+7. **同步报告**: 完成同步后，向用户输出变更同步报告：
+   ```
+   🔄 需求变更文档同步完成
+   📝 变更内容: [摘要]
+   📄 已同步文件: [列表]
+   ⏭️ 未受影响: [列表]
+   ```
+
+#### 约束
+- **主动识别是义务，不是可选项** — 不可因"用户没说 /od ch"就忽略需求变化。
+- 仅更新**已存在**的文件，不为尚未创建的下游产物提前创建。
+- 同步操作不可静默跳过 — 即使判断某文件"影响很小"，也必须在报告中说明。
+- 文件不存在则在报告中标注"尚未创建，后续阶段将基于最新需求生成"。
 
 ---
 

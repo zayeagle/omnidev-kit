@@ -43,16 +43,35 @@ context_requires:
 context_requires:
   read:
     - 00-project-context.md
+    - 01-blueprint.md
     - 02-plan.md
     - 03-progress.md
     - 04-design.md
+    - 05-test-plan.md
+    - 06-release-notes.md
   scan:
     - files affected by the proposed change
+  note: only read files that exist; skip missing files silently
 ```
 
-1. Assess impact on current architecture.
-2. If interactive, use `AskQuestion` to confirm: Proceed / Revise / Cancel.
-3. Archive old plan, regenerate blueprint/plan.
+1. **影响评估**: Assess impact on current architecture and all existing state files.
+2. **变更影响报告**: Present a structured impact report to user:
+   ```
+   🔄 需求变更影响分析
+   📝 变更内容: [description]
+   📄 受影响文档:
+     - 01-blueprint.md: [impact description]
+     - 02-plan.md: [impact description]
+     - ...
+   ⏭️ 未受影响: [list]
+   🚫 尚未创建: [list — will be generated with updated requirements in later phases]
+   ```
+3. If interactive, use `AskQuestion` to confirm: Proceed / Revise / Cancel.
+4. **全量文档同步** (按 B.14 规则执行):
+   - Archive old versions of affected files (append `<!-- CHANGE_LOG -->` marker).
+   - Update each affected state file to reflect the new requirements.
+   - Regenerate blueprint/plan sections as needed.
+5. **同步完成报告**: Output final sync summary per B.14 protocol.
 
 ## 3. Report (`/od report`)
 
