@@ -1,0 +1,26 @@
+{
+  "schema_version": 2,
+  "last_updated": null,
+  "interactive_mode": true,
+  "ask_mode_after_od": true,
+  "auto_checkpoint": false,
+  "confirmation_level": "auto",
+  "coverage_gate": false,
+  "sub_agents": "auto",
+  "design_split": true,
+  "log_token_estimates": true,
+  "max_read_lines": 150,
+  "context_mode": "slim",
+  "max_hot_lines": 150,
+  "max_resident_lines": 300,
+  "checkpoint_max_lines": 12,
+  "requirements": [],
+  "events": [],
+  "aggregates": {
+    "total_requirements": 0,
+    "avg_tasks_per_requirement": null,
+    "avg_tokens_per_requirement": null,
+    "phase_skip_rate": {},
+    "test_pass_rate_avg": null
+  }
+}

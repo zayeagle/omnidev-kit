@@ -1,6 +1,7 @@
 # Phase 0 & Onboard Instructions
 
 ## Context Requires
+
 ```yaml
 context_requires:
   read:
@@ -11,13 +12,13 @@ context_requires:
   skip:
     - 01-blueprint.md, 02-plan.md, 03-progress.md, 04-design.md  # not yet created
   summarize_before_exit:
-    target: 00-project-context.md    # stack detection results persist here
+    target: 00-project-context.md
     discard_after_write:
       - "project scan tool outputs (package.json, go.mod reads, directory listings)"
     retain:
-      - 00-project-context.md        # ❌ all downstream phases depend on this
-      - "user's complexity/phase selection decisions"  # ❌ persist to session-log
-  unload: []                         # Phase 0 is first phase, nothing to unload
+      - 00-project-context.md        # ❗ all downstream phases depend on this
+      - "user's complexity/phase selection decisions"  # ❗ persist to session-log
+  unload: []
 ```
 
 ## 1. Project Stack Detection (`/od onboard` or Phase 0 init)
@@ -33,6 +34,22 @@ Before sizing, scan the project once (results cached in `00-project-context.md` 
 5. **Stability Level**: `high` (if user requested high availability/stability) else `standard`.
 6. Output to `docs/omnidev-state/00-project-context.md` (mark `project_type: legacy` or `greenfield`). Include `## Stack & Layers`, `## Dependency Topology`, and `## Stability Level`.
 
+### Monorepo Detection
+
+If multiple `package.json` / `go.mod` at subdirectories or workspace config (`pnpm-workspace.yaml`, `lerna.json`, `go.work`):
+- Set `project_structure: monorepo`
+- List packages/services in `## Stack & Layers` with paths
+- Phase 2+ tasks must tag affected package: `[pkg:web]`, `[pkg:api]`, etc.
+
+### Project Type Guidance
+
+| Type | Phase 0 behavior |
+|------|------------------|
+| **Legacy** | Scan existing conventions; recommend minimal new dependencies |
+| **Greenfield** | Recommend OpenSpec/TDD structure; suggest CI + coverage from start |
+
+---
+
 ## 2. Phase 0: Complexity Assessment (T-Shirt Sizing)
 
 - **S**: Skip blueprint/plan → Dev → Test directly.
@@ -40,6 +57,7 @@ Before sizing, scan the project once (results cached in `00-project-context.md` 
 - **L/XL**: Full workflow: Blueprint → Plan → Dev → Test → Deploy.
 
 **Output format:**
+
 ```markdown
 ## OmniDev Phase 0: Requirement Analysis & Complexity Assessment
 **Requirement Analysis**: [1-2 sentences]
@@ -48,8 +66,33 @@ Before sizing, scan the project once (results cached in `00-project-context.md` 
 **Stability Level**: [standard | high] — [reason]
 **Frontend Impact**: [yes — frontend changes needed | no — backend-only change | n/a]
 **Recommended Strategy**: [phases]
+**Confirmation Level**: [full | reduced | minimal] — per B.15
 ```
 
 **If `interactive_mode` is `true`**: Use `AskQuestion` to let the user confirm/adjust complexity and select phases to execute.
 
-For **S tasks**: Do NOT generate state files. Resolve directly.
+### S-Level Tasks
+
+- Do NOT generate full state files (`02-plan.md`, etc.).
+- **Still write**: minimal `session-log.md` on exit (for `/od re`) and `metrics.json` event if user opts to track.
+- Resolve requirement directly; offer optional lightweight progress note in conversation only.
+
+---
+
+## Sub-Agent Dispatch (per `sub_agents` in config.json)
+
+| Mode | Phase 0 |
+|------|---------|
+| **off** | Main agent scans directly |
+| **auto** (default) | 1 explorer only if monorepo; else main agent |
+| **on** | 2 explorers (stack + topology) |
+
+→ [token-optimization.md](../engine/token-optimization.md) §2
+
+### Handoff Checklist (before WAIT)
+
+- [ ] All state files for this phase written to disk and non-empty: `00-project-context.md` (except S-level)
+- [ ] Next phase's context_requires.read files all exist on disk (pre-check)
+- [ ] Session snapshot auto-saved (see session-memory.md §2)
+- [ ] Key decisions recorded in state files (not just conversation history)
+- [ ] metrics.json updated with requirement_start event (skip for S unless tracking enabled)

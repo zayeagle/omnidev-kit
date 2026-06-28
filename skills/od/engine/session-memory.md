@@ -19,6 +19,7 @@
 | 用户输入 `/od x` 或选择"结束" | 生成完整 session-log |
 | Q&A Loop 中用户长时间无响应（会话自然结束） | 下次 `/od re` 时基于上下文补写 |
 | `/od st` (stash) | 生成 session-log 作为暂存的一部分 |
+| Phase exit (every checkpoint) | Minimal snapshot: phase, group, feature, last decision. **No state file body copy.** |
 
 ## 3. Session Log 格式
 
@@ -30,6 +31,10 @@ last_task_group: 2
 timestamp: 2026-06-03T08:30:00+08:00
 complexity: M
 status: in_progress | completed | stashed
+state_files: ["02-plan.md", "04-design.md", "03-progress.md"]
+active_feature: F2
+active_group: 2
+context_hot: ["02-plan Group 2", "features/F2.md"]
 ---
 
 ## 会话目标
@@ -45,6 +50,7 @@ status: in_progress | completed | stashed
 - Phase 2: ✅ 计划已生成，共 8 个任务 / 3 组
 - Phase 3: 🔄 进行中，Group 2/3 完成，Group 3 待执行
 - Phase 4: ⏳ 未开始
+- Phase 5: ⏳ 未开始（L/XL 部署阶段）
 
 ## 未完成项
 - [ ] T6: 用户列表前端页面 (Group 3)
@@ -84,14 +90,16 @@ status: in_progress | completed | stashed
 context_requires:
   read:
     - docs/omnidev-state/config.json
-    - docs/omnidev-state/user-preferences.md
-    - session-log.md
-    - 00-project-context.md
-    - 02-plan.md
-    - 03-progress.md
+    - session-log.md                 # YAML + 恢复指引 only
+    - 02-plan.md                     # frontmatter + active group ONLY
+    - 03-progress.md                 # blockers + snapshot ONLY
+  read_on_demand:
+    - 04-design.md                   # index only, if Phase 3/4
+    - 00-project-context.md          # phase slice on first use
   skip:
-    - 01-blueprint.md, 04-design.md
+    - 01-blueprint.md, 05-test-plan.md, features/*.md bulk
     - 05-test-report.md, 06-release-notes.md
+    - conversation history replay
 ```
 
 ### Steps
@@ -101,6 +109,8 @@ context_requires:
    - Restore decision context from `## Key Decisions`
    - Restore user preference context from `## User Feedback`
    - Get resume guidance from `## Resume Instructions`
+
+1.5. **Verify state file integrity**: Cross-check `state_files` manifest against disk. If any missing: report "⚠️ Session state incomplete. Missing: [files]. Recoverable: [yes/no]." Ask user.
 
 2. **Read state files**: Load plan and progress per `context_requires`
 
@@ -141,3 +151,18 @@ When user ends session (`/od x` or selects "End"):
    ```
 
 4. **No next-step prompt** — `/od x` is a termination signal.
+
+## 8. Minimal Resume (Cold Start — max 200 lines)
+
+Per [context-occupancy.md](context-occupancy.md) §10:
+
+1. session-log YAML + 恢复指引 only (≤20 lines) — skip body unless needed
+2. Active phase instruction only
+3. `02-plan.md` frontmatter + **active group section only**
+4. `03-progress.md` `## Blockers` + `## State Snapshot` only
+5. `04-design.md` index only (if Phase 3/4)
+6. `00-project-context.md` — **defer** until first need; then load phase-specific slice
+
+**Forbidden on resume**: replay conversation history, load 01-blueprint, load full 05-test-plan, load all features/.
+
+Log `metrics.json` event `type: "resume_cold_start"`.

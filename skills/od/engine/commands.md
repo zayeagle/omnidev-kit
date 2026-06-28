@@ -1,59 +1,79 @@
 # OmniDev Command Reference
 
-All commands support **short aliases** (1-2 letters). Users can also reply with **numbers** (e.g. `1`, `2`, `3`) when presented with numbered options at any checkpoint.
+All commands support **short aliases** (1–2 letters). Users may reply with **numbers** at checkpoints.
 
 ## Core Commands
 
 | Command | Alias | 说明 |
 |---------|-------|------|
-| `/od [需求]` | — | 引导式工作流：评估复杂度 → 推荐阶段 → 可跳过任意阶段 |
-| `/od -f [需求]` | — | 快速模式：跳过蓝图/计划，直接开发（热修复） |
-| `/od -p [需求]` | — | 仅规划：只输出蓝图和计划，不写代码 |
+| `/od [需求]` | — | 引导式工作流：评估 → 推荐阶段 → 可跳过 |
+| `/od -f [需求]` | — | 快速模式：跳过蓝图/计划，直接开发（S 级确认规则） |
+| `/od -p [需求]` | — | 仅规划：蓝图 + 计划，不写代码 |
 | `/od h` | `/od help` | 显示所有命令 |
 | `/od ob` | `/od onboard` | 扫描项目，生成上下文文档 |
 | `/od rp` | `/od report` | 生成周报 |
 | `/od gv` | `/od governance` | AI 治理与成本审计（手工触发） |
-| `/od gv --scope <...>` | — | 指定审计范围（phase3 / learning / cost / compliance / quality 等） |
-| `/od gv --since <7d|14d|30d|90d>` | — | 指定审计时间窗口（默认 14d） |
-| `/od rv` | `/od review` | 代码审查（只读，不修改） |
-| `/od qa` | — | 依赖分析 → Mock → 场景覆盖 → 韧性测试 → 测试报告 |
+| `/od gv --scope <...>` | — | phase0–5 / learning / cost / compliance / quality |
+| `/od gv --since <7d\|14d\|30d\|90d>` | — | 审计时间窗口（默认 14d） |
+| `/od rv` | `/od review` | 代码审查（只读） |
+| `/od qa` | — | 测试阶段快捷入口（Phase 4） |
 | `/od ch [新需求]` | `/od change` | 需求变更管理 |
-| `/od ln` | `/od learn` | 自学习：回顾错误 + 提炼规则 + 演化提案 |
+| `/od ln` | `/od learn` | 自学习：错误回顾 + 规则演化 |
 | `/od ln -r` | — | 查看学习日志和待处理提案 |
 | `/od ln -a` | — | 自动应用所有待处理提案 |
 | `/od ln --rb [N]` | — | 回滚第 N 条演化 |
-| `/od up` | `/od update` | 更新 OmniDev Kit 到最新版本 |
-| `/od i <url>` | `/od install` | 从远程 Git 仓库安装 OmniDev Kit |
-| `/od ps` | `/od push` | 提交并推送代码 |
-| `/od st` | `/od stash` | 暂存当前任务上下文 |
-| `/od po` | `/od pop` | 恢复暂存的任务上下文 |
-| `/od sy` | `/od sync` | 同步输出到 Jira/GitHub Issue |
-| `/od db` | `/od dashboard` | 生成全局效率 ROI 面板 |
-| `/od re` | `/od resume` | 恢复上次中断的会话（加载 OmniDev 规则） |
-| `/od cfg` | `/od config` | 查看当前 OmniDev 配置 / View current config |
-| `/od cfg -i on` | — | 开启交互模式 + 自动问答模式 / Enable interactive + auto Q&A mode |
-| `/od cfg -i off` | — | 关闭交互模式 + 自动问答模式 / Disable interactive + auto Q&A mode |
+| `/od up` | `/od update` | 更新 OmniDev Kit |
+| `/od i <url>` | `/od install` | 从 Git 仓库安装 |
+| `/od ps` | `/od push` | 提交并推送（需用户确认） |
+| `/od st` | `/od stash` | 暂存任务上下文 |
+| `/od po` | `/od pop` | 恢复暂存上下文 |
+| `/od sy` | `/od sync` | 同步到 GitHub Issue / Jira |
+| `/od db` | `/od dashboard` | 生成效率 ROI 面板 |
+| `/od re` | `/od resume` | 恢复上次会话 |
+| `/od cfg` | `/od config` | 查看配置 |
+| `/od cfg -i on\|off` | — | 开关交互模式 |
 
-## Phase Navigation (阶段导航)
+## Phase Navigation
 
 | Command | Alias | 说明 |
 |---------|-------|------|
 | `/od n` | `/od next` | 下一阶段 |
 | `/od ad [内容]` | `/od adj` | 修订当前阶段输出 |
-| `/od sk [阶段]` | `/od skip` | 跳过某个阶段 |
-| `/od bk [阶段]` | `/od back` | 返回某个阶段 |
-| `/od al` | `/od all` | 执行所有剩余阶段（不暂停） |
+| `/od sk [阶段]` | `/od skip` | 跳过阶段（0–5） |
+| `/od bk [阶段]` | `/od back` | 返回阶段 |
+| `/od al` | `/od all` | 执行剩余阶段（减少中间确认，仍遵守 B.15 安全确认） |
 
-## Confirmation (确认操作)
-
-At every checkpoint, options are presented as **numbered list** — user can reply with the **number**, the **alias**, or the **full command**. Example: reply `1` or `/od n` or `/od next` all mean "proceed to next phase".
+## Confirmation
 
 | Command | Alias | 说明 |
 |---------|-------|------|
 | `/od y` | `/od confirm` | 确认当前操作 |
-| `/od x` | `/od cancel` | 取消当前操作 |
-| `/od em [msg]` | — | 修改提交信息（`/od ps` 流程中） |
+| `/od x` | `/od cancel` | 取消 / 结束会话 |
+| `/od em [msg]` | — | 修改提交信息（`/od ps` 流程） |
 | `/od ln y` | — | 接受所有学习提案 |
-| `/od ln y [N,N]` | — | 接受指定编号的提案 |
+| `/od ln y [N,N]` | — | 接受指定编号提案 |
 | `/od ln x` | — | 拒绝所有提案 |
 | `/od ln ad [N] [反馈]` | — | 调整指定提案 |
+
+## Config Options (`config.json`)
+
+| Key | Default | 说明 |
+|-----|---------|------|
+| `interactive_mode` | `true` | AskQuestion 交互 |
+| `ask_mode_after_od` | `true` | `/od` 后进入问答模式 |
+| `update_source_url` | kit repo URL | `/od up` 源 |
+| `auto_checkpoint` | `false` | Phase 3 前 git stash（非 commit） |
+| `confirmation_level` | `"auto"` | `full` / `reduced` / `minimal` — B.15 |
+| `coverage_gate` | `false` | 覆盖率未达标是否阻塞 |
+| `sub_agents` | `"auto"` | `off` / `auto` / `on` — Sub-Agent 策略 |
+| `design_split` | `true` | 设计 index + `features/*.md` |
+| `log_token_estimates` | `true` | phase_exit 写入 metrics |
+| `max_read_lines` | `150` | 单次 Read 行数上限 |
+| `context_mode` | `"slim"` | `slim` / `standard` — 上下文占用策略 |
+| `max_hot_lines` | `150` | HOT 层行数上限 |
+| `max_resident_lines` | `300` | HOT+WARM 合计上限 |
+| `checkpoint_max_lines` | `12` | Checkpoint 输出上限 |
+| `jira_base_url` | — | `/od sy` Jira（可选） |
+| `jira_project_key` | — | Jira 项目键（可选） |
+
+See [engine/context-occupancy.md](engine/context-occupancy.md), [engine/token-optimization.md](engine/token-optimization.md), [engine/metrics.md](engine/metrics.md).

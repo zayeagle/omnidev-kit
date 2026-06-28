@@ -1,79 +1,92 @@
-# Phase 4 Instructions (Testing & Wrap-up)
+﻿# Phase 4 Instructions (Testing & Wrap-up)
 
 ```yaml
 context_requires:
   read:
-    - 00-project-context.md          # test conventions, topology
-    - 02-plan.md                     # verify all tasks checked off
-    - 03-progress.md                 # blockers (if exists)
+    - 00-project-context.md
+    - 02-plan.md
+    - 03-progress.md                 # if exists
+    - 04-design.md                   # INDEX ONLY
+    - 05-test-plan.md                # lazy: ONE feature test table at a time
+  read_on_demand:
+    - features/{FN}.md               # only when investigating failure
   scan:
-    - "{test,tests,__tests__,spec}/**/*.{test,spec}.{ts,tsx,js,jsx,go,py}"  # test files
-    - "git diff --name-only HEAD~5"  # files modified in recent commits (Phase 3 output)
-    - ".env*", "config/*.{yml,yaml,json,toml}"  # config files for connections
-  scan_limit: 15                     # read at most 15 files from scan results
+    - test files for current feature only
+    - "git diff --stat HEAD~5"       # stat only, not full diff
+  scan_limit: 10                     # reduced from 15
   defer:
-    - evolution-log.jsonl            # only read at Phase 4 END (step 4-5), not at start
-    - metrics.json                   # only read at Phase 4 END for reporting
-  unload:                             # ✅ safe to ignore — raw outputs from prior phase
-    - "Phase 3 instruction file (03-development.md) full text"
-    - "Phase 3 code edit tool outputs (StrReplace, Write raw returns)"
-    - "Phase 3 git diff raw outputs"
-    - "Phase 1-2 instruction and scan outputs (if still in context)"
-  skip:
-    - 01-blueprint.md, 04-design.md  # upstream phase instructions — already consumed
-  summarize_before_exit:
-    target: 05-test-report.md        # test results persist here
-    discard_after_write:             # ✅ raw tool outputs, already extracted to report
-      - "test execution Shell outputs (raw test runner logs)"
-      - "SAST/lint tool raw outputs"
-      - "coverage report raw data"
-    retain:                          # ❌ cannot unload — session end and learn depend on these
-      - 05-test-report.md            # final deliverable at session end
-      - 03-progress.md               # learn may need to review
-      - 02-plan.md                   # verify task completion status
-      - "Phase 3 Change Impact Summary (checkpoint output)"  # user reference
-      - "test failures and their root causes"  # learn needs these
+    - evolution-log.jsonl
+    - metrics.json
+  unload:
+    - "Phase 3 instruction file"
+    - "Phase 2 instruction file"
+    - "test runner raw logs after summary written"
 ```
 
-## 1. Mock Strategy
+→ Occupancy: [context-occupancy.md](../engine/context-occupancy.md) §3 Phase 4
 
-When a dependency's data source is not directly available, use mock data. Never skip testing.
-- **Interface Mock**: `gomock`, `jest.mock`, `unittest.mock` (Unit tests).
-- **In-Memory Fake**: SQLite for MySQL, in-memory map for Redis.
-- **Container Stub**: `testcontainers` (Integration tests).
-- **HTTP/gRPC Stub**: `wiremock`, `httptest`, `msw`.
-- **MCP-Driven**: Use DB/Browser MCP if available.
+```yaml
+context_occupancy:
+  hot: ["current feature test table", "active TC result"]
+  warm: ["smoke summary table", "02-plan traceability row"]
+  cold: ["other feature tests", "coverage raw", "test logs"]
+```
 
-## 2. Scenario Coverage
+**Sub-agents**: NEVER in Phase 4.
 
-Cover: Happy path, Validation (bad input), Conflict (duplicate/concurrent), Dependency failure (timeout/503), Security (IDOR/SQLi).
+---
 
-## 3. System-Level Resilience Testing
+## Overview
 
-- **Always run**: Network latency (inject delay), Dependency timeout (mock never responds), High concurrency (P99 < 200ms).
-- **Conditionally run (L/XL or High stability)**: Memory pressure (large payload), Cascading failure (circuit breaker trips).
+1. Smoke — current requirement features only
+2. Regression — **targeted** by Module tag (default if 10+ REG)
+3. Resilience — primary or alternative mocks
+4. Coverage — **once**, summary line only in report
+5. `05-test-report.md` + metrics update
 
-## 4. Test Execution & Reporting
+---
 
-1. Run SAST linters (`gosec`, `npm audit`).
-2. Run tests with coverage (Gate: >= 90% statement/branch coverage).
-3. Generate `05-test-report.md`.
-4. Trigger `/od ln` (self-learning).
-5. If `evolution-log.jsonl` has unprocessed signals, append: "🧬 Found N learning signals. Use `/od ln` to review proposals."
-6. Final summary → STOP.
+## Step 1–2: Smoke Test
 
-**05-test-report.md Concise Format:**
+Load ONE feature's test table from `05-test-plan.md` at a time. Execute → append result inline:
+
 ```markdown
-# Test Report
-## 1. Dependency Topology
-| Dependency | Type | Category | Test Strategy |
-## 2. Mock Data Registry
-| Mock ID | Target | Purpose | Data Shape |
-## 3. Scenario Coverage Matrix
-| # | Scenario | Input | Expected Output | Mock Used | Result | Duration |
-## 4. System-Level Resilience Tests
-| # | Fault Type | Target | Expected | Actual | Result |
-## 5. Summary
-- Coverage: [X]% (Gate: >= 90%)
-- Performance: P99 = [X]ms
+| TC-F1-01 | Happy | ✅ | 45ms |
+| TC-F1-02 | Input | ❌ | see note |
 ```
+
+Failed cases: add 1-line note; do NOT paste full stack trace into plan.
+
+---
+
+## Step 3: Regression (Targeted Default)
+
+1. Cross-reference modified modules from `02-plan.md` traceability
+2. Run REG entries with matching **Module** tag only
+3. Full regression: user request OR no Module tags OR release/L/XL deploy
+
+---
+
+## Step 4: Resilience
+
+Primary fault injection OR alternative unit mocks (see prior Phase 4 §4). Record method in report.
+
+---
+
+## Step 5: Coverage (Once)
+
+Run project coverage command → extract **single summary line** (e.g. `82.3% statements`). Do NOT load coverage JSON/HTML into context.
+
+---
+
+## Step 6: Test Report → `05-test-report.md`
+
+Summary tables only — details stay in `05-test-plan.md`.
+
+---
+
+## Step 7–8: Sync, Learning, Checkpoint
+
+SAST if available. `/od ln` optional. Log `test_complete` + token estimate to metrics.
+
+Next: Phase 5 (L/XL) / `/od ps` / Done.
