@@ -1,5 +1,8 @@
 # Self-Learning & Evolution Engine
 
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+
+
 ```yaml
 context_requires:
   read:
@@ -105,7 +108,7 @@ At every phase checkpoint, silently:
 3. Consolidate § Domain Knowledge
 4. Aggregate evolution-log.jsonl, dedupe, rank
 5. Proposals: Rule Amendment, Pitfall Guide, New Skill, Workflow Tweak, Domain Update
-6. Present via AskQuestion (if interactive)
+6. Present via platform interactive prompt (SKILL.md §F.2) (if interactive)
 7. Apply approved changes; mark signals `processed: true`
 
 ---

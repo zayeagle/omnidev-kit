@@ -1,5 +1,7 @@
 # OmniDev Command Reference
 
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+
 All commands support **short aliases** (1–2 letters). Users may reply with **numbers** at checkpoints.
 
 ## Core Commands
@@ -45,6 +47,8 @@ All commands support **short aliases** (1–2 letters). Users may reply with **n
 
 ## Confirmation
 
+Interactive confirmations use the platform native prompt mechanism (SKILL.md §F.2). In text-only/CLI mode, users reply with command aliases (e.g., `y`, `n`, `ad`).
+
 | Command | Alias | 说明 |
 |---------|-------|------|
 | `/od y` | `/od confirm` | 确认当前操作 |
@@ -59,7 +63,7 @@ All commands support **short aliases** (1–2 letters). Users may reply with **n
 
 | Key | Default | 说明 |
 |-----|---------|------|
-| `interactive_mode` | `true` | AskQuestion 交互 |
+| `interactive_mode` | `true` | 平台交互提示（见 §F.2） |
 | `ask_mode_after_od` | `true` | `/od` 后进入问答模式 |
 | `update_source_url` | kit repo URL | `/od up` 源 |
 | `auto_checkpoint` | `false` | Phase 3 前 git stash（非 commit） |
@@ -73,7 +77,12 @@ All commands support **short aliases** (1–2 letters). Users may reply with **n
 | `max_hot_lines` | `150` | HOT 层行数上限 |
 | `max_resident_lines` | `300` | HOT+WARM 合计上限 |
 | `checkpoint_max_lines` | `12` | Checkpoint 输出上限 |
+| `platform_override` | `null` | 手动覆盖平台检测：`"cursor"`, `"claude_code"`, `"codex"`, `"cli_other"`, 或 `null` (自动) |
+| `codex_compaction_multiplier` | `1.3` | Codex 平台 token 估算倍率（补偿 invisible compaction 开销） |
+| `codex_conservative_occupancy` | `true` | Codex 平台是否启用防御性上下文占用策略 |
+| `codex_thread_overhead_tokens` | `4000` | Codex 平台每个 sub-agent 线程的 token 开销 |
+| `codex_max_turns_before_compress` | `15` | Codex 平台触发压缩的 turn 阈值（比默认 25 更保守） |
 | `jira_base_url` | — | `/od sy` Jira（可选） |
 | `jira_project_key` | — | Jira 项目键（可选） |
 
-See [engine/context-occupancy.md](engine/context-occupancy.md), [engine/token-optimization.md](engine/token-optimization.md), [engine/metrics.md](engine/metrics.md).
+See [engine/context-occupancy.md](engine/context-occupancy.md), [engine/token-optimization.md](engine/token-optimization.md), [engine/metrics.md](engine/metrics.md), SKILL.md §F.8 (Codex compaction).

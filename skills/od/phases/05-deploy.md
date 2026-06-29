@@ -1,4 +1,6 @@
 # Phase 5 Instructions (Deploy & Release)
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+
 
 ```yaml
 context_requires:

@@ -1,5 +1,7 @@
 # Token Optimization Protocol
 
+→ Platform mapping: SKILL.md §F.3 (Sub-Agent/Worker Dispatch)
+
 **Load on**: Phase 0 entry, phase transitions, `/od compress`, `/od gv --scope cost`.
 
 **Goal**: Keep resident context ≤400 lines; minimize tool raw output; avoid Sub-Agent multiplication unless justified.
@@ -18,7 +20,7 @@
 
 ---
 
-## 2. Sub-Agent Policy (`sub_agents`)
+## 2. Sub-Agent Policy (`sub_agents`) — see SKILL.md §F.3 for platform mechanism
 
 | Mode | Phase 0 | Phase 1 | Phase 2 | Phase 3 | Phase 4 |
 |------|---------|---------|---------|---------|---------|
@@ -135,8 +137,19 @@ estimated_tokens =
   (skill_lines + phase_instruction_lines + state_files_loaded_lines) × 4
   + (tool_output_lines × 3)
   + (conversation_turns × 200)
-  + (sub_agents_spawned × 8000)   # flat overhead per worker session
+  + (sub_agents_spawned × platform_overhead)   # platform-dependent flat overhead per worker
 ```
+
+**Platform overhead per sub-agent spawn**:
+
+| Platform | Overhead (tokens) | Rationale |
+|----------|-------------------|-----------|
+| Cursor | 8000 | Full sub-agent session overhead |
+| Claude Code | 8000 | Task tool round-trip |
+| Codex | **4000** | Thread create + message + await; lower than Task tool |
+| CLI / Other | 0 | Serial execution only |
+
+For Codex, apply `codex_compaction_multiplier` (default 1.3) to the final total after platform overhead.
 
 **Tier mapping**:
 
@@ -166,11 +179,18 @@ Cross-ref: [context-occupancy.md](context-occupancy.md) for layer model.
 
 ## 8. Phase-Specific Quick Wins
 
-| Phase | Optimization |
-|-------|-------------|
-| 0 | Cache in `00-project-context.md`; skip re-scan if exists |
-| 1 | Max 2 approaches (not 3) for M; 3 for L/XL only |
-| 2 | Split design; table test plan; sub_agents auto = serial for M |
-| 3 | Read `features/FN.md` + task output files only; diff --stat default |
-| 4 | Targeted REG by Module tag; coverage run once; lazy test sections |
-| 5 | Document-only default; no deploy scan unless user confirms |
+| Phase | Optimization | Codex Note |
+|-------|-------------|------------|
+| 0 | Cache in `00-project-context.md`; skip re-scan if exists | If compaction suspected, reload from disk |
+| 1 | Max 2 approaches (not 3) for M; 3 for L/XL only | — |
+| 2 | Split design; table test plan; sub_agents auto = serial for M | Threads for ≥5 features L/XL; overhead ~4000/thread |
+| 3 | Read `features/FN.md` + task output files only; diff --stat default | Write progress to disk before any tool call |
+| 4 | Targeted REG by Module tag; coverage run once; lazy test sections | — |
+| 5 | Document-only default; no deploy scan unless user confirms | — |
+
+## 9. Platform Token Overrides
+
+| Platform | Config Key | Default | Effect |
+|----------|-----------|---------|--------|
+| Codex | `codex_compaction_multiplier` | `1.3` | Multiplier on estimated_tokens to account for invisible compaction cost |
+| Codex | `codex_thread_overhead_tokens` | `4000` | Overhead per `create_thread` + `send_message_to_thread` round-trip |

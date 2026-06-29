@@ -1,4 +1,6 @@
 # Phase 3 Instructions (Development & DevSecOps)
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+
 
 ```yaml
 context_requires:

@@ -1,5 +1,7 @@
 # Special Flows & Engine Instructions
 
+→ Platform mapping: SKILL.md §F.2 (Interactive Prompt), §F.3 (Sub-Agent), §F.4 (Slash Command)
+
 ## 1. Push (`/od push` / `/od ps`)
 
 ```yaml
@@ -31,12 +33,12 @@ context_requires:
    - [List changes, or "None"]
    ```
 
-2. If `interactive_mode` is `true`, use `AskQuestion`:
+2. If `interactive_mode` is `true`, use platform interactive prompt (SKILL.md §F.2):
    - **One-click auto**: `git add .` → auto-generate message → commit → push.
    - **Manual select**: wait for user to `git add`, then generate message.
    - **Cancel**.
 3. If `interactive_mode` is `false`, wait for user to `git add`, then generate message.
-4. Confirm message (AskQuestion if interactive).
+4. Confirm message (platform interactive prompt §F.2 if interactive).
 5. `git commit` + `git push origin <current-branch>`.
 
 **Never commit unless user explicitly confirms** (aligns with git safety rules).
@@ -86,7 +88,7 @@ For Structural changes: spawn 1 worker per feature to regenerate `04-design.md` 
    ⏳ 尚未生成: [list — will be generated in later phases]
    ```
 
-3. If interactive, use `AskQuestion` to confirm: Proceed / Revise / Cancel.
+3. If interactive, use platform interactive prompt (SKILL.md §F.2) to confirm: Proceed / Revise / Cancel.
 4. **全局文档同步** (per B.14, after confirmation):
    - Archive old versions of affected files (append `<!-- CHANGE_LOG -->` marker).
    - Update each affected state file to reflect the new requirements.
@@ -122,7 +124,7 @@ context_requires:
 
 ## 3.1 Next-Step Prompt Format (B.8)
 
-After every phase checkpoint, present **2–4 next actions** via `AskQuestion` (Chinese labels when `interactive_mode=true`):
+After every phase checkpoint, present **2–4 next actions** via platform interactive prompt (SKILL.md §F.2) (Chinese labels when `interactive_mode=true`):
 
 | Option | Typical Label (zh) |
 |--------|-------------------|

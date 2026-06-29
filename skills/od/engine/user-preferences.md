@@ -1,4 +1,7 @@
-# User Preferences Memory (用户偏好档案)
+# User Preferences Memory
+
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+ (用户偏好档案)
 
 ## Overview
 

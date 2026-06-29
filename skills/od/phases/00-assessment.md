@@ -1,4 +1,6 @@
 # Phase 0 & Onboard Instructions
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+
 
 ## Context Requires
 
@@ -69,7 +71,7 @@ If multiple `package.json` / `go.mod` at subdirectories or workspace config (`pn
 **Confirmation Level**: [full | reduced | minimal] — per B.15
 ```
 
-**If `interactive_mode` is `true`**: Use `AskQuestion` to let the user confirm/adjust complexity and select phases to execute.
+**If `interactive_mode` is `true`**: Use the platform interactive prompt (§F.2) to let the user confirm/adjust complexity and select phases to execute.
 
 ### S-Level Tasks
 

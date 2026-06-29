@@ -4,12 +4,14 @@
 
 OmniDev Kit 是一个 AI 驱动的开发工作流工具包，将 AI 从「只会按指令敲代码的打字员」升级为**「懂成本控制、会做架构设计、能自己写测试、且永远不会忘事的高级研发工程师」**。
 
+**支持 Cursor · Claude Code · Codex 三个平台** — 详见 [平台抽象层](skills/od/SKILL.md#f-platform-abstraction-layer-pal)。
+
 ## 架构总览
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   OmniDev (/od)                     │
-│                 编排层 & 核心规则                      │
+│           编排层 & 核心规则 (多 Agent 适配)             │
 │  ┌──────────┬──────────┬──────────┬──────────────┐  │
 │  │ B.0      │ 上下文   │ 影响面   │ 交互模式      │  │
 │  │ 不确定就问│ 生命周期 │ 分析确认 │ + 命令提示    │  │
@@ -38,6 +40,26 @@ OmniDev Kit 是一个 AI 驱动的开发工作流工具包，将 AI 从「只会
 │  └──────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────┘
 ```
+
+## 支持平台
+
+OmniDev Kit 内置 **平台抽象层 (PAL)**，自动适配各 Agent 的原生能力：
+
+| 功能 | Cursor | Claude Code | Codex |
+|------|:------:|:-----------:|:-----:|
+| 斜杠命令 (`/od`) | ✅ 原生支持 | ✅ SKILL.md | ✅ SKILL.md |
+| 交互式提示 | ✅ `AskQuestion` | ✅ `AskUserQuestion` | ✅ `request_user_input` (Plan 模式) / 文本回退 |
+| Sub-Agent / 并行 Worker | ✅ 内置并行 | ✅ `Task` 工具 | ✅ 线程模型 (`create_thread` + `send_message_to_thread`) |
+| Skill 发现 | ✅ `.cursor/skills/` | ✅ `.claude/skills/` | ✅ `~/.codex/skills/` |
+| MCP 集成 | ✅ `.cursor/mcp.json` | ✅ `.claude/mcp.json` | ✅ `list_mcp_resources` + `read_mcp_resource` |
+| 多选交互 | ✅ `allow_multiple` | ✅ `multiSelect` | ✅ 编号提示 + 逗号分隔回复 |
+| 上下文压缩 | N/A | N/A | ✅ 自动压缩 — 防御性状态写入 (§F.8) |
+| 平台检测 | 自动 | 自动 | 自动（支持 env/config 手动覆盖） |
+| 状态文件 & 记忆 | ✅ 跨平台 | ✅ 跨平台 | ✅ 跨平台 |
+
+详见: [SKILL.md §F](skills/od/SKILL.md#f-platform-abstraction-layer-pal)。
+
+---
 
 ## 核心特色
 
@@ -92,7 +114,7 @@ Phase 3 → 03-progress.md        → Phase 4（永不卸载）
 OmniDev 不是孤立的单体工具，而是一个**编排器**，能动态发现和组合专业 Skill：
 
 - **自动检测**用户输入中的排查/调试/修复意图关键词。
-- **扫描本地 Skill**：项目级 + 用户级（`.cursor/skills/`、`.claude/skills/`、`.agents/skills/`）共 4 个目录。
+- **扫描本地 Skill**：项目级 + 用户级（`.cursor/skills/`、`~/.cursor/skills/`、`~/.claude/skills/`、`~/.codex/skills/`、`~/.agents/skills/`）共 5 个目录。
 - **分级匹配**：🎯 直接匹配 vs 🔧 辅助能力。
 - **用户确认后才加载**（支持多选组合），**按需加载不浪费上下文**。
 
@@ -205,7 +227,9 @@ omnidev-kit/
 ├── README.md
 ├── README.zh-CN.md
 ├── rules/
-│   └── 01-omnidev-workflow.mdc         # 轻量触发器（alwaysApply: false）
+│   ├── 01-omnidev-workflow.mdc         # Cursor 触发器（alwaysApply: false）
+│   ├── 02-omnidev-workflow.claude.md   # Claude Code 触发器（alwaysApply: false）
+│   └── 03-omnidev-workflow.codex.md    # Codex 触发器（alwaysApply: false）
 ├── scripts/
 │   └── clean-cursor-state.ps1          # 工具脚本：清理 Cursor 状态
 └── skills/
@@ -238,6 +262,14 @@ omnidev-kit/
 
 **方式二：从本地目录安装**
 
-将 `INSTALL.md` 拖入 AI 助手对话框，说：「请帮我安装这个工具包」。
+将 `INSTALL.md` 拖入 AI 助手对话框，说：「请帮我安装这个工具包」。AI 会自动检测你的平台（Cursor / Claude Code / Codex）并安装到正确路径。
 
-之后输入 `/od` 或直接提出需求即可开始。
+### 各平台快速参考
+
+| 平台 | 安装目标 | 激活方式 |
+|------|---------|---------|
+| **Cursor** | `.cursor/skills/od/` + `.cursor/rules/` | 对话中输入 `/od` |
+| **Claude Code** | `.claude/skills/od/` 或 `~/.claude/skills/od/` | 对话中输入 `/od` |
+| **Codex** | `~/.codex/skills/od/` | 对话中输入 `/od`。如自动检测失败，设置 `OMNIDEV_PLATFORM=codex` 或 `config.json` `platform_override: "codex"`。 |
+
+安装后输入 `/od [你的需求]` 或 `/od ob`（项目扫描）开始。

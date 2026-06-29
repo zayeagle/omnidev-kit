@@ -1,5 +1,7 @@
 # Dynamic Skill Composition (动态 Skill 组合)
 
+→ Platform mapping: SKILL.md §F.2 (Interactive Prompt), §F.5 (Skill Discovery Paths)
+
 When the user raises a **troubleshooting, debugging, error investigation, or problem diagnosis** request within an `/od` session, OmniDev acts as an **orchestrator** that dynamically discovers and loads specialized external skills rather than handling everything itself.
 
 ## 1. Trigger Detection
@@ -26,7 +28,8 @@ Scan the following directories for `SKILL.md` files (using `Glob` tool with patt
 | `.cursor/skills/` | 1 (highest) | Project-level skills |
 | `~/.cursor/skills/` | 2 | User-level Cursor skills |
 | `~/.claude/skills/` | 3 | User-level Claude skills |
-| `~/.agents/skills/` | 4 | User-level agent skills |
+| `~/.codex/skills/` | 4 | User-level Codex skills |
+| `~/.agents/skills/` | 5 | User-level agent skills |
 
 **For each discovered `SKILL.md`**, read only the **YAML frontmatter** (`name` and `description` fields) — do NOT read the full file body. This keeps the scan lightweight.
 
@@ -53,7 +56,7 @@ Match the user's request against each discovered skill using a two-step process:
 
 **NEVER auto-load an external skill without explicit user confirmation.**
 
-Present the discovered skills to the user using `AskQuestion` (if `interactive_mode` is `true`, `allow_multiple: true`) or numbered prompt (if `false`).
+Present the discovered skills to the user using the platform's interactive prompt mechanism per SKILL.md §F.2 (if `interactive_mode` is `true`, with multi-select enabled per SKILL.md §F.2) or numbered prompt (if `false`).
 
 Prompt: zh → `"🔍 检测到问题排查/修复类需求，发现以下可用的专业 Skill："` / en → `"🔍 Troubleshooting/fix request detected. Found these specialized skills:"`
 
@@ -69,6 +72,15 @@ Prompt: zh → `"🔍 检测到问题排查/修复类需求，发现以下可用
 - **Supporting** skills are listed after with 🔧 prefix.
 - Always include the `od_only` and `cancel` escape options.
 - `allow_multiple: true` — the user may select a primary troubleshooting skill plus supporting skills (e.g. `kdb-troubleshoot` + `cloud-logging` + `sre-aiops-assistant`).
+
+**Platform multi-select mapping** (from SKILL.md §F.2/§F.2.1):
+
+| Platform | Multi-Select Mechanism |
+|----------|----------------------|
+| **Cursor** | `AskQuestion` with `allow_multiple: true` (native) |
+| **Claude Code** | `AskUserQuestion` with `multiSelect: true` (native) |
+| **Codex** | Numbered prompt + comma-separated reply (e.g., `1,3,4`). If `request_user_input` IS available, use `autoResolutionMs` to avoid indefinite blocking (see SKILL.md §F.2.2). |
+| **CLI / Other** | Numbered prompt + comma-separated reply |
 - **STOP — WAIT for user selection.** Do NOT proceed until the user confirms.
 
 ## 5. Skill Loading & Execution
@@ -85,7 +97,7 @@ After the user confirms which skills to load:
 When the external skill's workflow completes (user selects "end" or the skill reaches its final checkpoint):
 
 1. **Summarize findings**: Output a brief summary of the troubleshooting results.
-2. **Bridge back to OmniDev**: If the troubleshooting identified a code fix needed, present options via `AskQuestion`:
+2. **Bridge back to OmniDev**: If the troubleshooting identified a code fix needed, present options via the platform's interactive prompt per SKILL.md §F.2:
 
    Prompt: zh → `"🔧 排查完成。是否需要在 OmniDev 工作流中继续修复？"` / en → `"🔧 Troubleshooting complete. Continue with a fix in OmniDev?"`
 

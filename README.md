@@ -4,12 +4,14 @@
 
 OmniDev Kit is an AI-driven development workflow toolkit that transforms the AI from a "typist who only writes code on command" into a **"senior R&D engineer who understands cost control, architecture design, writes their own tests, and never forgets."**
 
+**Supports Cursor · Claude Code · Codex** — see [Platform Abstraction Layer](skills/od/SKILL.md#f-platform-abstraction-layer-pal).
+
 ## Architecture Overview
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                   OmniDev (/od)                     │
-│              Orchestration & Core Rules              │
+│        Orchestration & Core Rules (Multi-Agent)       │
 │  ┌──────────┬──────────┬──────────┬──────────────┐  │
 │  │ B.0      │ Context  │ Impact   │ Interactive  │  │
 │  │ Ask when │ Life-    │ Analysis │ Quick-Select │  │
@@ -39,6 +41,26 @@ OmniDev Kit is an AI-driven development workflow toolkit that transforms the AI 
 │  └──────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────┘
 ```
+
+## Supported Platforms
+
+OmniDev Kit has a built-in **Platform Abstraction Layer (PAL)** that adapts to each agent's native capabilities:
+
+| Feature | Cursor | Claude Code | Codex |
+|---------|:------:|:-----------:|:-----:|
+| Slash Command (`/od`) | ✅ Native | ✅ SKILL.md | ✅ SKILL.md |
+| Interactive Prompt | ✅ `AskQuestion` | ✅ `AskUserQuestion` | ✅ `request_user_input` (Plan mode) / text fallback |
+| Sub-Agent / Workers | ✅ Built-in parallel | ✅ `Task` tool | ✅ Thread-based (`create_thread` + `send_message_to_thread`) |
+| Skill Discovery | ✅ `.cursor/skills/` | ✅ `.claude/skills/` | ✅ `~/.codex/skills/` |
+| MCP Integration | ✅ `.cursor/mcp.json` | ✅ `.claude/mcp.json` | ✅ `list_mcp_resources` + `read_mcp_resource` |
+| Multi-Select Dialogs | ✅ `allow_multiple` | ✅ `multiSelect` | ✅ Numbered prompt + comma-separated reply |
+| Context Compaction | N/A | N/A | ✅ Auto-compaction — defensive state writing (§F.8) |
+| Platform Detection | Auto | Auto | Auto (with env/config override) |
+| State Files & Memory | ✅ Cross-platform | ✅ Cross-platform | ✅ Cross-platform |
+
+Full details: [SKILL.md §F](skills/od/SKILL.md#f-platform-abstraction-layer-pal).
+
+---
 
 ## Core Features
 
@@ -93,7 +115,7 @@ After each phase or command completes, the AI presents **2-4 most relevant next 
 OmniDev acts as an **orchestrator** that dynamically discovers and combines specialized skills:
 
 - **Auto-detect** troubleshooting / debugging / fix intents from user input keywords.
-- **Scan local skills** across 4 directories (project-level, user-level Cursor/Claude/Agents skills).
+- **Scan local skills** across 5 directories (`.cursor/skills/`, `~/.cursor/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.agents/skills/`).
 - **Rank matches**: 🎯 Direct match vs 🔧 Supporting capability.
 - **User confirms** before any skill is loaded (multi-select supported). **On-demand loading to save context.**
 
@@ -206,7 +228,9 @@ omnidev-kit/
 ├── README.md
 ├── README.zh-CN.md
 ├── rules/
-│   └── 01-omnidev-workflow.mdc         # Lightweight trigger (alwaysApply: false)
+│   ├── 01-omnidev-workflow.mdc         # Cursor trigger (alwaysApply: false)
+│   ├── 02-omnidev-workflow.claude.md   # Claude Code trigger (alwaysApply: false)
+│   └── 03-omnidev-workflow.codex.md    # Codex trigger (alwaysApply: false)
 ├── scripts/
 │   └── clean-cursor-state.ps1          # Utility: clean Cursor state
 └── skills/
@@ -239,6 +263,14 @@ omnidev-kit/
 
 **Option 2: Install from Local Directory**
 
-Drag `INSTALL.md` into your AI assistant chat and say: "Please help me install this toolkit."
+Drag `INSTALL.md` into your AI assistant chat and say: "Please help me install this toolkit." The AI will auto-detect your platform (Cursor / Claude Code / Codex) and install to the correct paths.
 
-Then type `/od` or state your requirement to begin.
+### Per-Platform Quick Reference
+
+| Platform | Install Target | Activate |
+|----------|---------------|----------|
+| **Cursor** | `.cursor/skills/od/` + `.cursor/rules/` | Type `/od` in chat |
+| **Claude Code** | `.claude/skills/od/` or `~/.claude/skills/od/` | Type `/od` in chat |
+| **Codex** | `~/.codex/skills/od/` | Type `/od` in chat. If auto-detection fails, set `OMNIDEV_PLATFORM=codex` or `config.json` `platform_override: "codex"`. |
+
+After install, type `/od [your requirement]` or `/od ob` (onboard) to begin.

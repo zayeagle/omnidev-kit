@@ -1,4 +1,6 @@
 # Phase 1 Instructions (Blueprint)
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+
 
 ## Context Requires
 
@@ -51,7 +53,7 @@ Score each approach as ✅ (strong) / ⚠️ (moderate) / ❌ (weak) on each dim
 **Rules**:
 
 - Always include at least 2 approaches. If only one is feasible, state why others are infeasible.
-- If `interactive_mode=true`, use `AskQuestion` to let user select. If `false`, present with a clear recommendation.
+- If `interactive_mode=true`, use the platform interactive prompt (§F.2) to let user select. If `false`, present with a clear recommendation.
 - **STOP — WAIT for user selection** before proceeding.
 
 ---
@@ -91,7 +93,7 @@ After user selects the approach, explicitly list all unvalidated assumptions:
 
 - Sort by blocking impact — blueprint-structure questions first.
 - Provide a reasonable default for each.
-- If `interactive_mode=true`, use `AskQuestion` to let user answer or accept defaults.
+- If `interactive_mode=true`, use the platform interactive prompt (§F.2) to let user answer or accept defaults.
 
 ---
 

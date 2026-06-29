@@ -1,4 +1,6 @@
 ﻿# Phase 4 Instructions (Testing & Wrap-up)
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+
 
 ```yaml
 context_requires:

@@ -1,5 +1,7 @@
 # Session Memory (会话记忆持久化)
 
+→ Platform mapping: SKILL.md §F.2 (Interactive Prompt)
+
 ## Overview
 
 每次 `/od` 会话结束时，自动将关键上下文压缩为结构化摘要，持久化到文件。下次 `/od re` 恢复时读取，实现真正的跨会话"断点续传"。
@@ -78,7 +80,7 @@ context_hot: ["02-plan Group 2", "features/F2.md"]
 | 命令 | 行为 |
 |------|------|
 | `/od re` | **必读** `session-log.md`（如果存在）。用其中的 `last_phase`、`last_task_group` 定位恢复点，用 `## 关键决策` 和 `## 用户反馈要点` 恢复上下文。然后按正常流程加载对应 phase 的 `context_requires`。 |
-| `/od` (新需求，同分支) | 检查是否存在未完成的 session-log（`status: in_progress`）。如果有，提醒用户："检测到未完成的任务，是否先恢复？"（AskQuestion）。 |
+| `/od` (新需求，同分支) | 检查是否存在未完成的 session-log（`status: in_progress`）。如果有，提醒用户："检测到未完成的任务，是否先恢复？"（使用 platform interactive prompt §F.2）。 |
 | `/od st` | session-log 随 stash 一起保存。 |
 | `/od po` | session-log 随 stash 一起恢复。 |
 
@@ -125,7 +127,7 @@ context_requires:
    Last progress: Phase [N] — [description]
    Remaining: [task list]
    ```
-   Use AskQuestion (if interactive): Continue / Restart / Cancel
+   Use platform interactive prompt (SKILL.md §F.2) (if interactive): Continue / Restart / Cancel
 
 5. **Load phase instructions**: Based on resume point, load corresponding `phases/` file
 
@@ -166,3 +168,50 @@ Per [context-occupancy.md](context-occupancy.md) §10:
 **Forbidden on resume**: replay conversation history, load 01-blueprint, load full 05-test-plan, load all features/.
 
 Log `metrics.json` event `type: "resume_cold_start"`.
+
+## 9. Codex Compaction-Resilient Resume
+
+Codex automatically compacts conversation history when token limits are exceeded. This interacts with `/od re` in specific ways:
+
+### 9.1 Session-Log as Compaction Shield
+
+The `session-log.md` YAML frontmatter is the **only reliable source of phase state** after a Codex compaction. Design it accordingly:
+
+- All critical fields MUST be in YAML (`last_phase`, `last_task_group`, `active_feature`, `status`, `state_files`), not only in prose sections.
+- Prose sections (`## 会话目标`, `## 关键决策`, etc.) are supplementary — the AI can recover without them.
+- `## 恢复指引` should contain **actionable next steps**, not historical context.
+
+### 9.2 Post-Compaction Resume Protocol
+
+When `/od re` is triggered and the AI suspects compaction occurred (truncated context, summary markers, inability to recall prior turns):
+
+1. **Trust only YAML frontmatter** of `session-log.md`. Ignore any phase/state information recovered from conversation memory — it may be a compaction artifact.
+2. **Aggressively reload from disk**: Re-read all files listed in `state_files` from disk, even if the AI "remembers" their contents. Compaction summaries may distort or omit details.
+3. **Report the recovery state**:
+   ```
+   ♻️ Session Resumed (post-compaction recovery)
+   Branch: [branch]
+   Last progress (from session-log): Phase [N] — Group [G]
+   Reloaded [N] state files from disk.
+   ```
+4. **Reset occupancy estimates**: Set HOT to 80, WARM to 40 (defensive defaults per context-occupancy §11.1).
+5. **Do NOT attempt to recover conversation history**. Prior user decisions live in `session-log.md` `## 关键决策` and `## 用户反馈要点`.
+
+### 9.3 Compaction-Safe Writing Practices
+
+During an active `/od` session on Codex, write to `session-log.md` at these checkpoints (in addition to normal triggers in §2):
+
+| Trigger | What to write |
+|---------|--------------|
+| After every task completion | Update `last_task_group` and `active_group` in YAML frontmatter |
+| After user makes a key decision | Append to `## 关键决策` immediately — don't wait for session end |
+| After user gives feedback/correction | Append to `## 用户反馈要点` immediately |
+| Every 10 turns | Update `## 恢复指引` with current "next step" |
+
+This ensures that even if Codex compacts before a normal `/od x` saves the full session-log, the file contains up-to-date recovery state.
+
+### 9.4 Integration
+
+- [context-occupancy.md](context-occupancy.md) §11.1 — Codex compaction coexistence
+- SKILL.md §F.8 — Codex Context Compaction Awareness
+- `metrics.json` event `type: "resume_post_compaction"` when compaction is suspected

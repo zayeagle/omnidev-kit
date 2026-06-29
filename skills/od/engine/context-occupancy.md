@@ -1,4 +1,7 @@
-# Context Occupancy Protocol (上下文占用控制)
+# Context Occupancy Protocol
+
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+ (上下文占用控制)
 
 **Load on**: every `/od` activation, phase transitions, `/od compress`, `/od re`.
 
@@ -151,7 +154,7 @@ Phase 3/4 MUST NOT load full plan if >80 lines:
 📦 [file1, file2]
 📍 P0✅ P1⏭ P2✅ P3🔄
 🔔 Next: Phase N+1
-[AskQuestion 2-4 options]
+[Platform interactive prompt (§F.2): 2-4 options]
 ```
 
 No progress essay. No file content echo.
@@ -215,9 +218,37 @@ Do NOT replay prior conversation. User decisions come from session-log + state f
 
 ---
 
-## 11. Integration
+## 11. Platform-Specific Occupancy Rules
+
+### 11.1 Codex — Compaction Coexistence
+
+Codex performs automatic context compaction. To avoid conflicts with OmniDev occupancy controls:
+
+| Rule | OmniDev default | Codex adjustment |
+|------|----------------|------------------|
+| HOT budget | 150 lines | 150 lines (unchanged) |
+| WARM budget | 250 lines | 250 lines (unchanged) |
+| Turn-based compress trigger | 25 turns | **15 turns** (stay ahead of Codex compaction) |
+| Phase purge (§8) | Full purge on phase exit | Full purge; assume all non-state-file context is lost after compaction |
+| `/od compress` scope | Progress archive + occupancy report + purge | Progress archive only; skip occupancy report (line counts unreliable). Codex handles its own compaction. |
+| After compaction event | N/A | Reset HOT to 80, WARM to 40 (defensive defaults). Rebuild from state files only. |
+| `/od re` cold start | ≤200 lines | ≤200 lines; same as standard. `session-log.md` YAML frontmatter is the authoritative state source. |
+
+**Codex rule**: There is no event signal for "compaction just happened." If context appears truncated, summaries are present, or tool outputs reference earlier work that the model can't recall → assume compaction occurred. Defensively reload from state files.
+
+### 11.2 Platform Config
+
+| Key | Default | Effect |
+|-----|---------|--------|
+| `codex_conservative_occupancy` | `true` | Enable Codex-specific defensive occupancy rules |
+| `codex_max_turns_before_compress` | `15` | Turn-based compress threshold for Codex |
+
+---
+
+## 12. Integration
 
 - [context-protocol.md](context-protocol.md) §12 — occupancy guards
 - [token-optimization.md](token-optimization.md) — tool output caps
 - SKILL.md B.18 — activation rule
+- SKILL.md §F.8 — Codex compaction awareness
 - Phase files — `context_occupancy` yaml block

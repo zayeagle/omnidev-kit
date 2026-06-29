@@ -1,4 +1,6 @@
 # Phase 2 Instructions (Detailed Design & Planning)
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+
 
 ## Context Requires
 

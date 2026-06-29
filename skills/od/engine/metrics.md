@@ -1,5 +1,8 @@
 # Metrics Collection (`metrics.json`)
 
+→ Platform mapping: SKILL.md §F (Platform Abstraction Layer)
+
+
 **Path**: `docs/omnidev-state/metrics.json` (global, not per-branch)
 
 **Purpose**: Event log for governance (`/od gv`), dashboard (`/od db`), and token tracking. See [token-optimization.md](token-optimization.md) for estimation rules.
@@ -28,7 +31,8 @@
       "rework_count": 0,
       "confirmations_skipped": 0,
       "estimated_tokens_total": 12400,
-      "sub_agents_spawned_total": 0
+      "sub_agents_spawned_total": 0,
+      "platform": "cursor"
     }
   ],
   "events": [
@@ -42,7 +46,8 @@
       "estimated_tokens": 4800,
       "estimated_cost_tier": "medium",
       "sub_agents_spawned": 0,
-      "confirmations_count": 1
+      "confirmations_count": 1,
+      "platform": "cursor"
     }
   ],
   "aggregates": {
@@ -83,13 +88,13 @@ If file does not exist, create with `schema_version: 2`, empty arrays on first `
 
 When `config.json` → `"log_token_estimates": true` (default), compute on every `phase_exit` per [token-optimization.md](token-optimization.md) §6.
 
-| Signal | Est. Cost Tier |
-|--------|----------------|
-| S / `/od -f`, sub_agents off | low |
-| M, no sub-agents, design_split | medium |
-| Phase 2 + 3+ workers | high |
-| L/XL full + regression 10+ | high |
-| Long session (>25 turns) without compress | high |
+| Signal | Est. Cost Tier | Codex Adjustment |
+|--------|----------------|-----------------|
+| S / `/od -f`, sub_agents off | low | ×1.3 multiplier |
+| M, no sub-agents, design_split | medium | ×1.3 multiplier |
+| Phase 2 + 3+ workers | high | ×1.3; thread overhead ~4000/thread |
+| L/XL full + regression 10+ | high | ×1.3 multiplier |
+| Long session (>25 turns) without compress | high | >15 turns on Codex triggers early compress |
 
 `/od gv --scope cost` reads `estimated_tokens_total` and `events[].estimated_cost_tier` for hotspot analysis.
 

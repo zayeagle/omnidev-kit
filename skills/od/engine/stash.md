@@ -1,5 +1,7 @@
 # Stash & Pop (任务上下文暂存/恢复)
 
+→ Platform mapping: SKILL.md §F.2 (Interactive Prompt)
+
 ## Overview
 
 当用户需要临时切换到另一个任务（如紧急 hotfix）时，`/od st` 将当前工作上下文完整快照保存，`/od po` 在切回时恢复，实现多任务无缝切换。
@@ -70,7 +72,7 @@ context_requires:
 
 3. **处理未提交代码**:
    - 运行 `git status --short` 检查是否有未提交变更。
-   - 如果有未提交变更，使用 `AskQuestion`（或文本提示）：
+   - 如果有未提交变更，使用 platform interactive prompt (SKILL.md §F.2)（或文本提示）：
 
    | id | 选项 |
    |----|------|
@@ -112,7 +114,7 @@ context_requires:
 
 2. **选择恢复目标**:
    - 如果只有 1 个暂存条目，直接确认是否恢复。
-   - 如果有多个，使用 `AskQuestion` 列出所有条目让用户选择：
+   - 如果有多个，使用 platform interactive prompt (SKILL.md §F.2) 列出所有条目让用户选择：
 
    | id | 选项 |
    |----|------|

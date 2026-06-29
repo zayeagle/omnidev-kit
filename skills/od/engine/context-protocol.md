@@ -1,5 +1,7 @@
 # Context Protocol (On-Demand)
 
+→ Platform mapping: SKILL.md §F.3 (Sub-Agent/Worker Dispatch)
+
 **Load this file ONLY during Phase transitions or when `/od compress` is triggered.**
 
 ---
@@ -162,6 +164,8 @@ context_requires:
 ---
 
 ## 10. Sub-Agent Failure & Conflict Resolution
+
+→ Use platform-native sub-agent mechanism per SKILL.md §F.3. Below rules apply across all platforms.
 
 When parallel workers (Phase 0–3) fail or conflict:
 
