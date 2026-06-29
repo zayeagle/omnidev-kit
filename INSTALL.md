@@ -3,10 +3,9 @@
 > **To AI Assistant (Cursor / Claude Code / Codex / etc.)**:
 > When the user hands you this document, please immediately read all `.md`, `.mdc`, and rule files in this directory. Based on the user's development platform, automatically copy these files to the corresponding platform configuration directory.
 >
-> **⚠️ Core Merge Strategy**:
-> If the user's project already has platform-specific config files (e.g., `.cursorrules`, `.cursor/rules/`, `CLAUDE.md`, `~/.codex/skills/`), **ABSOLUTELY DO NOT overwrite them directly**! You must:
-> 1. Read the user's existing rules.
-> 2. Perform a **non-destructive merge** of OmniDev's rules with the user's existing architecture/language conventions (e.g., retain the user's original Go/React coding style rules, and only add OmniDev's workflow and state management mechanisms as supplementary clauses).
+> **⚠️ Install / Reinstall Strategy**:
+> - **skills/od/**: Full overwrite every time. `rm -rf <target>/od/` then `cp -r`. Always match repo exactly — deleted or renamed files in the kit must disappear from the local install.
+> - **rules/ (Cursor only)**: Non-destructive merge. If user rules already exist, read them first and only add OmniDev-specific clauses. Other platforms skip rules/.
 >
 > After installation, report success to the user and remind them that they can start the standard workflow by typing `/od` or directly stating their requirements.
 
@@ -58,9 +57,8 @@ If the user has already cloned or downloaded `omnidev-kit` locally, follow the s
 
 1. Check if the `.cursor/rules/` folder exists in the project root; if not, create it.
 2. Copy all `.mdc` files from the `omnidev-kit/rules/` directory into the `.cursor/rules/` directory.
-3. Check if the `.cursor/skills/` folder exists in the project root; if not, create it.
-4. Copy the entire `omnidev-kit/skills/od/` directory (containing `SKILL.md` and all subdirectories) into `.cursor/skills/od/`. This enables the `/od` slash command in Cursor's autocomplete.
-5. Ensure the project root's `.gitignore` **does not contain** `.cursor/rules/` or `.cursor/skills/` (both should be committed to the repo).
+3. **Full overwrite**: `rm -rf .cursor/skills/od/`, then copy the entire `omnidev-kit/skills/od/` directory into `.cursor/skills/od/`. This enables the `/od` slash command in Cursor's autocomplete and removes stale files from previous installs.
+4. Ensure the project root's `.gitignore` **does not contain** `.cursor/rules/` or `.cursor/skills/` (both should be committed to the repo).
 6. Create a `docs/omnidev-state/` folder in the project root (for storing state and output docs).
 7. Copy `docs/omnidev-state/metrics.json` template from the kit (or create empty schema per `skills/od/engine/metrics.md`) for governance and dashboard tracking.
 8. Write the source repository URL into `docs/omnidev-state/config.json` so that `/od update` knows where to fetch future updates. If the file already exists, merge; if not, create it:
@@ -88,8 +86,8 @@ If the user has already cloned or downloaded `omnidev-kit` locally, follow the s
 #### 🖥️ For Claude Code Users
 
 1. Determine install scope — **project-level** (`.claude/` in project root) or **user-level** (`~/.claude/`). If the user is sharing the project with a team, prefer project-level.
-2. Create the skills directory (project: `.claude/skills/od/`, or user: `~/.claude/skills/od/`).
-3. Copy the entire `omnidev-kit/skills/od/` directory (containing `SKILL.md` and all subdirectories) into the target `skills/od/` directory. This enables OmniDev as a Claude Code custom slash command via SKILL.md.
+2. Create the skills parent directory (project: `.claude/skills/`, or user: `~/.claude/skills/`).
+3. **Full overwrite**: `rm -rf <target>/od/`, then copy the entire `omnidev-kit/skills/od/` directory into the target. This enables OmniDev as a Claude Code custom slash command via SKILL.md and removes stale files from previous installs.
 4. Check if `CLAUDE.md` exists in the project root. If it does, **append** (do not overwrite) the following trigger reference:
    ```markdown
    ## OmniDev Workflow
@@ -105,8 +103,8 @@ If the user has already cloned or downloaded `omnidev-kit` locally, follow the s
 
 #### 🖥️ For Codex Users
 
-1. Create the user-level skills directory: `~/.codex/skills/od/` (Codex skills are user-level by convention).
-2. Copy the entire `omnidev-kit/skills/od/` directory (containing `SKILL.md` and all subdirectories) into `~/.codex/skills/od/`. Codex will detect this skill via its `SKILL.md` frontmatter.
+1. Codex skills are user-level by convention (target: `~/.codex/skills/`).
+2. **Full overwrite**: `rm -rf ~/.codex/skills/od/`, then copy the entire `omnidev-kit/skills/od/` directory into `~/.codex/skills/od/`. Codex will detect this skill via its `SKILL.md` frontmatter.
 3. After copying, run a skill cache refresh if available: `codex skills refresh` or restart the Codex session.
 4. Create a `docs/omnidev-state/` folder in the project root (for storing state and output docs).
 5. Copy `docs/omnidev-state/metrics.json` template from the kit, or create empty schema per `skills/od/engine/metrics.md`.
@@ -126,18 +124,18 @@ If you want to install manually:
 
 ### Cursor
 1. Copy files in `omnidev-kit/rules/` to `.cursor/rules/`.
-2. Copy `omnidev-kit/skills/od/` to `.cursor/skills/od/`.
+2. Full overwrite: `rm -rf .cursor/skills/od/` then copy `omnidev-kit/skills/od/` to `.cursor/skills/od/`.
 3. Create `docs/omnidev-state/` in project root.
 4. Type `/od [your requirement]` or `/od ob` to onboard.
 
 ### Claude Code
-1. Copy `omnidev-kit/skills/od/` to `.claude/skills/od/`.
+1. Full overwrite: `rm -rf .claude/skills/od/` (or `~/.claude/skills/od/`) then copy `omnidev-kit/skills/od/` to target.
 2. Add `/od` trigger reference to `CLAUDE.md`.
 3. Create `docs/omnidev-state/` in project root.
 4. Type `/od [your requirement]` or `/od ob` to onboard.
 
 ### Codex
-1. Copy `omnidev-kit/skills/od/` to `~/.codex/skills/od/`.
+1. Full overwrite: `rm -rf ~/.codex/skills/od/` then copy `omnidev-kit/skills/od/` to `~/.codex/skills/od/`.
 2. Create `docs/omnidev-state/` in project root.
 3. Type `/od [your requirement]` or `/od ob` to onboard.
 

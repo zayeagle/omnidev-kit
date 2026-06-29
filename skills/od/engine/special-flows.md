@@ -196,16 +196,18 @@ context_requires:
    | `_omnidev-kit-tmp/skills/od/` | `.cursor/skills/od/` / `.claude/skills/od/` (or `~/.claude/skills/od/`) / `~/.codex/skills/od/` |
 
    **Platform mapping for step 5 (apply)**: Consult SKILL.md §F.7 for per-platform install targets. Key rules:
-   - **Cursor**: Copy rules → `.cursor/rules/`, skills → `.cursor/skills/od/`.
-   - **Claude Code**: Copy skills → `.claude/skills/od/` (project-level, fallback to `~/.claude/skills/od/` user-level). Skip `rules/`.
-   - **Codex**: Copy skills → `~/.codex/skills/od/` (user-level only). Skip `rules/`.
+   - **Cursor**: `rm -rf .cursor/skills/od/; cp -r .../skills/od/ .cursor/skills/od/`. Rules: non-destructive merge into `.cursor/rules/`.
+   - **Claude Code**: `rm -rf <target>/od/; cp -r .../skills/od/ <target>/od/` (project-level `.claude/skills/od/`, fallback to `~/.claude/skills/od/`). Skip `rules/`.
+   - **Codex**: `rm -rf ~/.codex/skills/od/; cp -r .../skills/od/ ~/.codex/skills/od/` (user-level only). Skip `rules/`.
    - **Platform auto-detection**: Use §F.1 table at the start of the update flow to determine current platform.
 
-   **Kit repo layout**: Source files live at repo root `skills/od/` and `rules/` — same structure as install source.
+  **Kit repo layout**: Source files live at repo root `skills/od/` and `rules/` — same structure as install source.
 
-3. Diff & present change summary (New / Changed / Obsolete / Unchanged).
+3. Diff & present change summary (New / Changed / Obsolete / Unchanged). Compare temp clone vs local target.
 4. Confirm with user — update MUST NOT proceed without explicit approval.
-5. Apply changes (only after confirmation).
+5. Apply changes (only after confirmation):
+   - **skills/od/**: Full overwrite. Delete target skill directory first (`rm -rf <target>/od/`), then copy entire `skills/od/` from temp clone. This ensures removed files do not persist.
+   - **rules/**: Cursor only — non-destructive merge. Do NOT overwrite user-customized rules; compare and only apply OmniDev-specific additions.
 6. Cleanup: Delete `_omnidev-kit-tmp/`.
 7. Report result: New N / Changed N / Deleted N / Unchanged N.
 
@@ -323,9 +325,9 @@ If `config.json` contains `jira_base_url` and `jira_project_key`:
 Clone to `_omnidev-kit-tmp`, then copy to platform-specific targets per SKILL.md §F.7:
 
 1. **Detect platform** using §F.1 table (auto-detect or `config.json` `platform_override`).
-2. **Copy skills**: `_omnidev-kit-tmp/skills/od/` → platform target path (Cursor: `.cursor/skills/od/`, Claude Code: `.claude/skills/od/` or `~/.claude/skills/od/`, Codex: `~/.codex/skills/od/`).
+2. **Copy skills (full overwrite)**: `rm -rf <target>/od/; cp -r _omnidev-kit-tmp/skills/od/ <target>/od/` — target path per platform: Cursor: `.cursor/skills/od/`, Claude Code: `.claude/skills/od/` or `~/.claude/skills/od/`, Codex: `~/.codex/skills/od/`.
 3. **Copy rules**: Cursor only — `_omnidev-kit-tmp/rules/` → `.cursor/rules/`. Claude Code and Codex skip this step (they trigger via SKILL.md).
 4. Write `update_source_url` to `docs/omnidev-state/config.json`.
 5. Cleanup: Delete `_omnidev-kit-tmp/`.
 
-**Non-destructive merge**: Never overwrite existing user rules without reading and merging first. For Codex, run `codex skills refresh` if available after copying.
+**Full overwrite policy**: Skills directory is always fully replaced (delete-then-copy). Rules directory uses non-destructive merge — never overwrite user-customized rules. For Codex, run `codex skills refresh` if available after copying.
