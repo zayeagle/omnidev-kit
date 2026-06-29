@@ -114,7 +114,7 @@ Phase 3 → 03-progress.md        → Phase 4（永不卸载）
 OmniDev 不是孤立的单体工具，而是一个**编排器**，能动态发现和组合专业 Skill：
 
 - **自动检测**用户输入中的排查/调试/修复意图关键词。
-- **扫描本地 Skill**：项目级 + 用户级（`.cursor/skills/`、`~/.cursor/skills/`、`~/.claude/skills/`、`~/.codex/skills/`、`~/.agents/skills/`）共 5 个目录。
+- **扫描本地 Skill**：项目级 + 用户级（`.cursor/skills/`、`.claude/skills/`、`~/.cursor/skills/`、`~/.claude/skills/`、`~/.codex/skills/`、`~/.agents/skills/`）共 6 个目录。
 - **分级匹配**：🎯 直接匹配 vs 🔧 辅助能力。
 - **用户确认后才加载**（支持多选组合），**按需加载不浪费上下文**。
 

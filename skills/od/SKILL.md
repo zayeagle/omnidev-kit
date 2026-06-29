@@ -279,10 +279,11 @@ Skill discovery scans the following directories in priority order. The first pri
 | Priority | Path | Platform |
 |----------|------|----------|
 | 1 | `.cursor/skills/` | Cursor (project-level) |
-| 2 | `~/.cursor/skills/` | Cursor (user-level) |
-| 3 | `~/.claude/skills/` | Claude Code (user-level) |
-| 4 | `~/.codex/skills/` | Codex (user-level) |
-| 5 | `~/.agents/skills/` | Generic agent skills (user-level) |
+| 2 | `.claude/skills/` | Claude Code (project-level) |
+| 3 | `~/.cursor/skills/` | Cursor (user-level) |
+| 4 | `~/.claude/skills/` | Claude Code (user-level) |
+| 5 | `~/.codex/skills/` | Codex (user-level) |
+| 6 | `~/.agents/skills/` | Generic agent skills (user-level) |
 
 **Codex note**: Codex's skill system may pre-load skill manifests into app-context `<skills_instructions>`. After scanning `~/.codex/skills/`, cross-reference with any skill descriptors already present in the system context to avoid re-reading already-available metadata.
 

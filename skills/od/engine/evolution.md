@@ -14,7 +14,7 @@ context_requires:
     evolution-history.md: 20
   scan:
     - 03-progress.md
-    - .cursor/rules/*.mdc
+    - rules/*.mdc                               # Cursor-only — skip this scan on Claude Code / Codex
   scan_limit: 5
   skip:
     - archive/*

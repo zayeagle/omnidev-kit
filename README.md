@@ -115,7 +115,7 @@ After each phase or command completes, the AI presents **2-4 most relevant next 
 OmniDev acts as an **orchestrator** that dynamically discovers and combines specialized skills:
 
 - **Auto-detect** troubleshooting / debugging / fix intents from user input keywords.
-- **Scan local skills** across 5 directories (`.cursor/skills/`, `~/.cursor/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.agents/skills/`).
+- **Scan local skills** across 6 directories (`.cursor/skills/`, `.claude/skills/`, `~/.cursor/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.agents/skills/`).
 - **Rank matches**: 🎯 Direct match vs 🔧 Supporting capability.
 - **User confirms** before any skill is loaded (multi-select supported). **On-demand loading to save context.**
 

@@ -26,10 +26,11 @@ Scan the following directories for `SKILL.md` files (using `Glob` tool with patt
 | Scan Path | Priority | Description |
 |-----------|----------|-------------|
 | `.cursor/skills/` | 1 (highest) | Project-level skills |
-| `~/.cursor/skills/` | 2 | User-level Cursor skills |
-| `~/.claude/skills/` | 3 | User-level Claude skills |
-| `~/.codex/skills/` | 4 | User-level Codex skills |
-| `~/.agents/skills/` | 5 | User-level agent skills |
+| `.claude/skills/` | 2 | Project-level Claude skills |
+| `~/.cursor/skills/` | 3 | User-level Cursor skills |
+| `~/.claude/skills/` | 4 | User-level Claude skills |
+| `~/.codex/skills/` | 5 | User-level Codex skills |
+| `~/.agents/skills/` | 6 | User-level agent skills |
 
 **For each discovered `SKILL.md`**, read only the **YAML frontmatter** (`name` and `description` fields) — do NOT read the full file body. This keeps the scan lightweight.
 
