@@ -147,6 +147,10 @@ Override via `config.json` → `"confirmation_level": "full" | "reduced" | "mini
 必要测试不可缺少：**UNIT 强制**；按复杂度/legacy|greenfield/全栈信号自动组合 INT、SYS、E2E(Playwright)、SMK、REG。测试缺口触发 Gap Backfill 回补上游 design/plan。
 → [engine/test-strategy.md](engine/test-strategy.md)
 
+### B.21 Deploy Scripts (部署脚本)
+Phase 5 核心：准备 **一键部署** 脚本 + 根目录 **Makefile**。**Greenfield** 默认 docker + k8s + binary（`make deploy-*`）；**Legacy** 先审计，改 Makefile/deploy 须 B.0 同意；**full pipeline** 可自主增改。生产执行始终需用户确认。
+→ [phases/05-deploy.md](phases/05-deploy.md)
+
 ---
 
 ## C. Phase Execution Protocol

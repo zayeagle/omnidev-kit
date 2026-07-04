@@ -1,152 +1,148 @@
 # OmniDev Kit Installation & Usage Guide
 
-> **To AI Assistant (Cursor / Claude Code / Codex / etc.)**:
-> When the user hands you this document, please immediately read all `.md`, `.mdc`, and rule files in this directory. Based on the user's development platform, automatically copy these files to the corresponding platform configuration directory.
+> **To AI Assistant (Cursor / Claude Code / Codex)**:
+> Read this file and install per platform below. Copy **`skills/od/`** (full overwrite) and **`rules/`** (Cursor only, merge if needed).
 >
-> **⚠️ Install / Reinstall Strategy**:
-> - **skills/od/**: Full overwrite every time. `rm -rf <target>/od/` then `cp -r`. Always match repo exactly — deleted or renamed files in the kit must disappear from the local install.
-> - **rules/ (Cursor only)**: Non-destructive merge. If user rules already exist, read them first and only add OmniDev-specific clauses. Other platforms skip rules/.
->
-> After installation, report success to the user and remind them that they can start the standard workflow by typing `/od` or directly stating their requirements.
+> **Install strategy**
+> - `skills/od/`: **full overwrite** — `rm -rf <target>/od/` then `cp -r` so renames/deletes in the kit are reflected.
+> - `rules/` (Cursor): merge into `.cursor/rules/` if user rules exist.
+> - Project state: create `docs/omnidev-state/` and copy **`docs/omnidev-state/config.json`** + **`metrics.json`** from this kit (do not hand-roll a partial config).
+
+After install, tell the user: start with **`/od ob`** (onboard) or **`/od [requirement]`**.
 
 ---
 
-## 1. What is OmniDev Kit?
+## 1. What is OmniDev?
 
-OmniDev Kit is an advanced AI coding assistant enhancement toolkit that transforms the AI from "a typist who only writes code on command" into a **"senior R&D engineer who understands cost control, architecture design, writes their own tests, and never forgets."**
+Workflow skill activated by **`/od` prefix**. Six phases (0–5): assess → blueprint → design/plan → dev → test → deploy.
 
-It forces the AI to follow this workflow:
-1. **Assessment & Blueprint**: Think first, analyze complexity, output a global product state, and wait for user confirmation.
-2. **Planning**: Break down features, prioritize, and wait for user confirmation.
-3. **Spec-Driven & State Sync**: Persist state in `docs/omnidev-state/` supporting interruption recovery and multi-person collaboration.
-4. **Automated Testing & Verification**: Dependency analysis → Mock strategy → Scenario coverage → Resilience testing.
-5. **Deployment Docs**: Automatically generate necessary configuration, environment dependency docs, and an "Efficiency Bill".
+**State** lives in `docs/omnidev-state/` (plans, design, tests, release notes, session-log). **Active + history** file pairs preserve document evolution.
 
-### Supported Platforms
+See [README.md](README.md) for highlights; [SKILL.md](skills/od/SKILL.md) for full rules.
 
-| Platform | Slash Command | Interactive Prompt | Sub-Agent | Skill Discovery | Full Workflow |
-|----------|:---:|:---:|:---:|:---:|:---:|
-| **Cursor** | ✅ Native | ✅ `AskQuestion` | ✅ Built-in workers | ✅ `.cursor/skills/` | ✅ Full |
-| **Claude Code** | ✅ Via SKILL.md | ✅ `AskUserQuestion` | ✅ `Task` tool | ✅ `.claude/skills/` | ✅ Full |
-| **Codex** | ✅ Via SKILL.md | ✅ `request_user_input` (Plan mode) + text fallback | ✅ Thread-based (`create_thread` + `send_message_to_thread`) | ✅ `~/.codex/skills/` | ✅ Full |
+### Platforms
 
-See `skills/od/SKILL.md` §F for the full Platform Abstraction Layer.
+| Platform | Prompts | Workers | Skill path |
+|----------|---------|---------|------------|
+| **Cursor** | `AskQuestion` | Built-in | `.cursor/skills/od/` |
+| **Claude Code** | `AskUserQuestion` | `Task` | `.claude/skills/` or `~/.claude/skills/` |
+| **Codex** | `request_user_input` | `create_thread` | `~/.codex/skills/od/` |
 
----
+PAL details: `skills/od/SKILL.md` §F.
 
-## 2. Automatic Installation Guide (For AI to Execute)
+**Codex Default-mode popups** (recommended):
 
-### Method A: Install from Remote Repository URL (Recommended)
+```toml
+# ~/.codex/config.toml
+[features]
+default_mode_request_user_input = true
+```
 
-If the user provides a **Git repository URL** (e.g., `https://github.com/zayeagle/omnidev-kit.git`) instead of a local path, execute the following steps:
-
-1. Use the Shell tool to clone the repository to a **temporary directory** (e.g., `_omnidev-kit-tmp` in the system temp folder or project root).
-2. Follow the same installation steps as **Method B** below, using the cloned temporary directory as the source. **Important**: In step 7, use the Git URL provided by the user as the `update_source_url` value.
-3. After installation is complete, **delete the temporary directory** to keep the project clean.
-
-This allows users to install OmniDev Kit with the command:
-> `/od install https://github.com/zayeagle/omnidev-kit.git`
-
-### Method B: Install from Local Directory
-
-If the user has already cloned or downloaded `omnidev-kit` locally, follow the section below that matches the user's AI coding assistant platform.
+Then restart Codex. Without this, OmniDev uses structured text fallback (still works).
 
 ---
 
-#### 🖥️ For Cursor Users
+## 2. Install Methods
 
-1. Check if the `.cursor/rules/` folder exists in the project root; if not, create it.
-2. Copy all `.mdc` files from the `omnidev-kit/rules/` directory into the `.cursor/rules/` directory.
-3. **Full overwrite**: `rm -rf .cursor/skills/od/`, then copy the entire `omnidev-kit/skills/od/` directory into `.cursor/skills/od/`. This enables the `/od` slash command in Cursor's autocomplete and removes stale files from previous installs.
-4. Ensure the project root's `.gitignore` **does not contain** `.cursor/rules/` or `.cursor/skills/` (both should be committed to the repo).
-6. Create a `docs/omnidev-state/` folder in the project root (for storing state and output docs).
-7. Copy `docs/omnidev-state/metrics.json` template from the kit (or create empty schema per `skills/od/engine/metrics.md`) for governance and dashboard tracking.
-8. Write the source repository URL into `docs/omnidev-state/config.json` so that `/od update` knows where to fetch future updates. If the file already exists, merge; if not, create it:
-   ```json
-   {
-     "interactive_mode": true,
-     "ask_mode_after_od": true,
-     "auto_checkpoint": false,
-     "confirmation_level": "auto",
-     "coverage_gate": false,
-     "sub_agents": "auto",
-     "design_split": true,
-     "log_token_estimates": true,
-     "max_read_lines": 150,
-     "context_mode": "slim",
-     "max_hot_lines": 150,
-     "max_resident_lines": 300,
-     "checkpoint_max_lines": 12,
-     "update_source_url": "<the Git URL used for installation>"
-   }
-   ```
+### Method A: Remote URL (recommended)
 
----
+User command:
 
-#### 🖥️ For Claude Code Users
+```
+/od install https://github.com/zayeagle/omnidev-kit.git
+```
 
-1. Determine install scope — **project-level** (`.claude/` in project root) or **user-level** (`~/.claude/`). If the user is sharing the project with a team, prefer project-level.
-2. Create the skills parent directory (project: `.claude/skills/`, or user: `~/.claude/skills/`).
-3. **Full overwrite**: `rm -rf <target>/od/`, then copy the entire `omnidev-kit/skills/od/` directory into the target. This enables OmniDev as a Claude Code custom slash command via SKILL.md and removes stale files from previous installs.
-4. Check if `CLAUDE.md` exists in the project root. If it does, **append** (do not overwrite) the following trigger reference:
+1. Clone repo to a temp dir.
+2. Install per platform (Method B).
+3. Set `update_source_url` in `config.json` to that Git URL.
+4. Remove temp dir.
+
+### Method B: Local kit directory
+
+#### Cursor
+
+1. Create `.cursor/rules/` if missing; copy `rules/*.mdc`.
+2. **Full overwrite**: `rm -rf .cursor/skills/od/` → copy `skills/od/` → `.cursor/skills/od/`.
+3. Commit `.cursor/rules/` and `.cursor/skills/` (do not gitignore them unless intentional).
+4. Create `docs/omnidev-state/`; copy `config.json` + `metrics.json` from kit `docs/omnidev-state/`.
+5. Set `update_source_url` in `config.json` if installing from a fork.
+
+#### Claude Code
+
+1. Target: `.claude/skills/od/` (project) or `~/.claude/skills/od/` (user).
+2. **Full overwrite** `skills/od/` into target.
+3. Append to `CLAUDE.md` (do not overwrite):
+
    ```markdown
    ## OmniDev Workflow
-   To activate the OmniDev workflow, type `/od` followed by a command (e.g., `/od h` for help, `/od ob` for project onboard).
-   See `.claude/skills/od/SKILL.md` for the full specification.
+   Type `/od` to activate. See `.claude/skills/od/SKILL.md`.
    ```
-   If `CLAUDE.md` does not exist, create it with the above content plus minimal project context.
-5. Create a `docs/omnidev-state/` folder in the project root (for storing state and output docs).
-6. Copy `docs/omnidev-state/metrics.json` template from the kit, or create empty schema per `skills/od/engine/metrics.md`.
-7. Write config.json per Cursor step 8 above.
+
+4. Create `docs/omnidev-state/`; copy `config.json` + `metrics.json` from kit.
+
+#### Codex
+
+1. **Full overwrite**: `~/.codex/skills/od/` ← `skills/od/`.
+2. Optional: copy `rules/03-omnidev-workflow.codex.md` for trigger hints.
+3. `codex skills refresh` or restart session.
+4. Create `docs/omnidev-state/`; copy `config.json` + `metrics.json`.
+5. Recommend `platform_override: "codex"` in `config.json` if auto-detect fails.
+6. Enable `default_mode_request_user_input` in `~/.codex/config.toml` (see §1).
 
 ---
 
-#### 🖥️ For Codex Users
+## 3. Config template
 
-1. Codex skills are user-level by convention (target: `~/.codex/skills/`).
-2. **Full overwrite**: `rm -rf ~/.codex/skills/od/`, then copy the entire `omnidev-kit/skills/od/` directory into `~/.codex/skills/od/`. Codex will detect this skill via its `SKILL.md` frontmatter.
-3. After copying, run a skill cache refresh if available: `codex skills refresh` or restart the Codex session.
-4. Create a `docs/omnidev-state/` folder in the project root (for storing state and output docs).
-5. Copy `docs/omnidev-state/metrics.json` template from the kit, or create empty schema per `skills/od/engine/metrics.md`.
-6. Write config.json per Cursor step 8 above, including `platform_override: "codex"` for reliable platform detection:: The `interactive_mode` setting controls whether OmniDev uses `request_user_input` for checkpoints and skill selection. When `interactive_mode: false`, prompts are text-only.
->
-> **Codex Plan mode caveat**: `request_user_input` is only available in Plan mode. In non-Plan mode sessions, OmniDev automatically falls back to numbered text prompts per SKILL.md §F.2. Set `OMNIDEV_PLATFORM=codex` or `config.json` → `platform_override: "codex"` if platform auto-detection fails.
->
-> **Context compaction**: Codex auto-compacts conversations. OmniDev's Codex-specific protocols (SKILL.md §F.8, session-memory.md §9) ensure state survives compaction through defensive disk writes and YAML-first session-log design.
->
-> **Multi-agent via threads**: Use `create_thread` + `send_message_to_thread` for parallel task execution on Codex (SKILL.md §F.3). Overhead is ~4000 tokens per thread (not 8000).
+**Copy the kit file** — do not omit keys:
 
----
+`docs/omnidev-state/config.json` (from this repo) includes:
 
-## 3. Manual Installation Guide
+| Key | Purpose |
+|-----|---------|
+| `interactive_mode` | Popup-first UX (default `true`) |
+| `sub_agents` / `phase_workers` | Task & phase worker spawn (`auto`) |
+| `design_split` | Design index + `features/*.md` |
+| `e2e_required_fullstack` / `unit_gate_blocking` | Test gates |
+| `deploy_modes` / `deploy_use_makefile` / `deploy_autonomy` | Phase 5 deploy |
+| `max_resident_lines` | Context budget (300) |
+| `update_source_url` | `/od up` source |
 
-If you want to install manually:
-
-### Cursor
-1. Copy files in `omnidev-kit/rules/` to `.cursor/rules/`.
-2. Full overwrite: `rm -rf .cursor/skills/od/` then copy `omnidev-kit/skills/od/` to `.cursor/skills/od/`.
-3. Create `docs/omnidev-state/` in project root.
-4. Type `/od [your requirement]` or `/od ob` to onboard.
-
-### Claude Code
-1. Full overwrite: `rm -rf .claude/skills/od/` (or `~/.claude/skills/od/`) then copy `omnidev-kit/skills/od/` to target.
-2. Add `/od` trigger reference to `CLAUDE.md`.
-3. Create `docs/omnidev-state/` in project root.
-4. Type `/od [your requirement]` or `/od ob` to onboard.
-
-### Codex
-1. Full overwrite: `rm -rf ~/.codex/skills/od/` then copy `omnidev-kit/skills/od/` to `~/.codex/skills/od/`.
-2. Create `docs/omnidev-state/` in project root.
-3. Type `/od [your requirement]` or `/od ob` to onboard.
+Merge existing project values only for URLs and overrides; new installs should start from the kit template.
 
 ---
 
-## 4. Output Artifacts Description
+## 4. Output artifacts
 
-All documents generated by this toolkit (requirement blueprints, development plans, progress states, test reports, release notes) are stored in **`docs/omnidev-state/`**. Phase 5 (Deploy) produces `06-release-notes.md` per `skills/od/phases/05-deploy.md`.
+Under **`docs/omnidev-state/`**:
+
+| Path | Content |
+|------|---------|
+| `00-project-context.md` | Stack, domain knowledge |
+| `[branch]/01-blueprint.md` … `06-release-notes.md` | Phase outputs |
+| `[branch]/*-history.md` | Append-only document history |
+| `[branch]/session-log.md` | Resume checkpoint (`/od re`) |
+| `metrics.json` | Silent telemetry |
+| `config.json` | Workflow toggles |
+
+Phase 5 may add project **`Makefile`** and **`deploy/`** (docker · k8s · binary one-click scripts).
 
 ---
 
-## 5. Platform Adaptation Reference
+## 5. Manual install (short)
 
-For AI assistants installing on Claude Code or Codex: when engine files reference platform-specific mechanisms (e.g., `AskQuestion`, built-in workers, `.cursor/mcp.json`), consult the Platform Abstraction Layer at `skills/od/SKILL.md` §F for the correct platform mapping. Do NOT hardcode Cursor-specific tools on non-Cursor platforms.
+| Platform | Steps |
+|----------|-------|
+| Cursor | rules → `.cursor/rules/`; skills → `.cursor/skills/od/`; state dir + config |
+| Claude | skills → `.claude/skills/od/`; CLAUDE.md trigger; state dir + config |
+| Codex | skills → `~/.codex/skills/od/`; state dir + config; Codex popup flag |
+
+Then: `/od ob` or `/od [requirement]`.
+
+---
+
+## 6. Platform notes for installers
+
+- Map tools via **PAL** (`SKILL.md` §F) — never hardcode Cursor-only APIs on Claude/Codex.
+- **Never auto-commit** — `/od ps` only when user asks.
+- **Legacy deploy**: Phase 5 audits existing Makefile/deploy; modifications need user consent unless `deploy_autonomy: full` or `/od al`.
+- **Codex compaction**: persist to state files before long tool runs (`session-memory.md`, §F.8).

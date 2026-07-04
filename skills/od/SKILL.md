@@ -147,6 +147,10 @@ Override via `config.json` → `"confirmation_level": "full" | "reduced" | "mini
 必要测试不可缺少：**UNIT 强制**；按复杂度/legacy|greenfield/全栈信号自动组合 INT、SYS、E2E(Playwright)、SMK、REG。测试缺口触发 Gap Backfill 回补上游 design/plan。
 → [engine/test-strategy.md](engine/test-strategy.md)
 
+### B.21 Deploy Scripts (部署脚本)
+Phase 5 核心：准备 **一键部署** 脚本 + 根目录 **Makefile**。**Greenfield** 默认 docker + k8s + binary（`make deploy-*`）；**Legacy** 先审计，改 Makefile/deploy 须 B.0 同意；**full pipeline** 可自主增改。生产执行始终需用户确认。
+→ [phases/05-deploy.md](phases/05-deploy.md)
+
 ---
 
 ## C. Phase Execution Protocol
@@ -173,6 +177,7 @@ Override via `config.json` → `"confirmation_level": "full" | "reduced" | "mini
 | Phase transition (exit/enter) | [engine/context-protocol.md](engine/context-protocol.md) + [engine/context-occupancy.md](engine/context-occupancy.md) |
 | Document history / archive | [engine/document-history.md](engine/document-history.md) |
 | Test strategy / Phase 4 layers | [engine/test-strategy.md](engine/test-strategy.md) |
+| Multi-agent architecture | [engine/multi-agent-architecture.md](engine/multi-agent-architecture.md) |
 | Token optimization / cost | [engine/token-optimization.md](engine/token-optimization.md) |
 | Troubleshooting/diagnosis | [engine/skill-composition.md](engine/skill-composition.md) |
 
@@ -310,6 +315,8 @@ When `sub_agents` is `auto` or `on` and platform is Codex, dispatch tasks via th
 **Codex thread token accounting**: Each `create_thread` + `send_message_to_thread` round-trip has an overhead of approximately **4000 tokens** (not 8000). The `metrics.json` token estimation formula (§F.8) uses this value for Codex.
 
 **Worker return format** (all platforms): ≤30 line summary. Main agent reads code directly for merge. Worker raw output never enters main context.
+
+→ **Recommended multi-agent model**: Orchestrator + selective Phase/Task Workers — [multi-agent-architecture.md](multi-agent-architecture.md)
 
 ### F.4 Slash Command Trigger (maps activation rule B.1)
 

@@ -55,7 +55,7 @@ All commands support **short aliases** (1–2 letters). Users may reply with **n
 | `/od ad [内容]` | `/od adj` | 修订当前阶段输出 |
 | `/od sk [阶段]` | `/od skip` | 跳过阶段（0–5） |
 | `/od bk [阶段]` | `/od back` | 返回阶段 |
-| `/od al` | `/od all` | 执行剩余阶段（减少中间确认，仍遵守 B.15 安全确认） |
+| `/od al` | `/od all` | 执行剩余阶段（**含 deploy_autonomy: full** — 部署脚本可自主增改；生产执行仍需确认） |
 
 ## Confirmation
 
@@ -86,7 +86,11 @@ Interactive confirmations use the platform native prompt mechanism (SKILL.md §F
 | `unit_gate_blocking` | `true` | UNIT 未全过阻塞 Phase 4 完成 |
 | `regression_mode` | `"targeted"` | targeted / full |
 | `allow_e2e_sub_agent` | `true` | Phase 4 E2E 可用 sub-agent 隔离 Playwright 输出 |
-| `sub_agents` | `"auto"` | `off` / `auto` / `on` — Sub-Agent 策略 |
+| `deploy_modes` | `["docker","k8s","binary"]` | Phase 5 默认支持的部署模式 |
+| `deploy_autonomy` | `"conservative"` | `conservative` = legacy 改 deploy/Makefile 须用户同意；`full` = 完整流水线可自主增改 |
+| `deploy_use_makefile` | `true` | Phase 5 根目录 Makefile 作为一键部署主入口 |
+| `sub_agents` | `"auto"` | `off` / `auto` / `on` — T2 Task Worker（阶段内并行） |
+| `phase_workers` | `"auto"` | `off` / `auto` / `on` — T1 Phase Worker（整阶段外包，见 multi-agent-architecture.md） |
 | `design_split` | `true` | 设计 index + `features/*.md` |
 | `log_token_estimates` | `true` | phase_exit 写入 metrics |
 | `max_read_lines` | `150` | 单次 Read 行数上限 |
