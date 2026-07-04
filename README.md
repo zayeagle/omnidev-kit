@@ -2,113 +2,275 @@
 
 [中文](README.zh-CN.md)
 
-AI-driven **engineering workflow** for Cursor, Claude Code, and Codex. Activate with **`/od`** — not normal chat.
+OmniDev Kit is an AI-driven development workflow toolkit that transforms the AI from a "typist who only writes code on command" into a **"senior R&D engineer who understands cost control, architecture design, writes their own tests, and never forgets."**
 
-Turns the agent into a disciplined delivery pipeline: **assess → design → plan → dev → test → deploy**, with state on disk, layered tests, one-click deploy scripts, and session resume.
+**Supports Cursor · Claude Code · Codex** — see [Platform Abstraction Layer](skills/od/SKILL.md#f-platform-abstraction-layer-pal).
 
-## Workflow (Phase 0–5)
+## Architecture Overview
 
 ```
-Phase 0 Assess → Phase 1 Blueprint → Phase 2 Design+Plan → Phase 3 Dev → Phase 4 Test → Phase 5 Deploy
-     S/M/L/XL complexity trims which phases run (S can skip blueprint/plan)
+┌─────────────────────────────────────────────────────┐
+│                   OmniDev (/od)                     │
+│        Orchestration & Core Rules (Multi-Agent)       │
+│  ┌──────────┬──────────┬──────────┬──────────────┐  │
+│  │ B.0      │ Context  │ Impact   │ Interactive  │  │
+│  │ Ask when │ Life-    │ Analysis │ Quick-Select │  │
+│  │ unsure   │ cycle    │ & Confirm│              │  │
+│  └──────────┴──────────┴──────────┴──────────────┘  │
+│                        │                             │
+│  ┌─────────────────────▼───────────────────────────┐│
+│  │    Phase Engine (load / summarize / unload)      ││
+│  │  Phase 0 → Phase 1 → Phase 2 → Phase 3 → Ph.4  ││
+│  │ Assess    Blueprint   Plan       Dev      Test   ││
+│  └──────────────────────────────────────────────────┘│
+│                        │                             │
+│  ┌─────────────────────▼───────────────────────────┐│
+│  │            Memory & Persistence Layer            ││
+│  │  Session Memory │ User Preferences │ Stash/Pop  ││
+│  └──────────────────────────────────────────────────┘│
+│                        │                             │
+│  ┌─────────────────────▼───────────────────────────┐│
+│  │       Dynamic Skill Composition (B.9)           ││
+│  │  Detect intent → Scan local skills → Confirm    ││
+│  │  → Load & execute → Bridge back to OmniDev      ││
+│  └──────────────────────────────────────────────────┘│
+│                        │                             │
+│  ┌─────────────────────▼───────────────────────────┐│
+│  │            Self-Evolution Engine                 ││
+│  │  Observe → Learn → Propose → Apply (with user)  ││
+│  └──────────────────────────────────────────────────┘│
+└─────────────────────────────────────────────────────┘
 ```
 
-| Phase | Output (under `docs/omnidev-state/`) |
-|-------|--------------------------------------|
-| 0 | `00-project-context.md` |
-| 1 | `01-blueprint.md` |
-| 2 | `02-plan.md`, `04-design.md`, `features/*.md`, `05-test-plan.md` |
-| 3 | Code + `03-progress.md` |
-| 4 | `05-test-report.md` (gate) |
-| 5 | `06-release-notes.md`, `Makefile`, `deploy/**` one-click scripts |
+## Supported Platforms
 
-## Highlights
+OmniDev Kit has a built-in **Platform Abstraction Layer (PAL)** that adapts to each agent's native capabilities:
 
-- **B.0** — Ask when unsure; no silent assumptions on destructive changes
-- **Popup-first UX** — Native prompts (AskQuestion / AskUserQuestion / `request_user_input`) + structured fallback
-- **Document history** — Each artifact: `active` + `*-history.md` (append-only audit trail)
-- **Layered testing** — UNIT (blocking) · INT · E2E (Playwright) · SMK · REG — auto-composed by complexity & stack
-- **One-click deploy** — `make deploy` / docker · k8s · binary; legacy projects audit-before-modify
-- **Context budget** — HOT+WARM ≤300 lines; phase files loaded on demand
-- **Multi-agent** — 1 Orchestrator + optional Task/Phase Workers (L/XL); state files are the handoff contract
-- **Cross-session** — `/od re`, `/od re [payload]`, stash/pop, metrics & governance (`/od gv`)
+| Feature | Cursor | Claude Code | Codex |
+|---------|:------:|:-----------:|:-----:|
+| Slash Command (`/od`) | ✅ Native | ✅ SKILL.md | ✅ SKILL.md |
+| Interactive Prompt | ✅ `AskQuestion` | ✅ `AskUserQuestion` | ✅ `request_user_input` (Plan mode) / text fallback |
+| Sub-Agent / Workers | ✅ Built-in parallel | ✅ `Task` tool | ✅ Thread-based (`create_thread` + `send_message_to_thread`) |
+| Skill Discovery | ✅ `.cursor/skills/` | ✅ `.claude/skills/` | ✅ `~/.codex/skills/` |
+| MCP Integration | ✅ `.cursor/mcp.json` | ✅ `.claude/mcp.json` | ✅ `list_mcp_resources` + `read_mcp_resource` |
+| Multi-Select Dialogs | ✅ `allow_multiple` | ✅ `multiSelect` | ✅ Numbered prompt + comma-separated reply |
+| Context Compaction | N/A | N/A | ✅ Auto-compaction — defensive state writing (§F.8) |
+| Platform Detection | Auto | Auto | Auto (with env/config override) |
+| State Files & Memory | ✅ Cross-platform | ✅ Cross-platform | ✅ Cross-platform |
 
-## Platforms (PAL)
+Full details: [SKILL.md §F](skills/od/SKILL.md#f-platform-abstraction-layer-pal).
 
-| | Cursor | Claude Code | Codex |
-|---|:---:|:---:|:---:|
-| Trigger | `/od` prefix | `/od` prefix | `/od` prefix |
-| Prompts | `AskQuestion` | `AskUserQuestion` | `request_user_input` (+ pseudo-popup fallback) |
-| Workers | Built-in | `Task` | `create_thread` |
-| Skills | `.cursor/skills/od/` | `.claude/skills/` | `~/.codex/skills/od/` |
+---
 
-Details: [SKILL.md §F](skills/od/SKILL.md#f-platform-abstraction-layer-pal)
+## Core Features
 
-## Essential Commands
+### 1. First Principle — Ask When Unsure, Never Improvise (B.0)
+
+**Highest-priority rule, applies across all phases, commands, and decision points.**
+
+Throughout the entire workflow, whenever the AI encounters anything uncertain, unclear, ambiguous, or with multiple possibilities, it **must stop and ask the user for confirmation**. This covers: requirement analysis, technical approach selection, code style decisions, phase skip/retain, context unloading, dependency/framework choices, and code deletion/refactoring.
+
+> Rule of thumb: If you need to say "I assume...", "I guess...", "It should be...", you are unsure — stop and ask.
+
+Specific applications:
+- **Requirement Alignment**: When requirements are vague, confirm core problem, final goal, delivery criteria, and root cause before proceeding.
+- **Problem Fix Protocol**: For bug/security/behavior fixes, produce a complete solution plan with root cause analysis, compare approaches, and wait for user approval.
+
+### 2. Context Lifecycle Management (B.5)
+
+Three-layer mechanism to control context bloat while preserving dependency chains:
+
+- **On-demand loading**: Each phase declares needed files via `context_requires`. `scan_limit` caps scan results.
+- **Summarize-then-discard**: Large file reads (> 100 lines) are summarized to key info; Grep results (> 20 matches) are trimmed to Top 10; Shell output (> 50 lines) is reduced to key lines.
+- **Persist-then-unload**: On phase exit, key outputs are written to state files (persist), then raw tool outputs are marked expired (unload). **State files and user decisions are never unloaded.**
+
+Dependency chain protection:
+
+```
+Phase 0 → 00-project-context.md → Phase 1, 2, 3, 4 (never unload)
+Phase 2 → 02-plan.md            → Phase 3, 4 (never unload)
+Phase 3 → 03-progress.md        → Phase 4 (never unload)
+```
+
+### 3. Cross-Session Memory System
+
+Three memory modules ensure the AI "never forgets":
+
+| Module | File | Purpose |
+|--------|------|---------|
+| **Session Memory** (B.10) | `session-log.md` | Auto-generates structured summary on session end (goals, decisions, progress, feedback). Read on `/od re` for seamless resume. |
+| **User Preferences** (B.11) | `user-preferences.md` | Passively collects behavioral patterns (code style, phase skip habits, output verbosity). Loaded on every activation (≤ 30 lines). |
+| **Stash/Pop** (B.12) | `stash/` | Multi-task switching: `/od st` saves full snapshot (state files + git stash), `/od po` restores and auto-resumes. |
+
+### 4. Lightweight Interactive Prompt (B.8)
+
+After each phase or command completes, the AI presents **2-4 most relevant next actions** via AskQuestion dialog:
+
+- **Focused**: No verbose command lists — only the most reasonable next steps for current state
+- **Context-aware**: Intelligently recommends options based on current progress
+- **Zero memory burden**: Users don't need to memorize commands — just click to continue
+
+### 5. Dynamic Skill Composition (B.9)
+
+OmniDev acts as an **orchestrator** that dynamically discovers and combines specialized skills:
+
+- **Auto-detect** troubleshooting / debugging / fix intents from user input keywords.
+- **Scan local skills** across 6 directories (`.cursor/skills/`, `.claude/skills/`, `~/.cursor/skills/`, `~/.claude/skills/`, `~/.codex/skills/`, `~/.agents/skills/`).
+- **Rank matches**: 🎯 Direct match vs 🔧 Supporting capability.
+- **User confirms** before any skill is loaded (multi-select supported). **On-demand loading to save context.**
+
+### 6. Project Type Awareness & Adaptive Constraints
+
+- **Legacy Projects**: The AI acts like a "sensible veteran employee", 100% following existing conventions. No forced DDD/TDD.
+- **Greenfield Projects**: Full modern conventions — Spec-Driven Development, TDD/DDD, high test coverage.
+- Stack detection during `/od onboard` identifies fullstack / frontend-only / backend-only / monorepo.
+
+### 7. Adaptive Scheduling (T-Shirt Sizing)
+
+- **S**: Fix directly, skip blueprint/plan.
+- **M**: Skip blueprint → Plan → Dev → Test.
+- **L/XL**: Full workflow: Blueprint → Plan → Dev → Test → Deploy.
+
+### 8. Spec-Driven Engineering Discipline
+
+- **Forced Brainstorming**: The AI must think about edge cases, exceptions, and UX before writing any code.
+- **Pre-Development Scope Confirmation**: Before writing code, must analyze architecture, code style, call chains, identify modification boundaries and impact, present risk assessment — **user must confirm before coding begins**.
+- **Post-Development Impact Confirmation**: After each task group, compare actual changes vs planned scope, flag deviations — **user must confirm before continuing**.
+- **Change Management** (`/od ch`): Mid-development requirement changes trigger impact assessment, old plan archival, and new blueprint generation.
+- **Auto-Checkpointing**: Git commit before any code modification.
+
+### 9. DevSecOps & Resilience
+
+Phase 3 enforces security and resilience coding:
+- **Security by Design**: IDOR/BOLA prevention, injection prevention, SSRF/CSRF protection, sensitive data masking.
+- **Standard Level**: Structured errors, timeout control, graceful failure, input validation.
+- **High Level** (user-requested): Circuit breaker, retry with backoff, bulkhead isolation, graceful degradation, rate limiting.
+
+### 10. Quality Assurance — Testing (Phase 4)
+
+- **Dependency topology mapping** before writing any test.
+- **Mock strategy hierarchy**: Interface mock → In-memory fake → Container stub → HTTP stub → MCP-driven.
+- **Scenario coverage matrix**: Happy path, validation, conflict, dependency failure, security (IDOR/SQLi), concurrency.
+- **System-level resilience testing**: Network latency, timeout, high concurrency (P99 < 200ms), memory pressure.
+- **Coverage gate**: >= 90% statement/branch coverage.
+
+### 11. Self-Evolution Engine
+
+- **Continuous Phase Learning**: At every phase exit, silently captures domain knowledge, architecture patterns, and business scenarios into `00-project-context.md § Domain Knowledge`.
+- **Compound Effect**: After 3-5 requirements, the AI's domain understanding approaches that of a team member who has been on the project for months — enabling significantly faster bug localization.
+- **Passive Learning**: Logs corrections, patterns, error resolutions during `/od` sessions.
+- **Smart Proposals**: Generates rule/skill improvement proposals when signals accumulate.
+- **User-Controlled**: Rule changes require explicit approval via `/od ln`; domain knowledge accumulation is silent and observational.
+- **Safety Guardrails**: Cannot weaken core rules. Full rollback via `/od ln --rb [N]`.
+
+### 12. Enterprise Reporting & Ops
+
+- **Weekly Reports** (`/od rp`): Management-ready reports combining git history + state files.
+- **AI Governance & Cost Audit** (`/od gv`): Manually triggered audit for token/cost efficiency, process compliance, quality risks, and prioritized improvements. Supports `--scope` and `--since`.
+- **Push Flow** (`/od ps`): Change impact summary → stage → commit message generation → push.
+- **Efficiency Bill**: ROI metrics appended to `metrics.json` after each delivery.
+- **Manual Update** (`/od up`): Preview diff before applying, user must confirm.
+
+## Command Reference
+
+### Core Commands
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/od [requirement]` | — | Guided workflow: assess complexity → recommend phases |
+| `/od -f [requirement]` | — | Fast mode: skip blueprint/plan, dev directly |
+| `/od -p [requirement]` | — | Plan only: output blueprint and plan, no code |
+| `/od h` | `/od help` | Show all commands |
+| `/od ob` | `/od onboard` | Scan project, generate context doc |
+| `/od gv` | `/od governance` | AI governance & cost audit (manual trigger) |
+| `/od gv --scope <...>` | — | Limit audit domain (phase3 / learning / cost / compliance / quality, etc.) |
+| `/od gv --since <7d\|14d\|30d\|90d>` | — | Set audit time window (default: 14d) |
+| `/od rv` | `/od review` | Code review (read-only) |
+| `/od qa` | — | Dependency analysis → Mock → Test → Report |
+| `/od ch [new req]` | `/od change` | Change management |
+| `/od ln` | `/od learn` | Self-learning: retrospective + evolution proposals |
+| `/od rp` | `/od report` | Generate weekly report |
+| `/od ps` | `/od push` | Commit and push code |
+| `/od re` | `/od resume` | Resume interrupted session (reads session-log) |
+| `/od up` | `/od update` | Update OmniDev Kit |
+| `/od i <url>` | `/od install` | Install from remote Git repo |
+
+### Session Management
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/od st` | `/od stash` | Stash current task (state files + git stash) |
+| `/od po` | `/od pop` | Restore stashed task and auto-resume |
+| `/od x` | `/od cancel` | End current session (auto-saves session-log) |
+
+### Phase Navigation
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/od n` | `/od next` | Continue to next phase |
+| `/od ad` | `/od adj` | Revise current output |
+| `/od sk` | `/od skip` | Skip a phase |
+| `/od bk` | `/od back` | Go back to a phase |
+| `/od al` | `/od all` | Execute all remaining phases |
+
+### Configuration
 
 | Command | Description |
 |---------|-------------|
-| `/od [req]` | Start workflow (Phase 0) |
-| `/od -f [req]` | Fast dev (S-level) |
-| `/od ob` | Onboard / scan project |
-| `/od n` / `/od ad` / `/od sk` | Phase navigation |
-| `/od re` / `/od re [payload]` | Resume session (+ optional intent) |
-| `/od ch` | Requirement change + doc sync |
-| `/od qa` | Testing phase |
-| `/od ps` | Commit & push (user confirms) |
-| `/od al` | Run remaining phases (full deploy autonomy) |
-| `/od h` | Full command list |
+| `/od cfg` | View current config and user preferences |
+| `/od cfg -i on\|off` | Toggle interactive mode |
 
-Config: `docs/omnidev-state/config.json` · Toggle prompts: `/od cfg -i on|off`
-
-## Project Layout
+## Directory Structure
 
 ```text
 omnidev-kit/
 ├── INSTALL.md
-├── README.md / README.zh-CN.md
-├── rules/                    # Cursor / Claude / Codex triggers
-├── docs/omnidev-state/       # config.json & metrics template
-└── skills/od/
-    ├── SKILL.md              # Single source of truth
-    ├── phases/               # 00-assessment … 05-deploy
-    └── engine/               # activation, test-strategy, document-history, …
+├── README.md
+├── README.zh-CN.md
+├── rules/
+│   ├── 01-omnidev-workflow.mdc         # Cursor trigger (alwaysApply: false)
+│   ├── 02-omnidev-workflow.claude.md   # Claude Code trigger (alwaysApply: false)
+│   └── 03-omnidev-workflow.codex.md    # Codex trigger (alwaysApply: false)
+├── scripts/
+│   └── clean-cursor-state.ps1          # Utility: clean Cursor state
+└── skills/
+    └── od/
+        ├── SKILL.md                    # Main spec — single source of truth
+        ├── phases/
+        │   ├── 00-assessment.md        # Phase 0: Assessment & Onboard
+        │   ├── 01-02-planning.md       # Phase 1-2: Blueprint & Planning
+        │   ├── 03-development.md       # Phase 3: Development & DevSecOps
+        │   └── 04-testing.md           # Phase 4: Testing & Wrap-up
+        └── engine/
+            ├── commands.md             # Command reference (on-demand)
+            ├── context-protocol.md     # Unload/transition/budget rules (on-demand)
+            ├── evolution.md            # Self-evolution engine (on-demand)
+            ├── governance.md           # AI governance & cost audit (on-demand)
+            ├── session-memory.md       # Session memory + resume/exit flows
+            ├── stash.md                # Stash/Pop implementation (on-demand)
+            ├── skill-composition.md    # Dynamic skill composition (on-demand)
+            ├── special-flows.md        # Push/Change/Report/Update flows
+            └── user-preferences.md     # User preference collection rules
 ```
-
-Runtime state lives in **your project**: `docs/omnidev-state/[branch]/`.
 
 ## Quick Start
 
-**Install**
+**Option 1: Install from Remote URL (Recommended)**
 
 ```
 /od install https://github.com/zayeagle/omnidev-kit.git
 ```
 
-Or open [INSTALL.md](INSTALL.md) in your agent and ask it to install for your platform.
+**Option 2: Install from Local Directory**
 
-**Run**
+Drag `INSTALL.md` into your AI assistant chat and say: "Please help me install this toolkit." The AI will auto-detect your platform (Cursor / Claude Code / Codex) and install to the correct paths.
 
-```
-/od ob          # first time: scan project
-/od [requirement]
-```
+### Per-Platform Quick Reference
 
-| Platform | Install target |
-|----------|----------------|
-| Cursor | `.cursor/skills/od/` + `.cursor/rules/` |
-| Claude Code | `.claude/skills/od/` or `~/.claude/skills/od/` |
-| Codex | `~/.codex/skills/od/` (+ optional `rules/03-omnidev-workflow.codex.md`) |
+| Platform | Install Target | Activate |
+|----------|---------------|----------|
+| **Cursor** | `.cursor/skills/od/` + `.cursor/rules/` | Type `/od` in chat |
+| **Claude Code** | `.claude/skills/od/` or `~/.claude/skills/od/` | Type `/od` in chat |
+| **Codex** | `~/.codex/skills/od/` | Type `/od` in chat. If auto-detection fails, set `OMNIDEV_PLATFORM=codex` or `config.json` `platform_override: "codex"`. |
 
-**Codex popup in Default mode** — add to `~/.codex/config.toml`:
-
-```toml
-[features]
-default_mode_request_user_input = true
-```
-
-## Docs
-
-- [INSTALL.md](INSTALL.md) — installation & config template
-- [skills/od/SKILL.md](skills/od/SKILL.md) — full rules
-- [skills/od/engine/commands.md](skills/od/engine/commands.md) — all commands
+After install, type `/od [your requirement]` or `/od ob` (onboard) to begin.
