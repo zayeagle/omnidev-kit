@@ -2,36 +2,25 @@
 
 [中文](README.zh-CN.md)
 
-AI-driven **engineering workflow** for Cursor, Claude Code, and Codex. Activate with **`/od`** — not normal chat.
+**The AI conductor for software development.** Activate with **`/od`** — not normal chat.
 
-Turns the agent into a disciplined delivery pipeline: **assess → design → plan → dev → test → deploy**, with state on disk, layered tests, one-click deploy scripts, and session resume.
+Turns any coding agent into a disciplined delivery pipeline: **assess → design → plan → build → test → deploy** — with state on disk, quality gates, deploy-ready output, and session resume.
 
 ## Workflow (Phase 0–5)
 
 ```
-Phase 0 Assess → Phase 1 Blueprint → Phase 2 Design+Plan → Phase 3 Dev → Phase 4 Test → Phase 5 Deploy
-     S/M/L/XL complexity trims which phases run (S can skip blueprint/plan)
+Assess → Blueprint → Design+Plan → Build → Verify → Release
 ```
 
-| Phase | Output (under `docs/omnidev-state/`) |
-|-------|--------------------------------------|
-| 0 | `00-project-context.md` |
-| 1 | `01-blueprint.md` |
-| 2 | `02-plan.md`, `04-design.md`, `features/*.md`, `05-test-plan.md` |
-| 3 | Code + `03-progress.md` |
-| 4 | `05-test-report.md` (gate) |
-| 5 | `06-release-notes.md`, `Makefile`, `deploy/**` one-click scripts |
+State and artifacts live under `docs/omnidev-state/` — the single source of truth across sessions, agents, and handoffs.
 
 ## Highlights
 
-- **B.0** — Ask when unsure; no silent assumptions on destructive changes
-- **Popup-first UX** — Native prompts (AskQuestion / AskUserQuestion / `request_user_input`) + structured fallback
-- **Document history** — Each artifact: `active` + `*-history.md` (append-only audit trail)
-- **Layered testing** — UNIT (blocking) · INT · E2E (Playwright) · SMK · REG — auto-composed by complexity & stack
-- **One-click deploy** — `make deploy` / docker · k8s · binary; legacy projects audit-before-modify
-- **Context budget** — HOT+WARM ≤300 lines; phase files loaded on demand
-- **Multi-agent** — 1 Orchestrator + optional Task/Phase Workers (L/XL); state files are the handoff contract
-- **Cross-session** — `/od re`, `/od re [payload]`, stash/pop, metrics & governance (`/od gv`)
+- **Governance first** — Human-in-the-loop by default; no silent destructive actions
+- **Quality gates** — Layered testing and phase checkpoints before anything ships
+- **Deploy-ready** — Release notes, scripts, and one-click paths out of the box
+- **Multi-agent ready** — One orchestrator, optional workers; state files are the contract
+- **Cross-session** — Pause, resume, evolve requirements — context never lost
 
 ## Platforms (PAL)
 
