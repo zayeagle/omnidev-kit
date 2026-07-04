@@ -6,6 +6,11 @@
   "auto_checkpoint": false,
   "confirmation_level": "auto",
   "coverage_gate": false,
+  "e2e_tool": "playwright",
+  "e2e_required_fullstack": true,
+  "unit_gate_blocking": true,
+  "regression_mode": "targeted",
+  "allow_e2e_sub_agent": true,
   "sub_agents": "auto",
   "design_split": true,
   "log_token_estimates": true,
@@ -19,5 +24,6 @@
   "codex_compaction_multiplier": 1.3,
   "codex_conservative_occupancy": true,
   "codex_thread_overhead_tokens": 4000,
-  "codex_max_turns_before_compress": 15
+  "codex_max_turns_before_compress": 15,
+  "codex_popup_hint_shown": false
 }

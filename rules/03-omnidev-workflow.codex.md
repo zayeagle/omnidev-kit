@@ -1,25 +1,50 @@
 ---
-description: OmniDev workflow trigger for Codex. Activates when /od prefix is detected. Full spec in ~/.codex/skills/od/SKILL.md.
+description: OmniDev workflow trigger for Codex. MANDATORY when /od prefix detected. Bootstrap via engine/activation.md.
 alwaysApply: false
 ---
 
 # OmniDev — Codex Trigger
 
-## Activation Rule
+## Activation (HARD)
 
-When any user message begins with `/od` (case-insensitive, after optional whitespace), immediately read and follow `~/.codex/skills/od/SKILL.md`.
+When any user message begins with `/od` (case-insensitive, after optional whitespace):
 
-The SKILL.md is the **sole source of truth** for OmniDev workflow, phases, state files, testing discipline, MCP norms, context pruning, and self-evolution rules. Do not improvise OmniDev behavior from this trigger file alone.
+1. Read `~/.codex/skills/od/SKILL.md`
+2. Execute `engine/activation.md` — tool calls FIRST
+3. Load phase/engine file per activation router
+4. Do NOT ad-hoc code for `/od [需求]` without workflow
 
-## Platform Notes
+Non-`/od` messages: skip OmniDev entirely.
 
-- **Interactive prompts**: Use Codex's `request_user_input` tool wherever SKILL.md §F.2 says "use platform interactive prompt". If `request_user_input` is NOT available (non-Plan mode), fall back to numbered text prompts per §F.2 CLI/Other pattern.
-- **Multi-select**: Codex has no native multi-select. Use numbered text prompts with comma-separated reply parsing per SKILL.md §F.2.1.
-- **Sub-agents**: Use Codex's thread-based multi-agent model — `create_thread` + `send_message_to_thread` — per SKILL.md §F.3 "Codex Thread-Agent Dispatch Protocol".
-- **MCP**: Use `list_mcp_resources` → `list_mcp_resource_templates` → `read_mcp_resource` per SKILL.md §F.6 "Codex MCP Discovery Protocol".
-- **Context compaction**: Codex auto-compacts conversations. Follow the defensive writing and resume protocols in SKILL.md §F.8 and session-memory.md §9.
-- **Platform detection**: `codex_app__load_workspace_dependencies` presence = Codex Desktop (SKILL.md §F.1). Set `OMNIDEV_PLATFORM=codex` or `config.json` `platform_override: "codex"` if auto-detection fails.
+## Interactive Prompts (主要工作模式)
 
-## Non-/od Messages
+**Default**: `interactive_mode: true` — popup is primary UX.
 
-If the user's message does NOT start with `/od`, do not apply OmniDev rules, do not create or update `docs/omnidev-state/**`, do not write `evolution-log.jsonl`, and do not run OmniDev phases or commands. Treat the chat as a normal coding conversation.
+| Platform | Primary (same turn as checkpoint) | Fallback |
+|----------|-----------------------------------|----------|
+| Claude Code | **`AskUserQuestion`** — use `engine/interactive-prompt.md` §4 JSON templates | Pseudo-popup §E |
+| Codex (Plan + Default/Code) | **`request_user_input`** — use §5 templates | Pseudo-popup §E |
+
+### Codex Default/Code 弹窗启用
+
+```toml
+# ~/.codex/config.toml
+[features]
+default_mode_request_user_input = true
+```
+
+Or: `codex features enable default_mode_request_user_input` → restart Codex.
+
+Without flag: pseudo-popup §E (structured table) — **not** a bug, but enable flag for native UI.
+
+**Agent rule**: MUST call tool in same turn — never prose-only options when `interactive_mode=true`.
+
+## Sub-agents & MCP
+
+- Sub-agents: `create_thread` + `send_message_to_thread` (§F.3)
+- MCP: `list_mcp_resources` → `read_mcp_resource` (§F.6)
+- Compaction: §F.8 defensive state-file writes
+
+## Platform override
+
+If detection fails: `config.json` → `"platform_override": "codex"`

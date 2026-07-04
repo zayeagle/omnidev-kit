@@ -37,7 +37,7 @@ Phase 5 → 06-release-notes.md   → session end
 
 When exiting Phase N (after Checkpoint, before loading Phase N+1):
 
-1. **Persist to state file**: Write key outputs to the target **active** state file. If overwriting existing substantive content, archive to `*-history.md` first ([document-history.md](document-history.md)). Ensure nothing needed downstream depends solely on conversation history.
+1. **Persist to state file**: Write key outputs to the target state file. Ensure nothing needed downstream depends solely on conversation history.
 2. **Update metrics.json**: Append phase_exit event per [metrics.md](metrics.md) §2.
 3. **Transition summary** (≤ 5 lines):
 

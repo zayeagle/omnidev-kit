@@ -1,33 +1,34 @@
 ---
-description: OmniDev workflow trigger for Claude Code. Activates when /od prefix is detected. Full spec in .claude/skills/od/SKILL.md.
+description: OmniDev workflow trigger for Claude Code. MANDATORY when /od prefix detected. Bootstrap via engine/activation.md.
 alwaysApply: false
 ---
 
 # OmniDev — Claude Code Trigger
 
-## Activation Rule
+## Activation (HARD)
 
-When any user message begins with `/od` (case-insensitive, after optional whitespace), immediately read and follow `.claude/skills/od/SKILL.md` (if installed at project-level) or `~/.claude/skills/od/SKILL.md` (if installed at user-level).
+When any user message begins with `/od` (case-insensitive, after optional whitespace):
 
-The SKILL.md is the **sole source of truth** for OmniDev workflow, phases, state files, testing discipline, MCP norms, context pruning, and self-evolution rules. Do not improvise OmniDev behavior from this trigger file alone.
+1. Read `.claude/skills/od/SKILL.md` or `~/.claude/skills/od/SKILL.md`
+2. Execute `engine/activation.md` — tool calls FIRST
+3. Load phase/engine file per activation router
+4. Do NOT ad-hoc code for `/od [需求]` without workflow
 
-## Platform Notes
+Non-`/od` messages: skip OmniDev entirely.
 
-- **Interactive prompts**: Use Claude's `AskUserQuestion` tool wherever SKILL.md §F.2 says "use platform interactive prompt". `allow_multiple` in cursor docs maps to `multiSelect: true` in Claude.
-- **Sub-agents**: Use Claude's `Task` tool wherever SKILL.md §F.3 says "use platform sub-agent mechanism".
-- **MCP**: Check `.claude/mcp.json` or `~/.claude/mcp.json` per SKILL.md §F.6.
+## Interactive Prompts (主要工作模式)
 
-## Non-/od Messages
+**Default**: `interactive_mode: true`. Popup is primary UX in **all collaboration modes**.
 
-If the user's message does NOT start with `/od`, do not apply OmniDev rules, do not create or update `docs/omnidev-state/**`, do not write `evolution-log.jsonl`, and do not run OmniDev phases or commands. Treat the chat as a normal coding conversation.
+- **Primary**: `AskUserQuestion` — **MUST invoke tool same turn** as checkpoint
+- **Templates**: `engine/interactive-prompt.md` §4 (copy-paste JSON for checkpoint, Phase 0, resume, change, B.0)
+- **Fallback**: Pseudo-popup §E if tool fails — structured table, not plain prose
 
-## Selective Activation for Non-/od Messages
+**Forbidden**: Describing options in chat without calling `AskUserQuestion`.
 
-`alwaysApply: false` means this trigger file only loads when `/od` is detected. Claude Code will route `/od`-prefixed messages through this rule. Non-`/od` messages skip OmniDev entirely — zero token cost for normal conversations.
+`multiSelect: true` / `allow_multiple: true` when multi-select needed (skill-composition, stash).
 
-## CLAUDE.md Merge Guidance
+## Sub-agents & MCP
 
-When appending this trigger reference to an existing `CLAUDE.md`:
-1. Add ONLY the `## OmniDev Workflow` section (see [INSTALL.md](../../INSTALL.md)).
-2. Do NOT duplicate this full trigger file into `CLAUDE.md`.
-3. If `CLAUDE.md` already has conflicting rules (e.g., custom code style rules that OmniDev's B.0 or phase rules might overwrite), wrap them with clear precedence markers and let OmniDev's platform mapping respect local conventions.
+- Sub-agents: `Task` tool (SKILL.md §F.3)
+- MCP: `.claude/mcp.json` or `~/.claude/mcp.json` (§F.6)
