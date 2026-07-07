@@ -1,15 +1,15 @@
 ---
 name: od
 description: >-
-  MANDATORY OmniDev AI-driven development workflow. You MUST load and follow this skill
-  whenever the user message STARTS WITH /od (prefix match: /od, /od h, /od [需求], etc.).
-  First execute engine/activation.md bootstrap, then phase protocol. Supports Cursor,
-  Claude Code, and Codex. Never treat /od messages as normal chat.
+  OmniDev workflow. Load ONLY when: (1) message STARTS WITH /od, OR (2) skill explicitly
+  attached/invoked this turn. Resume: /od re only. Advance: /od n, /od ad, etc.
+  Bare 1/n/continue without /od does NOT trigger. No chat-context inference.
+  Supports Cursor, Claude Code, and Codex.
 ---
 
 # OmniDev Workflow Skill
 
-**Single source of truth for OmniDev rules. Applies ONLY on `/od`-prefixed messages.**
+**Single source of truth for OmniDev rules. Applies ONLY when [trigger-gate](engine/trigger-gate.md) activates.**
 
 ---
 
@@ -49,15 +49,18 @@ When `interactive_mode: false` or the platform lacks interactive prompt tools (C
 
 ### B.1 Activation & Tool Execution (ZERO TOLERANCE)
 
-**Prefix rule**: If current user message starts with `/od` (after optional whitespace, case-insensitive) → OmniDev is **MANDATORY**. This includes `/od`, `/od 需求`, `/od h`, `/od -f fix`, etc.
+**Trigger gate** — consult [engine/trigger-gate.md](engine/trigger-gate.md). OmniDev is **MANDATORY** only when:
 
-**Bootstrap** (every `/od` message, before any other action):
+1. **Signal A**: current message starts with `/od` (after optional whitespace, case-insensitive), OR
+2. **Signal B**: od skill **explicitly attached/invoked this turn** (platform-specific — see trigger-gate §1)
+
+**Bootstrap** (Signal A or B, before any other action):
 1. Execute [engine/activation.md](engine/activation.md) §0–§6
 2. First response turn: **tool call(s) first** — zero prose before tools
 3. Load target phase/engine file per activation §3 router
-4. Follow loaded file end-to-end — **no ad-hoc coding** for `/od [需求]`
+4. Follow loaded file end-to-end — **no ad-hoc coding** for requirements without Phase 0
 
-**Non-/od messages**: Do NOT load OmniDev skill, state files, or phases.
+**Non-triggered messages** (no Signal A/B): Do **NOT** load this skill, `activation.md`, phase files, or `docs/omnidev-state/**`. Prior OmniDev turns in chat do **NOT** carry forward — user must send `/od re` to resume.
 
 **Interactive prompts**: Every decision point MUST use [engine/interactive-prompt.md](engine/interactive-prompt.md). Native UI failure → numbered text fallback same turn — never skip.
 
@@ -77,7 +80,7 @@ Phase order: **Blueprint → Design & Plan → Dev → Test → Deploy**. Forwar
 
 **弹窗交互是默认主要工作模式**（`interactive_mode: true`）。Claude Code 与 Codex 在 **任意协作模式** 下均须先调用原生工具（`AskUserQuestion` / `request_user_input`），与 checkpoint 摘要 **同一 turn** 发出；禁止仅用 prose 代替工具。
 
-When `interactive_mode=true`: use [engine/interactive-prompt.md](engine/interactive-prompt.md) — §4 Claude templates, §5 Codex templates, §E pseudo-popup fallback. User can always reply with `/od` command or number.
+When `interactive_mode=true`: use [engine/interactive-prompt.md](engine/interactive-prompt.md). User advances by UI pick or **full `/od` command** in next message (`/od n`, `/od ad`, `/od re`, …) — bare `1`/`n`/`继续` do **NOT** advance workflow.
 
 When `interactive_mode=false`: minimal text §9 only (user opted out via `/od cfg -i off`).
 
@@ -104,7 +107,7 @@ Log error details → diagnose root cause → propose fix with impact scope → 
 → [engine/special-flows.md](engine/special-flows.md) §5
 
 ### B.11 Session Memory
-`/od re` recalls prior session context; `/od re [payload]` resumes **and** routes payload through workflow (change, phase nav, or current-phase intent). `/od x` saves current context.
+**Resume / crash recovery**: **`/od re` only** — reads `session-log.md` from disk; no chat-context inference. `/od re [payload]` resumes and routes payload. `/od x` saves session.
 → [engine/session-memory.md](engine/session-memory.md) §6–§6.1
 
 ### B.12 Stash & Pop
@@ -177,6 +180,7 @@ Phase 5 核心：准备 **一键部署** 脚本 + 根目录 **Makefile**。**Gre
 | Phase transition (exit/enter) | [engine/context-protocol.md](engine/context-protocol.md) + [engine/context-occupancy.md](engine/context-occupancy.md) |
 | Document history / archive | [engine/document-history.md](engine/document-history.md) |
 | Test strategy / Phase 4 layers | [engine/test-strategy.md](engine/test-strategy.md) |
+| Multi-agent architecture | [engine/multi-agent-architecture.md](engine/multi-agent-architecture.md) |
 | Token optimization / cost | [engine/token-optimization.md](engine/token-optimization.md) |
 | Troubleshooting/diagnosis | [engine/skill-composition.md](engine/skill-composition.md) |
 
@@ -315,17 +319,27 @@ When `sub_agents` is `auto` or `on` and platform is Codex, dispatch tasks via th
 
 **Worker return format** (all platforms): ≤30 line summary. Main agent reads code directly for merge. Worker raw output never enters main context.
 
-### F.4 Slash Command Trigger (maps activation rule B.1)
+→ **Recommended multi-agent model**: Orchestrator + selective Phase/Task Workers — [multi-agent-architecture.md](multi-agent-architecture.md)
 
-OmniDev activates when user message (after optional whitespace) begins with `/od`. Platform-specific trigger setup:
+### F.4 Trigger Gate (maps activation rule B.1)
 
-| Platform | Trigger Mechanism |
-|----------|------------------|
-| **Cursor** | `.cursor/rules/*.mdc` file + `skills/od/` slash command auto-complete |
-| **Claude Code** | `.claude/skills/od/SKILL.md` + `CLAUDE.md` referencing `/od` as trigger phrase |
-| **Codex** | `~/.codex/skills/od/SKILL.md` — detected by Codex skill system via `description` field; activation by `/od` prefix in user message |
+→ Full spec: [engine/trigger-gate.md](engine/trigger-gate.md)
 
-**Precedence clarification** (per B.1): On ALL platforms, `/od` is a **prefix match**, not an exact match. `/od h`, `/od re`, `/od onboard`, etc. all activate OmniDev.
+| Platform | How user triggers OmniDev |
+|----------|---------------------------|
+| **Cursor** | `/od …` prefix **OR** attach `@od` skill / skill picker (no `/od` required when skill is attached) |
+| **Claude Code** | `/od …` prefix **OR** invoke `od` skill (Claude loads SKILL.md into context) |
+| **Codex** | `/od …` prefix **OR** invoke `od` skill for the message |
+
+| Platform | Gate enforcement file |
+|----------|----------------------|
+| **Cursor** | `.cursor/rules/01-omnidev-workflow.mdc` (`alwaysApply: true`) + `AGENTS.md` |
+| **Claude Code** | `CLAUDE.md` + `rules/02-omnidev-workflow.claude.md` |
+| **Codex** | `rules/03-omnidev-workflow.codex.md` + skill `description` |
+
+**Not a trigger**: od skill only listed without explicit invoke; bare checkpoint replies without `/od`.
+
+**Iteration**: Every workflow step requires new message with `/od` prefix (or Signal B). Checkpoint → STOP → user sends `/od n` / `/od ad` / UI pick.
 
 ### F.5 Skill Discovery Paths (maps skill-composition §2)
 

@@ -1,26 +1,31 @@
 ---
-description: OmniDev workflow trigger. MANDATORY when user message starts with /od. Bootstrap via skills/od/engine/activation.md.
-alwaysApply: false
-globs: []
+description: OmniDev trigger gate — load ONLY on /od prefix OR explicit @od skill attach. No session-context inference.
+alwaysApply: true
 ---
-# OmniDev Trigger (Cursor)
+# OmniDev Trigger Gate (Cursor)
 
-## Activation (HARD)
+→ Spec: `.cursor/skills/od/engine/trigger-gate.md`
 
-When the user's **current message** starts with `/od` (after optional whitespace, case-insensitive):
+## ACTIVATE — Signal A or B only
 
-1. **Load** `.cursor/skills/od/SKILL.md` (or project `skills/od/SKILL.md` if not yet installed)
-2. **Execute** `engine/activation.md` bootstrap — tool calls FIRST, zero text before tools
-3. **Route** command per activation §3 → load phase/engine instruction file
-4. **Never** jump to ad-hoc coding for `/od [需求]` without Phase 0
+1. **Signal A**: Message starts with `/od`
+2. **Signal B**: User attached `@od` skill this turn (NOT `available_skills` listing alone)
 
-If message does **NOT** start with `/od`: do NOT apply OmniDev rules or touch `docs/omnidev-state/**`.
+On activate: Read SKILL.md → `engine/activation.md` §0–§6 → route. **Tool calls first.**
 
-## Interactive Prompts (Cursor)
+## DO NOT ACTIVATE
 
-- **Primary**: `AskQuestion` tool with Chinese labels — **same turn** as checkpoint
-- **Fallback**: Pseudo-popup §E per `engine/interactive-prompt.md` if tool fails — same turn, do NOT skip
+- Normal chat without `/od` and without skill attach
+- Bare `1` / `n` / `continue` — **NOT** workflow input
+- Do NOT infer OmniDev from prior turns or `in_progress` on disk
 
-## Skill Not Auto-Loaded?
+## Advance workflow (every step needs `/od`)
 
-If `/od` message received but skill wasn't suggested: **still follow** SKILL.md + activation.md — read skill files via tool explicitly.
+| Action | Command |
+|--------|---------|
+| Resume | `/od re` |
+| Next phase | `/od n` |
+| Revise | `/od ad` |
+| End session | `/od x` |
+
+Checkpoint: `AskQuestion` → user picks UI **or** sends `/od` command in next message. STOP & WAIT.

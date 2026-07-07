@@ -1,34 +1,34 @@
 ---
-description: OmniDev workflow trigger for Claude Code. MANDATORY when /od prefix detected. Bootstrap via engine/activation.md.
-alwaysApply: false
+description: OmniDev trigger gate for Claude Code — /od prefix OR explicit skill invoke only. Resume via /od re only.
+alwaysApply: true
 ---
 
-# OmniDev — Claude Code Trigger
+# OmniDev — Claude Code Trigger Gate
 
-## Activation (HARD)
+→ Spec: `skills/od/engine/trigger-gate.md` (or `.claude/skills/od/engine/trigger-gate.md`)
 
-When any user message begins with `/od` (case-insensitive, after optional whitespace):
+## ACTIVATE — Signal A or B only
 
-1. Read `.claude/skills/od/SKILL.md` or `~/.claude/skills/od/SKILL.md`
-2. Execute `engine/activation.md` — tool calls FIRST
-3. Load phase/engine file per activation router
-4. Do NOT ad-hoc code for `/od [需求]` without workflow
+1. **Signal A**: Message starts with `/od`
+2. **Signal B**: `od/SKILL.md` loaded into active context this turn
 
-Non-`/od` messages: skip OmniDev entirely.
+No session-context inference. No bare `1`/`n`/`continue`.
 
-## Interactive Prompts (主要工作模式)
+## Advance & resume
 
-**Default**: `interactive_mode: true`. Popup is primary UX in **all collaboration modes**.
+| Action | Command |
+|--------|---------|
+| Resume / crash recovery | `/od re` |
+| Next phase | `/od n` |
+| Revise | `/od ad` |
 
-- **Primary**: `AskUserQuestion` — **MUST invoke tool same turn** as checkpoint
-- **Templates**: `engine/interactive-prompt.md` §4 (copy-paste JSON for checkpoint, Phase 0, resume, change, B.0)
-- **Fallback**: Pseudo-popup §E if tool fails — structured table, not plain prose
+Checkpoint → `AskUserQuestion` → STOP → user sends `/od` command or UI pick.
 
-**Forbidden**: Describing options in chat without calling `AskUserQuestion`.
+## DO NOT ACTIVATE
 
-`multiSelect: true` / `allow_multiple: true` when multi-select needed (skill-composition, stash).
+Normal chat without `/od` and without skill invoke. Do not touch `docs/omnidev-state/**`.
 
-## Sub-agents & MCP
+## Platform notes
 
 - Sub-agents: `Task` tool (SKILL.md §F.3)
 - MCP: `.claude/mcp.json` or `~/.claude/mcp.json` (§F.6)

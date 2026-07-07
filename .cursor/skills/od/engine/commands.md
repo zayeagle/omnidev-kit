@@ -2,7 +2,9 @@
 
 → Platform mapping: SKILL.md §F (Platform Abstraction Layer)
 
-All commands support **short aliases** (1–2 letters). Users may reply with **numbers** at checkpoints.
+All commands require **`/od` prefix**. Short aliases are used **after** `/od` (e.g. `/od n`, not bare `n`).
+
+**Strict rule**: bare `1`, `n`, `y`, `继续` without `/od` do **NOT** advance workflow. Resume → **`/od re` only**.
 
 ## Core Commands
 
@@ -59,7 +61,7 @@ All commands support **short aliases** (1–2 letters). Users may reply with **n
 
 ## Confirmation
 
-Interactive confirmations use the platform native prompt mechanism (SKILL.md §F.2). In text-only/CLI mode, users reply with command aliases (e.g., `y`, `n`, `ad`).
+Interactive confirmations use platform native prompt (SKILL.md §F.2). User confirms via UI **or** `/od y` / `/od x` / `/od n` etc. — not bare aliases.
 
 | Command | Alias | 说明 |
 |---------|-------|------|
@@ -89,7 +91,8 @@ Interactive confirmations use the platform native prompt mechanism (SKILL.md §F
 | `deploy_modes` | `["docker","k8s","binary"]` | Phase 5 默认支持的部署模式 |
 | `deploy_autonomy` | `"conservative"` | `conservative` = legacy 改 deploy/Makefile 须用户同意；`full` = 完整流水线可自主增改 |
 | `deploy_use_makefile` | `true` | Phase 5 根目录 Makefile 作为一键部署主入口 |
-| `sub_agents` | `"auto"` | `off` / `auto` / `on` — Sub-Agent 策略 |
+| `sub_agents` | `"auto"` | `off` / `auto` / `on` — T2 Task Worker（阶段内并行） |
+| `phase_workers` | `"auto"` | `off` / `auto` / `on` — T1 Phase Worker（整阶段外包，见 multi-agent-architecture.md） |
 | `design_split` | `true` | 设计 index + `features/*.md` |
 | `log_token_estimates` | `true` | phase_exit 写入 metrics |
 | `max_read_lines` | `150` | 单次 Read 行数上限 |

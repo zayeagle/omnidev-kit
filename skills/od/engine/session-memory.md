@@ -4,7 +4,7 @@
 
 ## Overview
 
-每次 `/od` 会话结束时，自动将关键上下文压缩为结构化摘要，持久化到文件。下次 `/od re` 恢复时读取，实现真正的跨会话"断点续传"。
+每次 **`/od re`** 从磁盘 `session-log.md` 恢复断点。**不依赖**同一会话上下文推断。用户换对话、断电后 → 仅 `/od re` 续传。
 
 ## 1. Session Log 文件
 
@@ -81,9 +81,9 @@ resume_payload_at: null
 
 | 命令 | 行为 |
 |------|------|
-| `/od re` | **必读** `session-log.md`。恢复断点，加载对应 phase 的 `context_requires`。 |
-| `/od re [payload]` | 同上恢复 + **§6.1** 解析 payload，按工具流程继续（变更/导航/当前阶段指令）。 |
-| `/od` (新需求，同分支) | 检查是否存在未完成的 session-log（`status: in_progress`）。如果有，提醒用户："检测到未完成的任务，是否先恢复？"（使用 platform interactive prompt §F.2）。 |
+| `/od re` | **必读** `session-log.md`（磁盘）。恢复断点，加载对应 phase 的 `context_requires`。不读聊天历史。 |
+| `/od re [payload]` | 同上 + **§6.1** 解析 payload。 |
+| `/od` (新需求，同分支) | 若存在 `in_progress` session-log，弹窗提醒：先 `/od re` 恢复或 `/od x` 结束旧会话。 |
 | `/od st` | session-log 随 stash 一起保存。 |
 | `/od po` | session-log 随 stash 一起恢复。 |
 

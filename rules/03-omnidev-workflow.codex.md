@@ -1,50 +1,36 @@
 ---
-description: OmniDev workflow trigger for Codex. MANDATORY when /od prefix detected. Bootstrap via engine/activation.md.
-alwaysApply: false
+description: OmniDev trigger gate for Codex — /od prefix OR explicit skill invoke only. Resume via /od re only.
+alwaysApply: true
 ---
 
-# OmniDev — Codex Trigger
+# OmniDev — Codex Trigger Gate
 
-## Activation (HARD)
+→ Spec: `~/.codex/skills/od/engine/trigger-gate.md`
 
-When any user message begins with `/od` (case-insensitive, after optional whitespace):
+## ACTIVATE — Signal A or B only
 
-1. Read `~/.codex/skills/od/SKILL.md`
-2. Execute `engine/activation.md` — tool calls FIRST
-3. Load phase/engine file per activation router
-4. Do NOT ad-hoc code for `/od [需求]` without workflow
+1. **Signal A**: Message starts with `/od`
+2. **Signal B**: od skill invoked for this message
 
-Non-`/od` messages: skip OmniDev entirely.
+No session-context inference. No bare `1`/`n`/`continue`.
 
-## Interactive Prompts (主要工作模式)
+## Advance & resume
 
-**Default**: `interactive_mode: true` — popup is primary UX.
+| Action | Command |
+|--------|---------|
+| Resume / crash recovery | `/od re` |
+| Next phase | `/od n` |
+| Revise | `/od ad` |
 
-| Platform | Primary (same turn as checkpoint) | Fallback |
-|----------|-----------------------------------|----------|
-| Claude Code | **`AskUserQuestion`** — use `engine/interactive-prompt.md` §4 JSON templates | Pseudo-popup §E |
-| Codex (Plan + Default/Code) | **`request_user_input`** — use §5 templates | Pseudo-popup §E |
+Checkpoint → `request_user_input` → STOP → user sends `/od` command or UI pick.
 
-### Codex Default/Code 弹窗启用
+## DO NOT ACTIVATE
 
-```toml
-# ~/.codex/config.toml
-[features]
-default_mode_request_user_input = true
-```
+Normal chat without `/od` and without skill invoke. Do not touch `docs/omnidev-state/**`.
 
-Or: `codex features enable default_mode_request_user_input` → restart Codex.
-
-Without flag: pseudo-popup §E (structured table) — **not** a bug, but enable flag for native UI.
-
-**Agent rule**: MUST call tool in same turn — never prose-only options when `interactive_mode=true`.
-
-## Sub-agents & MCP
+## Platform notes
 
 - Sub-agents: `create_thread` + `send_message_to_thread` (§F.3)
 - MCP: `list_mcp_resources` → `read_mcp_resource` (§F.6)
-- Compaction: §F.8 defensive state-file writes
-
-## Platform override
-
-If detection fails: `config.json` → `"platform_override": "codex"`
+- Compaction: §F.8 — persist state files before long tool runs
+- Enable: `[features] default_mode_request_user_input = true` in `~/.codex/config.toml`

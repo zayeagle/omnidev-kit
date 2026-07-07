@@ -141,9 +141,9 @@ Standard checkpoint options (Chinese when `interactive_mode=true`):
 
 **Rules**:
 - MUST STOP and WAIT after presenting options (native UI or text fallback).
-- User may reply with number, alias, or full command.
-- If native prompt fails → text fallback same turn ([interactive-prompt.md](interactive-prompt.md) §D).
-- For S/M complexity, offer "跳过确认直接继续" only when B.15 allows.
+- User picks in UI **or** sends **full `/od` command** in next message (`/od n`, `/od ad`, …).
+- Bare numbers/aliases (`1`, `n`, `继续`) without `/od` → **do NOT** activate — normal chat.
+- If native prompt fails → text fallback same turn ([interactive-prompt.md](interactive-prompt.md) §E); fallback text must show `/od` commands.
 
 ---
 

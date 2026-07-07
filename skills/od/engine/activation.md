@@ -1,32 +1,38 @@
 # OmniDev Activation Bootstrap (MANDATORY)
 
-**Every `/od` message MUST execute this file before any other OmniDev action.**
+**Execute this file only when [trigger-gate.md](trigger-gate.md) activates (Signal A or B).**
 
 Load path: resolve from installed skill root (`skills/od/engine/activation.md` or `.cursor/skills/od/engine/activation.md` or `~/.codex/skills/od/engine/activation.md`).
 
 ---
 
-## 0. Prefix Gate (HARD — NO EXCEPTIONS)
+## 0. Trigger Gate (HARD — NO EXCEPTIONS)
 
-**Activate OmniDev** when the user's **current message** matches:
+→ **Authoritative spec**: [trigger-gate.md](trigger-gate.md)
 
-```
-/^\s*\/od(\s|$|[\u4e00-\u9fff])/i
-```
+**Quick decision** (current user message):
 
-Matches: `/od`, `/od `, `/od h`, `/od 实现登录`, `/OD re`, `/od\t需求`  
-Does NOT match: `请用 /od 实现` (not at start), `code/od`, normal chat without `/od` prefix.
+| Signal | Condition | Action |
+|--------|-----------|--------|
+| **A** | `/^\s*\/od(\s|$|[\u4e00-\u9fff])/i` | Full bootstrap §1–§6 |
+| **B** | Skill explicitly attached/invoked this turn | Full bootstrap §1–§6 |
+| **None** | No `/od`, no skill attach | **STOP** — zero OmniDev loading |
 
-| Match | Action |
-|-------|--------|
-| ✅ Prefix match | **MANDATORY** OmniDev workflow — proceed §1–§6 |
-| ❌ No match | Do NOT apply OmniDev; normal conversation |
+**No Signal C.** Bare `1`/`n`/`continue` without `/od` → normal chat. Resume → **`/od re` only** (disk via `session-log.md`).
 
-**Forbidden when prefix matches:**
+**Platform skill-invoke signals (Signal B)**:
+- **Cursor**: `manually_attached_skills` / `@od` / SKILL body inlined — NOT mere `available_skills` listing
+- **Claude Code**: SKILL.md loaded into active context this turn
+- **Codex**: od skill invoked for this message — NOT manifest-only
+
+**Forbidden when triggered (A/B/C):**
 - Jumping straight to code without loading phase instruction file
-- Ignoring SKILL.md because "skill wasn't suggested"
-- Treating `/od [需求]` as a casual coding request
-- Skipping Phase 0 assessment for new requirements (unless `/od -f` or explicit `/od sk`)
+- Ignoring SKILL.md because "skill wasn't suggested" (if Signal B, skill IS attached)
+- Treating requirements as casual coding without Phase 0 (unless `/od -f` or explicit skip)
+
+**Forbidden when NOT triggered:**
+- Loading any OmniDev file "just in case"
+- Touching `docs/omnidev-state/**` during normal chat
 
 ---
 
@@ -66,10 +72,11 @@ Persist to session-log frontmatter: `platform: cursor|claude_code|codex|cli_othe
 
 ## 3. Command Router
 
-Parse message after `/od`:
+Parse message after `/od` (Signal A), or use full user text as payload (Signal B without prefix):
 
 | Pattern | Load file | Start phase |
 |---------|-----------|-------------|
+| *(Signal B, no `/od` prefix)* | `phases/00-assessment.md` | **0** (payload = user message) |
 | `/od h`, `/od help` | `engine/commands.md` | — |
 | `/od re`, `/od resume` | `engine/session-memory.md` | resume from session-log |
 | `/od re [payload]`, `/od resume [payload]` | `engine/session-memory.md` §6.1 | resume + route payload per workflow |
@@ -84,7 +91,7 @@ Parse message after `/od`:
 | `/od ad`, `/od sk`, `/od bk`, `/od al` | current phase instruction | adjust |
 | `/od [需求]` (default) | `phases/00-assessment.md` | **0** |
 
-**Default `/od [需求]` flow**: ALWAYS start Phase 0 unless `session-log.md` has `status: in_progress` → offer resume via interactive prompt.
+**Default `/od [需求]` flow**: ALWAYS full bootstrap (Signal A). If `session-log.md` has stale `in_progress`, offer resume vs restart via interactive prompt — do not skip bootstrap.
 
 ---
 
@@ -111,7 +118,7 @@ At **every** decision point (Phase 0 sizing, Phase 1 approach, checkpoints, Pre-
    - Cursor → `AskQuestion`
 3. If native fails → **pseudo-popup §E** immediately (structured table, not plain prose)
 4. **NEVER** end turn with "是否继续?" without tool call when `interactive_mode=true`
-5. User may always reply with `/od` command or number instead of clicking UI
+5. User advances via **full `/od` command** in next message (`/od n`, `/od ad`, …) or UI pick — bare numbers/aliases alone do **NOT** activate
 
 **Failure mode fix**: "弹窗不触发" → agent skipped tool call; re-invoke with §4/§5 template. Codex Default mode → enable `default_mode_request_user_input` (interactive-prompt §7).
 
@@ -152,8 +159,17 @@ If workflow doesn't trigger, verify skill is installed:
 
 | Platform | Path |
 |----------|------|
-| Cursor | `.cursor/skills/od/` + `rules/01-omnidev-workflow.mdc` |
-| Claude Code | `.claude/skills/od/` or `~/.claude/skills/od/` |
-| Codex | `~/.codex/skills/od/` + optional `rules/03-omnidev-workflow.codex.md` |
+| Cursor | `.cursor/skills/od/` + `.cursor/rules/01-omnidev-workflow.mdc` (`alwaysApply: true`) + root `AGENTS.md` |
+| Claude Code | `.claude/skills/od/` or `~/.claude/skills/od/` + `CLAUDE.md` trigger line |
+| Codex | `~/.codex/skills/od/` (full copy, not partial) + optional `rules/03-omnidev-workflow.codex.md` |
+
+### Common root causes
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `/od` ignored | Trigger rule `alwaysApply: false` | Set `alwaysApply: true`; run `/od up` |
+| OmniDev loads on normal chat | Skill listed but not gated | Follow [trigger-gate.md](trigger-gate.md) — only A/B/C activate |
+| Skill attached but no workflow | Agent skipped Read | Signal B requires explicit SKILL + activation read |
+| Stale user-level skill | `~/.cursor/skills/od/` incomplete | Prefer project `.cursor/skills/od/` |
 
 Run `/od up` or reinstall from omnidev-kit repo.

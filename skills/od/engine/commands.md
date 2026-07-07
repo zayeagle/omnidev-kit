@@ -2,7 +2,9 @@
 
 → Platform mapping: SKILL.md §F (Platform Abstraction Layer)
 
-All commands support **short aliases** (1–2 letters). Users may reply with **numbers** at checkpoints.
+All commands require **`/od` prefix**. Short aliases are used **after** `/od` (e.g. `/od n`, not bare `n`).
+
+**Strict rule**: bare `1`, `n`, `y`, `继续` without `/od` do **NOT** advance workflow. Resume → **`/od re` only**.
 
 ## Core Commands
 
@@ -59,7 +61,7 @@ All commands support **short aliases** (1–2 letters). Users may reply with **n
 
 ## Confirmation
 
-Interactive confirmations use the platform native prompt mechanism (SKILL.md §F.2). In text-only/CLI mode, users reply with command aliases (e.g., `y`, `n`, `ad`).
+Interactive confirmations use platform native prompt (SKILL.md §F.2). User confirms via UI **or** `/od y` / `/od x` / `/od n` etc. — not bare aliases.
 
 | Command | Alias | 说明 |
 |---------|-------|------|
