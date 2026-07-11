@@ -94,7 +94,7 @@ After user selects the approach, explicitly list all unvalidated assumptions:
 
 - Sort by blocking impact — blueprint-structure questions first.
 - Provide a reasonable default for each.
-- If `interactive_mode=true`: output the questions table as prose in chat **first**, then same turn invoke [interactive-prompt.md](../engine/interactive-prompt.md) **Open Questions batch confirmation** template (§4.9 Claude / §5.5 Codex) to let user accept all defaults or opt into per-question review.
+- If `interactive_mode=true`: output the questions table as prose in chat **first**, then same turn invoke [interactive-prompt.md](../engine/interactive-prompt.md) **Open Questions batch confirmation** template (§4.9 Cursor / §5.9 Claude / §6.5 Codex) to let user accept all defaults or opt into per-question review.
   - User picks "全部接受默认值" → accept all defaults, proceed.
   - User picks "逐个调整" → re-invoke sequential single-question prompts (one per row, reusing the `Default` column as the recommended option).
 - If `interactive_mode=false`: use §9 minimal text instead.

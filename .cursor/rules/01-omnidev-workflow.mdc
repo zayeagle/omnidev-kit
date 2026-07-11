@@ -28,4 +28,5 @@ On activate: Read SKILL.md → `engine/activation.md` §0–§6 → route. **Too
 | Revise | `/od ad` |
 | End session | `/od x` |
 
-Checkpoint: `AskQuestion` → user picks UI **or** sends `/od` command in next message. STOP & WAIT.
+Checkpoint: **must call** `AskQuestion` when tool exists → user picks UI **or** sends `/od` command next message. If tool absent → clean `/od` table (never「回复 1/2/3」). STOP & WAIT.
+Phase 0 chat: ≤6 lines only; details → session-log.

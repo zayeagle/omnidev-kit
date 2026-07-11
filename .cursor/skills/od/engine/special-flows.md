@@ -97,7 +97,7 @@ For Structural changes: spawn 1 worker per feature to regenerate `04-design.md` 
 
 ### 2.2 Sub-Agent Dispatch for Structural Changes
 
-Same as §2.1 Structural path. On worker failure, follow [context-protocol.md](context-protocol.md) §10.
+Same as §2.1 Structural path. On worker failure, follow [context-lifecycle.md](context-lifecycle.md) §10.
 
 ---
 
@@ -125,9 +125,10 @@ context_requires:
 ## 3.1 Next-Step Prompt Format (B.8)
 
 After every phase checkpoint, call [interactive-prompt.md](interactive-prompt.md):
-- Claude Code → `AskUserQuestion` §4.1 (same turn, mandatory)
-- Codex → `request_user_input` §5.1 (same turn, mandatory)
-- On failure → pseudo-popup §E
+- Cursor → `AskQuestion` §4.1 (same turn, mandatory when tool present)
+- Claude Code → `AskUserQuestion` §5.1 (same turn, mandatory)
+- Codex → `request_user_input` §6.1 (same turn, mandatory)
+- On failure → pseudo-popup §8
 
 Standard checkpoint options (Chinese when `interactive_mode=true`):
 
@@ -143,7 +144,7 @@ Standard checkpoint options (Chinese when `interactive_mode=true`):
 - MUST STOP and WAIT after presenting options (native UI or text fallback).
 - User picks in UI **or** sends **full `/od` command** in next message (`/od n`, `/od ad`, …).
 - Bare numbers/aliases (`1`, `n`, `继续`) without `/od` → **do NOT** activate — normal chat.
-- If native prompt fails → text fallback same turn ([interactive-prompt.md](interactive-prompt.md) §E); fallback text must show `/od` commands.
+- If native prompt fails → text fallback same turn ([interactive-prompt.md](interactive-prompt.md) §8); fallback text must show `/od` commands (never bare `1`/`2`/`3`).
 
 ---
 
@@ -154,7 +155,7 @@ Standard checkpoint options (Chinese when `interactive_mode=true`):
 **Action:**
 1. Append current `03-progress.md` snapshot to `03-progress-history.md` per [document-history.md](document-history.md) §6.1.
 2. Condense `03-progress.md` to frontmatter + blockers + 3 active tasks (≤50 lines).
-3. Execute [context-occupancy.md](context-occupancy.md) §9 purge + occupancy report.
+3. Execute [context-lifecycle.md](context-lifecycle.md) §9 purge + occupancy report.
 4. Reset WARM to: session-log YAML + 02-plan active group + 04-design index.
 
 **Output** (≤8 lines):

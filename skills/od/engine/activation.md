@@ -130,16 +130,16 @@ After loading target instruction file:
 
 At **every** decision point (Phase 0 sizing, Phase 1 approach, checkpoints, Pre-Dev, Change Impact):
 
-1. Output brief summary (≤12 lines if checkpoint)
+1. Output brief summary only（Phase 0 ≤6 行；checkpoint ≤12 行）— **禁止**把完整评估 / YAML 元数据贴进对话
 2. **Same turn**: call [interactive-prompt.md](interactive-prompt.md) native tool:
-   - Claude Code → `AskUserQuestion` (§4 template)
-   - Codex → `request_user_input` (§5 template) — try in **all modes**
-   - Cursor → `AskQuestion`
-3. If native fails → **pseudo-popup §E** immediately (structured table, not plain prose)
-4. **NEVER** end turn with "是否继续?" without tool call when `interactive_mode=true`
+   - Cursor → `AskQuestion`（§4 模板）— 工具在列表中时 **必调**
+   - Claude Code → `AskUserQuestion`（§5 模板）
+   - Codex → `request_user_input`（§6 模板）— try in **all modes**
+3. If native missing/fails → **pseudo-popup §8** immediately（干净表格 + `/od` 命令；禁止「回复 1/2/3」）
+4. **NEVER** end turn with "是否继续?" / 选项散文 without tool call when `interactive_mode=true`
 5. User advances via **full `/od` command** in next message (`/od n`, `/od ad`, …) or UI pick — bare numbers/aliases alone do **NOT** activate
 
-**Failure mode fix**: "弹窗不触发" → agent skipped tool call; re-invoke with §4/§5 template. Codex Default mode → enable `default_mode_request_user_input` (interactive-prompt §7).
+**Failure mode fix**: "弹窗不触发" → agent skipped tool call; re-invoke with §4/§5/§6 template. Cursor 无 `AskQuestion` → §8 + 换模型/Plan 提示。Codex Default → enable `default_mode_request_user_input`（§7）。
 
 ---
 
@@ -164,10 +164,13 @@ Then proceed with phase work. Do not repeat SKILL.md content.
 |--------------|------------------|
 | `/od 做X` → direct code edit | Phase 0 → (recommended phases) → then dev |
 | Skill loaded but phase file not read | Read phase file via tool first |
-| AskQuestion failed → proceed anyway | Pseudo-popup §E + WAIT; or re-call AskUserQuestion |
-| interactive_mode true but no prompt shown | **Must call** AskUserQuestion/request_user_input same turn (§4/§5) |
-| Claude/Codex: prose options without tool | **Violation** — invoke tool with template |
-| Codex Default mode, no popup | Enable `default_mode_request_user_input`; use pseudo-popup §E until enabled |
+| AskQuestion failed → proceed anyway | Pseudo-popup §8 + WAIT; or re-call native tool |
+| Cursor: skip AskQuestion when tool exists | **Must call** §4 template same turn |
+| interactive_mode true but no prompt shown | **Must call** AskQuestion / AskUserQuestion / request_user_input (§4/§5/§6) |
+| Claude/Codex/Cursor: prose options without tool | **Violation** — invoke tool with template |
+| Dump full Phase 0 assessment + YAML meta in chat | ≤6 行摘要 + 弹窗；详情写 session-log |
+| Tell user「回复 1/2/3」 | Always show `/od` commands |
+| Codex Default mode, no popup | Enable `default_mode_request_user_input`; use pseudo-popup §8 until enabled |
 | Full state file pasted in chat | Path pointer only (B.18) |
 
 ---

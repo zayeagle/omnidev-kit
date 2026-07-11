@@ -41,7 +41,7 @@ During Phase 3, append to Change Impact Summary when triggered:
 | Task rework | Same group 2+ times | ?? Critical |
 | Rollback | 2+ reverts | ?? High |
 | Test loop | Same test fails 3+ times | ?? Critical |
-| Token guard | context-protocol §11 breach | ?? High |
+| Token guard | context-lifecycle §7 breach | ?? High |
 
 ---
 

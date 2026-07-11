@@ -23,14 +23,14 @@ description: >-
 
 ### B.0 — 不确定就问，禁止自我发挥
 **最高优先级**：任何不确定/歧义/猜测 → 停下来确认。删改/部署等破坏性操作默认"不执行"。
-→ Full rules: [engine/context-lifecycle.md](engine/context-lifecycle.md) §1 · [engine/interactive-prompt.md](engine/interactive-prompt.md) §4.7
+→ Full rules: [engine/context-lifecycle.md](engine/context-lifecycle.md) §1 · [engine/interactive-prompt.md](engine/interactive-prompt.md) §4.7 / §5.7
 
 ### B.1 — Trigger & Activation
 **仅 Signal A** (`/od` 前缀) 或 **Signal B** (skill 被显式 invoke) 才激活。Phase 0–5 按序执行；`/od re` 磁盘恢复；bare `1`/`n`/`继续` 不触发。
 → [engine/trigger-gate.md](engine/trigger-gate.md) · [engine/activation.md](engine/activation.md)
 
 ### B.4 — Interactive Prompt (主要工作模式)
-`interactive_mode: true` 默认开启。决策点 **必须先调原生工具** (`AskUserQuestion`/`request_user_input`)，与 checkpoint 同 turn 发出；禁止仅 prose。弹窗只做选择确认，结论/上下文走对话 prose。
+`interactive_mode: true` 默认开启。决策点 **必须先调原生工具**（Cursor `AskQuestion` / Claude `AskUserQuestion` / Codex `request_user_input`），与摘要同 turn 发出；禁止仅 prose。对话只留短摘要（Phase 0 ≤6 行）；禁止贴 `od_interactive` 元数据或「回复 1/2/3」。原生失败 → §8 干净 `/od` 表。
 → [engine/interactive-prompt.md](engine/interactive-prompt.md)
 
 ### B.11 — Session Resume
@@ -152,19 +152,19 @@ Store detected platform in session memory; do not re-detect mid-session.
 
 | Platform | Interactive Prompt Mechanism |
 |----------|------------------------------|
-| **Cursor** | `AskQuestion` tool (native), `allow_multiple: true` for multi-select |
-| **Claude Code** | **`AskUserQuestion` tool — REQUIRED same turn** at every checkpoint. Copy-paste JSON from interactive-prompt.md §4. Works in **all collaboration modes**. |
-| **Codex** | **`request_user_input` tool — REQUIRED same turn** in **Plan AND Default/Code mode**. Copy-paste JSON from interactive-prompt.md §5. Enable Default mode: `[features] default_mode_request_user_input = true` in `~/.codex/config.toml`. |
-| **CLI / Other** | Pseudo-popup §E → minimal text §9 |
+| **Cursor** | **`AskQuestion` tool — REQUIRED same turn** when present. Copy-paste JSON from interactive-prompt.md **§4**. Chat: short summary only; no YAML metadata dump. |
+| **Claude Code** | **`AskUserQuestion` tool — REQUIRED same turn** at every checkpoint. Copy-paste JSON from interactive-prompt.md **§5**. Works in **all collaboration modes**. |
+| **Codex** | **`request_user_input` tool — REQUIRED same turn** in **Plan AND Default/Code mode**. Copy-paste JSON from interactive-prompt.md **§6**. Enable Default mode: `[features] default_mode_request_user_input = true` in `~/.codex/config.toml`. |
+| **CLI / Other** | Pseudo-popup §8 → minimal text §9 |
 
-#### Mandatory Tool Invocation (Claude Code & Codex)
+#### Mandatory Tool Invocation (Cursor / Claude Code / Codex)
 
 When `interactive_mode=true`:
 
-1. Output checkpoint/decision summary (≤12 lines)
-2. **Immediately invoke** native tool with matching §4/§5 template — **forbidden** to end turn with prose-only options
-3. On tool error or "unavailable in this chat mode" → pseudo-popup §E **same turn**
-4. Log `native_attempted: true` in session-log or metrics
+1. Output **short** summary only（Phase 0 ≤6 行；checkpoint ≤12 行）— 禁止把完整评估贴进对话
+2. **Immediately invoke** native tool with matching §4 / §5 / §6 template — **forbidden** to end turn with prose-only options when the tool exists
+3. On tool **absent**, error, or "unavailable in this chat mode" → clean pseudo-popup §8 **same turn**（禁止「回复 1/2/3」；须提示 `/od` 命令）
+4. Log `native_attempted: true` + method to **session-log**（不要贴到对话）
 
 #### Codex Default/Code Mode Setup
 
@@ -174,14 +174,14 @@ When `interactive_mode=true`:
 default_mode_request_user_input = true
 ```
 
-CLI: `codex features enable default_mode_request_user_input` — restart Codex. Without this flag, Codex falls back to pseudo-popup §E (structured table UX, not plain text).
+CLI: `codex features enable default_mode_request_user_input` — restart Codex. Without this flag, Codex falls back to pseudo-popup §8 (clean table UX, not plain text).
 
 #### Codex Multi-Select Simulation
 
 `request_user_input` has no native multi-select. When the calling engine file specifies `allow_multiple: true` (e.g., skill-composition §4, stash §3), simulate multi-select on Codex/CLI by:
 
-1. List all options as numbered choices (same as CLI/Other fallback).
-2. At end of prompt, add: "可以多选，用逗号分隔序号 (e.g., 1,3,4)" / "Multi-select: reply with comma-separated numbers (e.g., 1,3,4)".
+1. List all options as numbered choices with **`/od` command** or skill id in each row (same as CLI/Other fallback).
+2. At end of prompt, add: "可以多选：在下一条消息说明要启用的技能名" / "Multi-select: name the skills to enable in the next message".
 3. Parse the user's response to extract multiple selections.
 4. If `request_user_input` IS available, use `autoResolutionMs` (see below) to avoid indefinite blocking.
 

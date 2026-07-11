@@ -80,7 +80,7 @@ Prompt: zh → `"🔍 检测到问题排查/修复类需求，发现以下可用
 |----------|----------------------|
 | **Cursor** | `AskQuestion` with `allow_multiple: true` (native) |
 | **Claude Code** | `AskUserQuestion` with `allow_multiple: true` — **§4 template, same turn** |
-| **Codex** | `request_user_input` — **§5 template, same turn** (all modes; enable `default_mode_request_user_input`). Multi-select: §5.4 or pseudo-popup §E |
+| **Codex** | `request_user_input` — **§6 template, same turn** (all modes; enable `default_mode_request_user_input`). Multi-select: §6.4 or pseudo-popup §8 |
 | **CLI / Other** | Numbered prompt + comma-separated reply |
 - **STOP — WAIT for user selection.** Do NOT proceed until the user confirms.
 

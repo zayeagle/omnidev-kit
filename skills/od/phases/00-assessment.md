@@ -62,7 +62,7 @@ If multiple `package.json` / `go.mod` at subdirectories or workspace config (`pn
 
 ### 2.1 Prose Summary (≤6 lines, output in chat BEFORE popup)
 
-First output a brief summary to the conversation (NOT in the popup). This is what the user sees before the confirmation dialog:
+First output a brief summary to the conversation (NOT in the popup). **Hard cap: ≤6 lines.** This is the **only** Phase 0 content allowed in chat before the popup:
 
 ```
 🚀 Phase 0 评估完成
@@ -71,7 +71,12 @@ First output a brief summary to the conversation (NOT in the popup). This is wha
 推荐阶段: [phases] · 确认级别: [full|reduced|minimal]
 ```
 
-The full detailed assessment (Requirement Analysis, Stability Level, Frontend Impact, Test Strategy Hint — see template below) is written to `session-log.md` `## Phase 0 评估` section, NOT output in chat or popup.
+**FORBIDDEN in chat** (write to `session-log.md` `## Phase 0 评估` only):
+- Requirement Analysis 长段落
+- Stability / Frontend Impact / Test Strategy Hint 明细
+- Recommended Scope 编号列表
+- `od_interactive` / `decision_point` / `platform` 元数据
+- 与弹窗重复的选项表（原生弹窗成功时）
 
 <details>
 <summary>完整评估模板（仅写入 session-log.md，不输出到对话或弹窗）</summary>
@@ -85,6 +90,7 @@ The full detailed assessment (Requirement Analysis, Stability Level, Frontend Im
 **Frontend Impact**: [yes — ... | no — ... | n/a]
 **Test Strategy Hint**: [{structure}-{complexity}]
 **Recommended Strategy**: [phases]
+**Recommended Scope**: [bullet list — session-log only]
 **Confirmation Level**: [full | reduced | minimal] — per B.15
 ```
 </details>
@@ -95,15 +101,23 @@ The full detailed assessment (Requirement Analysis, Stability Level, Frontend Im
 
 Prose output must include a lightweight check line:
 ```
-复杂度: S → 直接进入开发。如评估有误，回复调整。
+复杂度: S → 直接进入开发。如评估有误，回复 `/od ad` 调整。
 ```
 
-**M/L/XL**: After the prose summary, same turn invoke [interactive-prompt.md](../engine/interactive-prompt.md) native tool. Populate the template dynamically:
+**M/L/XL**: After the ≤6-line prose summary, **same turn** invoke [interactive-prompt.md](../engine/interactive-prompt.md) native tool:
 
-- Claude §4.2 / Codex §5.2 — **fill `prompt`/`question`** with key context from §2.1:
-  ```
-  "prompt": "复杂度: {complexity} — {reason_short}。推荐: {phases}。确认？"
-  ```
+| Platform | Template |
+|----------|----------|
+| **Cursor** | §4.2 `AskQuestion` — **必调**（工具在列表中时） |
+| **Claude Code** | §5.2 `AskUserQuestion` |
+| **Codex** | §6.2 `request_user_input` |
+
+Fill `prompt`/`question` with:
+```
+"复杂度: {complexity} — {reason_short}。推荐: {phases}。确认？"
+```
+
+On native missing/error → §8 pseudo-popup（干净表格 + `/od` 命令；禁止「回复 1/2/3」）。
 
 If `interactive_mode=false`: use §9 minimal text instead.
 

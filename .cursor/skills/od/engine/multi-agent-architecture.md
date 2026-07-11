@@ -102,7 +102,7 @@ worker_id: feature-F3-20260704
 worker_type: feature | dev | qa-e2e | deploy | explorer
 phase: 2
 read_only:
-  - docs/omnidev-state/00-project-context.md   # slice per context-occupancy
+  - docs/omnidev-state/00-project-context.md   # slice per context-lifecycle
   - docs/omnidev-state/[branch]/session-log.md # YAML only
 write:
   - docs/omnidev-state/[branch]/features/F3.md

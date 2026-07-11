@@ -10,7 +10,8 @@ context_requires:
     - 03-progress.md                 # if exists
     - 04-design.md                   # INDEX ONLY — never load all features/
   read_on_demand:
-    - features/{FN}.md               # ONE file matching current task's feature: field
+    - 04-design.md (grep `## Feature {FN}` for current task's feature: field) # default design_split:false
+    - features/{FN}.md               # only when design_split:true
   scan:
     - ONLY paths from current task `outputs` and `depends`
   scan_limit: 8                      # reduced from 10 for token savings
@@ -32,16 +33,16 @@ context_requires:
 ```
 
 → Token rules: [token-optimization.md](../engine/token-optimization.md)
-→ Occupancy: [context-occupancy.md](../engine/context-occupancy.md) §3 Phase 3
+→ Occupancy: [context-lifecycle.md](../engine/context-lifecycle.md) §3 Phase 3
 
 ```yaml
 context_occupancy:
   hot_max: 150
   warm_max: 80
   hot: ["02-plan active Group", "features/{FN}.md", "current source files"]
-  warm: ["04-design index", "03-progress snapshot"]
+  warm: ["04-design.md active feature section", "03-progress snapshot"]
   cold: ["05-test-plan", "01-blueprint", "completed groups", "git diff full"]
-  purge_on_task_complete: ["features/{FN}.md"]
+  purge_on_task_complete: ["04-design.md feature section", "features/{FN}.md"]
   purge_on_group_complete: ["source file reads", "git diff stat summary retained in 03-progress"]
 ```
 
@@ -49,12 +50,17 @@ context_occupancy:
 
 1. **Safety checkpoint**: Only if `auto_checkpoint: true` → `git stash`. Never auto-commit.
 2. **Pre-Dev Scope** (B.15): Required per complexity. Keep output ≤25 lines for M.
-3. **Load design**: Read `04-design.md` index → identify current task's `feature:` → Read **only** `features/FN.md`.
+3. **Load design**: `grep '## Feature {FN}' 04-design.md` → read only that section (≈20-40 lines). When `design_split: true`: read `features/FN.md` instead.
 4. **Execute groups** from `02-plan.md`. Sub-agents per config (§1.2).
-5. **After each task**: `[x]` in plan; archive progress; **unload** that feature's design file from context.
+5. **After each task**: `[x]` in plan; archive progress; **unload** that feature's design section from context.
 6. **git diff**: Always `--stat` first. Full diff only for active fix (±30 lines).
-7. **Change Impact** (B.15): Per complexity tier.
-8. Log token estimate + `metrics.json` on phase exit.
+7. **Task-level recovery record** (new): after every task, append to `03-progress.md`:
+   ```
+   ✅ T3 · [files modified, comma-separated] · [time]
+   ```
+   When `/od x` interrupts mid-task (`[-]`): record `[-] T3 · files: [comma-separated] · [time]` so `/od re` knows what was touched.
+8. **Change Impact** (B.15): Per complexity tier.
+9. Log token estimate + `metrics.json` on phase exit.
 
 ---
 

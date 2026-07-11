@@ -103,6 +103,8 @@ OmniDev supports **Cursor**, **Claude Code**, and **Codex** via Platform Abstrac
 | New chat, want to continue | `/od re` (reads `session-log.md` from disk) |
 | Stale `in_progress` | `/od re` to resume or `/od x` then `/od [new requirement]` |
 | Codex no popup | Enable `default_mode_request_user_input`; fallback pseudo-popup still works |
+| Cursor no AskQuestion popup | Tool missing (Composer/Auto Agent) → §8 pseudo-popup + switch Claude/GPT or Plan mode; tool present but skipped → agent bug, must call §4 |
+| Phase 0 chat dump / messy YAML | Violation — chat ≤6 lines; details → session-log; no `od_interactive:` in chat |
 
 ---
 

@@ -329,6 +329,7 @@ If user confirms **target environment** (staging/production):
 | Legacy: silently rewrite Dockerfile | Audit → consent → change |
 | Multi-step manual deploy chain | **One-click** `make deploy-*` |
 | Greenfield without Makefile | Root **Makefile** required |
+| Greenfield: only docker, skip k8s/binary | Three one-click modes default |
 | Legacy: overwrite Makefile without consent | Extend deploy targets after audit + consent |
 | Prod deploy without user confirm | Scripts ok; prod needs explicit yes |
 | full pipeline but skip broken k8s | Fix or stub + document in release notes |

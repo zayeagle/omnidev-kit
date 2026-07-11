@@ -77,7 +77,7 @@ Interactive confirmations use platform native prompt (SKILL.md §F.2). User conf
 
 | Key | Default | 说明 |
 |-----|---------|------|
-| `interactive_mode` | `true` | **主要工作模式** — 弹窗优先；Claude `AskUserQuestion` / Codex `request_user_input` 同 turn 必调（见 interactive-prompt.md §4/§5） |
+| `interactive_mode` | `true` | **主要工作模式** — 弹窗优先；Cursor `AskQuestion` / Claude `AskUserQuestion` / Codex `request_user_input` 同 turn 必调（见 interactive-prompt.md §4/§5/§6） |
 | `ask_mode_after_od` | `true` | `/od` 后进入问答模式 |
 | `update_source_url` | kit repo URL | `/od up` 源 |
 | `auto_checkpoint` | `false` | Phase 3 前 git stash（非 commit） |

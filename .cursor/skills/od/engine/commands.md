@@ -77,7 +77,7 @@ Interactive confirmations use platform native prompt (SKILL.md §F.2). User conf
 
 | Key | Default | 说明 |
 |-----|---------|------|
-| `interactive_mode` | `true` | **主要工作模式** — 弹窗优先；Claude `AskUserQuestion` / Codex `request_user_input` 同 turn 必调（见 interactive-prompt.md §4/§5） |
+| `interactive_mode` | `true` | **主要工作模式** — 弹窗优先；Cursor `AskQuestion` / Claude `AskUserQuestion` / Codex `request_user_input` 同 turn 必调（见 interactive-prompt.md §4/§5/§6） |
 | `ask_mode_after_od` | `true` | `/od` 后进入问答模式 |
 | `update_source_url` | kit repo URL | `/od up` 源 |
 | `auto_checkpoint` | `false` | Phase 3 前 git stash（非 commit） |
@@ -108,4 +108,4 @@ Interactive confirmations use platform native prompt (SKILL.md §F.2). User conf
 | `jira_base_url` | — | `/od sy` Jira（可选） |
 | `jira_project_key` | — | Jira 项目键（可选） |
 
-See [engine/context-occupancy.md](engine/context-occupancy.md), [engine/token-optimization.md](engine/token-optimization.md), [engine/metrics.md](engine/metrics.md), SKILL.md §F.8 (Codex compaction).
+See [engine/context-lifecycle.md](engine/context-lifecycle.md), [engine/token-optimization.md](engine/token-optimization.md), [engine/metrics.md](engine/metrics.md), SKILL.md §F.8 (Codex compaction).
