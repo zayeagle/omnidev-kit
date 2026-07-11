@@ -21,138 +21,45 @@ description: >-
 
 ## B. Core Rules
 
-### B.0 First Principle — 不确定就问，禁止自我发挥
+### B.0 — 不确定就问，禁止自我发挥
+**最高优先级**：任何不确定/歧义/猜测 → 停下来确认。删改/部署等破坏性操作默认"不执行"。
+→ Full rules: [engine/context-lifecycle.md](engine/context-lifecycle.md) §1 · [engine/interactive-prompt.md](engine/interactive-prompt.md) §4.7
 
-**最高优先级规则。任何不确定、歧义、多种可能的情况 → 停下来向用户确认，禁止猜测/假设/自我发挥。** 判断标准：如果你需要说"我假设/猜测/应该是/大概是"—停下来问。需求模糊、多技术方案、代码风格不确定、删改现有代码时尤其适用。
+### B.1 — Trigger & Activation
+**仅 Signal A** (`/od` 前缀) 或 **Signal B** (skill 被显式 invoke) 才激活。Phase 0–5 按序执行；`/od re` 磁盘恢复；bare `1`/`n`/`继续` 不触发。
+→ [engine/trigger-gate.md](engine/trigger-gate.md) · [engine/activation.md](engine/activation.md)
 
-#### B.0 Non-Interactive Fallback
+### B.4 — Interactive Prompt (主要工作模式)
+`interactive_mode: true` 默认开启。决策点 **必须先调原生工具** (`AskUserQuestion`/`request_user_input`)，与 checkpoint 同 turn 发出；禁止仅 prose。弹窗只做选择确认，结论/上下文走对话 prose。
+→ [engine/interactive-prompt.md](engine/interactive-prompt.md)
 
-When `interactive_mode: false` or the platform lacks interactive prompt tools (CLI/Other, Codex without `request_user_input`), B.0 confirmation uses **text-based prompts with explicit defaults**:
+### B.11 — Session Resume
+`/od re` 从 `session-log.md` YAML frontmatter 恢复；`/od re [payload]` 续传变更；`/od x` 保存退出。禁止对话上下文推断。
+→ [engine/session-memory.md](engine/session-memory.md)
 
-| Decision Type | Fallback Mechanism | Default (if no response) |
-|---------------|-------------------|--------------------------|
-| Requirement ambiguity | Text prompt with 2-3 clear options, each labeled | Most conservative/least-destructive option |
-| Technical approach selection | Text prompt with numbered alternatives | Option 1 (recommended) |
-| Code style uncertainty | Text prompt + "use existing convention in repo" default | Follow existing conventions |
-| Code deletion/modification | Text prompt; require explicit `y` before acting | **Do NOT proceed** — assume `n` |
-| Phase skip/retain | Text prompt per §F.2 CLI/Other pattern | Follow T-shirt size recommendations |
+---
 
-**Rules for text-based B.0 prompts**:
-1. Each prompt must have ≤3 options, clearly numbered, with the default marked `[默认]`.
-2. Unsafe actions (deletion, breaking changes, production deploys) default to **"不执行"** — user must explicitly opt in.
-3. Safe actions (following conventions, using repo patterns) may proceed after prompt if user doesn't respond within a reasonable interval.
-4. All B.0 decisions are logged to `session-log.md` `## 关键决策` whether interactive or text-based.
+### Quick Reference (其余规则详见对应 engine 文件)
 
-**Codex note**: When `interactive_mode: true`, **always call** `request_user_input` at decision points (all modes — enable `default_mode_request_user_input` in `~/.codex/config.toml` for Default/Code). On failure → pseudo-popup §E same turn. When `interactive_mode: false`, use text §9 only.
-
-→ Execution protocol: [engine/context-protocol.md](engine/context-protocol.md) §1
-
-### B.1 Activation & Tool Execution (ZERO TOLERANCE)
-
-**Trigger gate** — consult [engine/trigger-gate.md](engine/trigger-gate.md). OmniDev is **MANDATORY** only when:
-
-1. **Signal A**: current message starts with `/od` (after optional whitespace, case-insensitive), OR
-2. **Signal B**: od skill **explicitly attached/invoked this turn** (platform-specific — see trigger-gate §1)
-
-**Bootstrap** (Signal A or B, before any other action):
-1. Execute [engine/activation.md](engine/activation.md) §0–§6
-2. First response turn: **tool call(s) first** — zero prose before tools
-3. Load target phase/engine file per activation §3 router
-4. Follow loaded file end-to-end — **no ad-hoc coding** for requirements without Phase 0
-
-**Non-triggered messages** (no Signal A/B): Do **NOT** load this skill, `activation.md`, phase files, or `docs/omnidev-state/**`. Prior OmniDev turns in chat do **NOT** carry forward — user must send `/od re` to resume.
-
-**Interactive prompts**: Every decision point MUST use [engine/interactive-prompt.md](engine/interactive-prompt.md). Native UI failure → numbered text fallback same turn — never skip.
-
-→ Platform: SKILL.md §F · Prompt adapter: [engine/interactive-prompt.md](engine/interactive-prompt.md)
-
-### B.2 Workflow Philosophy
-Phase order: **Blueprint → Design & Plan → Dev → Test → Deploy**. Forward only, any phase skippable. Complexity (S/M/L/XL) provides recommendations, not mandates.
-
-### B.3 State File Isolation
-- Global: `docs/omnidev-state/` (`00-project-context.md`, `00-project-context-history.md`, `metrics.json`, `config.json`, `user-preferences.md`)
-- Branch: `docs/omnidev-state/[branch]/` — each artifact **active + history pair** (e.g. `02-plan.md` + `02-plan-history.md`), plus `features/*.md`, `session-log.md`
-- Stash: `docs/omnidev-state/stash/`
-- **History rule**: append-only `*-history.md`; workflow loads **active only**; never delete history.
-→ [engine/document-history.md](engine/document-history.md)
-
-### B.4 Interactive Quick-Select & Decision Points (主要工作模式)
-
-**弹窗交互是默认主要工作模式**（`interactive_mode: true`）。Claude Code 与 Codex 在 **任意协作模式** 下均须先调用原生工具（`AskUserQuestion` / `request_user_input`），与 checkpoint 摘要 **同一 turn** 发出；禁止仅用 prose 代替工具。
-
-When `interactive_mode=true`: use [engine/interactive-prompt.md](engine/interactive-prompt.md). User advances by UI pick or **full `/od` command** in next message (`/od n`, `/od ad`, `/od re`, …) — bare `1`/`n`/`继续` do **NOT** advance workflow.
-
-When `interactive_mode=false`: minimal text §9 only (user opted out via `/od cfg -i off`).
-
-→ [engine/special-flows.md](engine/special-flows.md) §3.1
-
-### B.5 Context Lifecycle (Load / Summarize / Unload)
-三层占用模型：HOT ≤150 · WARM ≤250 · COLD 磁盘按需。阶段结束强制 Purge；对话中用路径指针代替粘贴 state 全文。
-→ [engine/context-occupancy.md](engine/context-occupancy.md), [engine/context-protocol.md](engine/context-protocol.md)
-
-### B.6 Configuration
-`/od cfg` display; `/od cfg -i on|off` toggle interactive. Defaults: `interactive_mode: true`, `ask_mode_after_od: true`, `auto_checkpoint: false`.
-→ [engine/user-preferences.md](engine/user-preferences.md), [engine/commands.md](engine/commands.md) Config Options
-
-### B.8 Next-Step Prompt Format
-After phase checkpoint: present 2-4 next actions via [interactive-prompt.md](engine/interactive-prompt.md), `/od h` as last option. MUST STOP and WAIT.
-→ [engine/special-flows.md](engine/special-flows.md) §3.1
-
-### B.9 Progress Tracking
-After every task: append `[✅/🔄/⏳] [Task ID] [Description] — [Time]` to `03-progress.md`. Before pruning snapshot, append active progress to `03-progress-history.md` (see [engine/document-history.md](engine/document-history.md)).
-→ [phases/03-development.md](phases/03-development.md) §1
-
-### B.10 Error Handling
-Log error details → diagnose root cause → propose fix with impact scope → confirm before executing (B.0).
-→ [engine/special-flows.md](engine/special-flows.md) §5
-
-### B.11 Session Memory
-**Resume / crash recovery**: **`/od re` only** — reads `session-log.md` from disk; no chat-context inference. `/od re [payload]` resumes and routes payload. `/od x` saves session.
-→ [engine/session-memory.md](engine/session-memory.md) §6–§6.1
-
-### B.12 Stash & Pop
-`/od st` stashes working state; `/od po` restores it.
-→ [engine/stash.md](engine/stash.md)
-
-### B.13 AI Governance
-`/od gv` runs cost audit: token usage, efficiency scores, optimization suggestions.
-→ [engine/governance.md](engine/governance.md)
-
-### B.14 Document Sync
-Requirements changes in any user input MUST trigger proactive doc sync: identify change → confirm (B.0) → **archive affected active files to `*-history.md`** → update active files → output sync report.
-→ [engine/special-flows.md](engine/special-flows.md) §2 · [engine/document-history.md](engine/document-history.md)
-
-### B.15 Confirmation Throttling (by Complexity)
-Reduce STOP/WAIT fatigue without sacrificing safety on large changes:
-- **S** / `/od -f`: skip Pre-Dev and per-group Change Impact; optional summary at end
-- **M**: Pre-Dev once; Change Impact at phase end (or on scope deviation)
-- **L/XL**: full Pre-Dev + per-group Change Impact
-Override via `config.json` → `"confirmation_level": "full" | "reduced" | "minimal"`
-→ [phases/03-development.md](phases/03-development.md) §1.1
-
-### B.16 Metrics & Git Safety
-- Append events to `metrics.json` at phase/task boundaries — silent, no user prompt.
-→ [engine/metrics.md](engine/metrics.md)
-- **Never auto-commit** unless user explicitly requests via `/od ps` or direct instruction. Phase 3 may `git stash` only when `auto_checkpoint: true`.
-
-### B.17 Token Optimization
-→ [engine/token-optimization.md](engine/token-optimization.md)
-
-### B.18 Context Occupancy (上下文占用)
-同一时刻 HOT+WARM ≤300 行。按 phase 加载切片；Checkpoint ≤12 行；禁止在对话中重复 state 全文。
-→ [engine/context-occupancy.md](engine/context-occupancy.md)
-
-### B.19 Document History (文档历史留存)
-每个产出文档 **active + history 两个文件**。变更前先归档旧版到 `*-history.md`（append-only）；工作流只加载 active。禁止覆盖历史。
-→ [engine/document-history.md](engine/document-history.md)
-
-### B.20 Test Strategy (测试策略)
-必要测试不可缺少：**UNIT 强制**；按复杂度/legacy|greenfield/全栈信号自动组合 INT、SYS、E2E(Playwright)、SMK、REG。测试缺口触发 Gap Backfill 回补上游 design/plan。
-→ [engine/test-strategy.md](engine/test-strategy.md)
-
-### B.21 Deploy Scripts (部署脚本)
-Phase 5 核心：准备 **一键部署** 脚本 + 根目录 **Makefile**。**Greenfield** 默认 docker + k8s + binary（`make deploy-*`）；**Legacy** 先审计，改 Makefile/deploy 须 B.0 同意；**full pipeline** 可自主增改。生产执行始终需用户确认。
-→ [phases/05-deploy.md](phases/05-deploy.md)
+| Rule | Short | Reference |
+|------|-------|-----------|
+| B.2 Workflow | Blueprint→Plan→Dev→Test→Deploy · S→P3, M→P2, L/XL→P1 | [activation.md](engine/activation.md) §3 |
+| B.3 State Files | `docs/omnidev-state/` · active+history 配对 · append-only | [engine/document-history.md](engine/document-history.md) |
+| B.5 Context Lifecycle | HOT≤150 · WARM≤250 · COLD 磁盘按需 · Phase 结束 purge | [engine/context-lifecycle.md](engine/context-lifecycle.md) |
+| B.6 Config | `/od cfg` · `interactive_mode`/`auto_checkpoint`/`design_split` | [engine/user-preferences.md](engine/user-preferences.md) |
+| B.8 Checkpoint | ≤12 行 · 2-4 选项 · STOP-WAIT | [engine/special-flows.md](engine/special-flows.md) §3.1 |
+| B.9 Progress | `[✅/🔄/⏳] Task — Time` → `03-progress.md` | [phases/03-development.md](phases/03-development.md) §1 |
+| B.10 Errors | Log → diagnose → propose fix → confirm (B.0) | [engine/special-flows.md](engine/special-flows.md) §5 |
+| B.12 Stash | `/od st` save, `/od po` restore | [engine/stash.md](engine/stash.md) |
+| B.13 Governance | `/od gv` token audit | [engine/governance.md](engine/governance.md) |
+| B.14 Doc Sync | 需求变更 → 确认 → 归档到 `*-history.md` → 更新 active | [engine/special-flows.md](engine/special-flows.md) §2 |
+| B.15 Confirm Throttling | S: minimal, M: reduced, L/XL: full | [phases/03-development.md](phases/03-development.md) §1.1 |
+| B.16 Git Safety | 禁止 auto-commit · `git stash` 仅 `auto_checkpoint: true` | [engine/metrics.md](engine/metrics.md) |
+| B.17 Token Opt | Read cap 150行 · Sub-agent ≤30行 report · diff `--stat` 优先 | [engine/token-optimization.md](engine/token-optimization.md) |
+| B.18 Occupancy | HOT+WARM≤300 · section切片 · 路径指针代全文 | [engine/context-lifecycle.md](engine/context-lifecycle.md) |
+| B.19 Doc History | active+history 双文件 · append-only · workflow 只加载 active | [engine/document-history.md](engine/document-history.md) |
+| B.20 Test Strategy | UNIT强制 · INT/E2E/SMK/REG 按复杂度组合 · Gap Backfill | [engine/test-strategy.md](engine/test-strategy.md) |
+| B.21 Deploy | Makefile + 一键部署 · Greenfield docker+k8s · 生产需确认 | [phases/05-deploy.md](phases/05-deploy.md) |
 
 ---
 
@@ -177,7 +84,7 @@ Phase 5 核心：准备 **一键部署** 脚本 + 根目录 **Makefile**。**Gre
 | `/od h`, `/od help` | [engine/commands.md](engine/commands.md) |
 | `/od st`, `/od po` | [engine/stash.md](engine/stash.md) |
 | `/od x`, `/od re` | [engine/session-memory.md](engine/session-memory.md) |
-| Phase transition (exit/enter) | [engine/context-protocol.md](engine/context-protocol.md) + [engine/context-occupancy.md](engine/context-occupancy.md) |
+| Phase transition (exit/enter) | [engine/context-lifecycle.md](engine/context-lifecycle.md) + [engine/context-lifecycle.md](engine/context-lifecycle.md) |
 | Document history / archive | [engine/document-history.md](engine/document-history.md) |
 | Test strategy / Phase 4 layers | [engine/test-strategy.md](engine/test-strategy.md) |
 | Multi-agent architecture | [engine/multi-agent-architecture.md](engine/multi-agent-architecture.md) |
@@ -205,7 +112,7 @@ After each phase, **first execute silent learning, then output checkpoint**.
 
 ### C.2 Context Budget
 HOT ≤150 · WARM ≤250 · Total ≤300 lines. COLD = disk on-demand only.
-→ [engine/context-occupancy.md](engine/context-occupancy.md), [engine/context-protocol.md](engine/context-protocol.md) §6–§12
+→ [engine/context-lifecycle.md](engine/context-lifecycle.md), [engine/context-lifecycle.md](engine/context-lifecycle.md) §6–§12
 
 ---
 
@@ -284,7 +191,7 @@ When using `request_user_input` on Codex, set `autoResolutionMs` to a value betw
 
 **Usage rule**: When any engine file says "use `AskQuestion`" or "platform interactive prompt", execute [interactive-prompt.md](engine/interactive-prompt.md) — native tool first, **text fallback mandatory** if unavailable or error.
 
-### F.3 Sub-Agent / Worker Dispatch (maps token-optimization §2, context-protocol §10, special-flows §2.2)
+### F.3 Sub-Agent / Worker Dispatch (maps token-optimization §2, context-lifecycle §10, special-flows §2.2)
 
 Replace all Sub-Agent / Worker references with platform-native mechanisms:
 
@@ -413,7 +320,7 @@ Codex performs **automatic context compaction** when the conversation exceeds to
 | **Resume reliability** | After compaction + `/od re`, the AI's context is a summary, not the original conversation | `session-log.md` YAML frontmatter MUST be parseable independently. All critical state (`last_phase`, `last_task_group`, `active_feature`) lives in YAML fields, not prose. |
 | **Occupancy model** | HOT/WARM/COLD line counts become unreliable after compaction (the model can't see what was purged) | After compaction, reset HOT+WARM estimates to conservative defaults (HOT 80, WARM 40). Rebuild from state files only. Defensive purge: assume all non-state-file context is lost. |
 | **Double compression** | OmniDev `/od compress` + Codex auto-compaction may over-compress and lose information | On Codex, `/od compress` only archives `03-progress.md` (per special-flows §4); skip the full context occupancy report and purge. Let Codex handle conversation compaction. OmniDev occupancy guards (§B.18) still apply but use defensive defaults. |
-| **Turn counting** | OmniDev's 25-turn compress trigger (context-occupancy §6.3) becomes unreliable after compaction resets the visible turn count | On Codex, trigger `/od compress` at 15 turns (not 25) to stay ahead of Codex's own compaction threshold. |
+| **Turn counting** | OmniDev's 25-turn compress trigger (context-lifecycle §6.3) becomes unreliable after compaction resets the visible turn count | On Codex, trigger `/od compress` at 15 turns (not 25) to stay ahead of Codex's own compaction threshold. |
 
 **Codex-specific config defaults** (merge into `config.json`):
 

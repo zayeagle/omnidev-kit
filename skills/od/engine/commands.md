@@ -108,4 +108,4 @@ Interactive confirmations use platform native prompt (SKILL.md §F.2). User conf
 | `jira_base_url` | — | `/od sy` Jira（可选） |
 | `jira_project_key` | — | Jira 项目键（可选） |
 
-See [engine/context-occupancy.md](engine/context-occupancy.md), [engine/token-optimization.md](engine/token-optimization.md), [engine/metrics.md](engine/metrics.md), SKILL.md §F.8 (Codex compaction).
+See [engine/context-lifecycle.md](engine/context-lifecycle.md), [engine/token-optimization.md](engine/token-optimization.md), [engine/metrics.md](engine/metrics.md), SKILL.md §F.8 (Codex compaction).

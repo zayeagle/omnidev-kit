@@ -168,13 +168,13 @@ Also update `requirements[].estimated_tokens_total` (running sum).
 
 | Trigger | Action |
 |---------|--------|
-| HOT+WARM > 300 lines | Purge + `/od compress` ([context-occupancy.md](context-occupancy.md) §9) |
+| HOT+WARM > 300 lines | Purge + `/od compress` ([context-lifecycle.md](context-lifecycle.md) §9) |
 | 15 turns same phase | Suggest compress |
 | 25 turns total | Must compress or new session |
 | `03-progress.md` > 100 lines | `/od compress` immediately |
 | Same file Read 2+ times | Summarize → COLD |
 
-Cross-ref: [context-occupancy.md](context-occupancy.md) for layer model.
+Cross-ref: [context-lifecycle.md](context-lifecycle.md) for layer model.
 
 ---
 

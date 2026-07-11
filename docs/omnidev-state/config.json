@@ -16,7 +16,7 @@
   "deploy_use_makefile": true,
   "sub_agents": "auto",
   "phase_workers": "auto",
-  "design_split": true,
+  "design_split": false,
   "log_token_estimates": true,
   "max_read_lines": 150,
   "context_mode": "slim",

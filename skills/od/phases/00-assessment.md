@@ -60,25 +60,57 @@ If multiple `package.json` / `go.mod` at subdirectories or workspace config (`pn
 - **M**: Skip blueprint → Plan → Dev → Test.
 - **L/XL**: Full workflow: Blueprint → Plan → Dev → Test → Deploy.
 
-**Output format:**
+### 2.1 Prose Summary (≤6 lines, output in chat BEFORE popup)
+
+First output a brief summary to the conversation (NOT in the popup). This is what the user sees before the confirmation dialog:
+
+```
+🚀 Phase 0 评估完成
+复杂度: [S/M/L/XL] — [reason, 1 sentence]
+项目结构: [fullstack|frontend-only|backend-only|monorepo] · 前端: [fw] · 后端: [fw]
+推荐阶段: [phases] · 确认级别: [full|reduced|minimal]
+```
+
+The full detailed assessment (Requirement Analysis, Stability Level, Frontend Impact, Test Strategy Hint — see template below) is written to `session-log.md` `## Phase 0 评估` section, NOT output in chat or popup.
+
+<details>
+<summary>完整评估模板（仅写入 session-log.md，不输出到对话或弹窗）</summary>
 
 ```markdown
-## OmniDev Phase 0: Requirement Analysis & Complexity Assessment
+## Phase 0 Assessment
 **Requirement Analysis**: [1-2 sentences]
-**Project Structure**: [fullstack | frontend-only | backend-only | monorepo] — frontend: [fw/none], backend: [fw/none]
+**Project Structure**: [fullstack | ...] — frontend: [fw/none], backend: [fw/none]
 **Complexity Assessment**: [S/M/L/XL] — [reason]
 **Stability Level**: [standard | high] — [reason]
-**Frontend Impact**: [yes — frontend changes needed | no — backend-only change | n/a]
-**Test Strategy Hint**: [{structure}-{complexity} e.g. fullstack-M → unit+int+e2e+smk+reg] — see [test-strategy.md](../engine/test-strategy.md)
+**Frontend Impact**: [yes — ... | no — ... | n/a]
+**Test Strategy Hint**: [{structure}-{complexity}]
 **Recommended Strategy**: [phases]
 **Confirmation Level**: [full | reduced | minimal] — per B.15
 ```
+</details>
 
-**If `interactive_mode` is `true`**: Use [interactive-prompt.md](../engine/interactive-prompt.md) — **invoke native tool same turn** (§4 Claude / §5 Codex / AskQuestion Cursor). Pseudo-popup §E if tool fails.
+### 2.2 Interactive Confirmation (same turn, popup — SKIP for S-Level)
+
+**S-Level**: Skip popup entirely. Output prose "复杂度: S → 直接进入开发" then proceed to Phase 3 without confirmation.
+
+Prose output must include a lightweight check line:
+```
+复杂度: S → 直接进入开发。如评估有误，回复调整。
+```
+
+**M/L/XL**: After the prose summary, same turn invoke [interactive-prompt.md](../engine/interactive-prompt.md) native tool. Populate the template dynamically:
+
+- Claude §4.2 / Codex §5.2 — **fill `prompt`/`question`** with key context from §2.1:
+  ```
+  "prompt": "复杂度: {complexity} — {reason_short}。推荐: {phases}。确认？"
+  ```
+
+If `interactive_mode=false`: use §9 minimal text instead.
 
 ### S-Level Tasks
 
 - Do NOT generate full state files (`02-plan.md`, etc.).
+- **Skip Phase 0 popup** — no complexity confirmation needed.
 - **Still write**: minimal `session-log.md` on exit (for `/od re`) and `metrics.json` event if user opts to track.
 - Resolve requirement directly; offer optional lightweight progress note in conversation only.
 

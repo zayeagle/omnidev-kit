@@ -222,6 +222,6 @@ Normal workflow still loads active only.
 
 - B.19 SKILL.md
 - [special-flows.md](special-flows.md) §2 Change Management
-- [context-protocol.md](context-protocol.md) — skip history in load
-- [context-occupancy.md](context-occupancy.md) — history is COLD
+- [context-lifecycle.md](context-lifecycle.md) — skip history in load
+- [context-lifecycle.md](context-lifecycle.md) — history is COLD
 - Phase instruction files — archive before regen

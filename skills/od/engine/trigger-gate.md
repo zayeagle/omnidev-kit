@@ -27,6 +27,8 @@ Skill **listed** is **NOT** enough — must be **actively loaded this turn**:
 | **Claude Code** | `od/SKILL.md` loaded into active context this turn | on disk, not loaded |
 | **Codex** | od skill invoked for this message | manifest-only |
 
+**Codex 重要说明**: `<skills_instructions>` 中 od skill 的常规 listing **不等于** Signal B。Codex 在每次 turn 列出已安装 skill 的 manifest，这不构成"invoked for this message"。只有当用户显式 @od 或系统将 SKILL.md body 加载到上下文时，才视为 Signal B 触发。
+
 When Signal B fires without `/od` prefix → treat as `/od [requirement]` → Phase 0 (full bootstrap).
 
 ---
@@ -96,6 +98,7 @@ OmniDev supports **Cursor**, **Claude Code**, and **Codex** via Platform Abstrac
 | Symptom | Fix |
 |---------|-----|
 | `/od` ignored (Cursor) | Rule `alwaysApply: true`; run `/od up` |
+| Codex: od activates in normal chat (false trigger) | Check if SKILL.md body loaded or just manifest listed; if manifest-only → ignore. Send `no`/`cancel` to dismiss. |
 | Replied `1` / `n`, nothing happens | **Expected** — send `/od n` or `/od re` |
 | New chat, want to continue | `/od re` (reads `session-log.md` from disk) |
 | Stale `in_progress` | `/od re` to resume or `/od x` then `/od [new requirement]` |

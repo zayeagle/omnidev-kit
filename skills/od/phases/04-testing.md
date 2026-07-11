@@ -31,7 +31,7 @@ context_requires:
     - "Playwright trace/video binary — path only in report"
 ```
 
-→ Occupancy: [context-occupancy.md](../engine/context-occupancy.md) §3 Phase 4
+→ Occupancy: [context-lifecycle.md](../engine/context-lifecycle.md) §3 Phase 4
 
 ```yaml
 context_occupancy:

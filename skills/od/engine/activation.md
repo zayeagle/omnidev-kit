@@ -44,11 +44,27 @@ On `/od` activation, **first response MUST be tool call(s)** — no assistant pr
 
 | # | File | Purpose |
 |---|------|---------|
-| 1 | `docs/omnidev-state/config.json` | interactive_mode, platform_override |
+| 1 | `docs/omnidev-state/config.json` | interactive_mode, platform_override (see §1.1 if not found) |
 | 2 | This file (`activation.md`) | bootstrap (may already be in context from SKILL) |
 | 3 | Target instruction file per §3 | phase or engine doc |
 
 Optional same turn: `user-preferences.md`, `session-log.md` (if `/od re` or in-progress branch).
+
+### 1.1 Config Fallback (config.json not found)
+
+If `docs/omnidev-state/config.json` does not exist (first run, greenfield project):
+
+```
+Defaults:
+  interactive_mode: true
+  design_split: false
+  confirmation_level: auto
+  context_mode: slim
+  sub_agents: auto
+  platform_override: null
+```
+
+Proceed with these defaults. Do NOT fail or ask the user — initialization happens silently in Phase 0.
 
 ---
 
@@ -101,7 +117,10 @@ After loading target instruction file:
 
 1. Follow its `context_requires` — load state file **slices** only (B.18)
 2. Execute phase steps in order — **no skipping** unless user confirms via interactive prompt
-3. At every checkpoint → [interactive-prompt.md](interactive-prompt.md) — **STOP & WAIT**
+3. **Phase 0 → next phase routing** (after user confirms complexity):
+   - **S**: Phase 0 → **Phase 3** (Dev) directly
+   - **M**: Phase 0 → **Phase 2** (Plan), skip Phase 1 blueprint
+   - **L/XL**: Phase 0 → **Phase 1** (Blueprint), full workflow
 4. On phase exit → silent learning → checkpoint (≤12 lines) → interactive prompt (B.8)
 5. Persist decisions to state files — never rely on conversation memory alone
 

@@ -36,31 +36,60 @@ context_requires:
 
 Phase 2 produces **in order**:
 
-1. **`04-design.md`** (index) + **`features/FN.md`** (per feature) — when `design_split: true` (default)
+1. **`04-design.md`** — single file per `config.json` `design_split` (default `false`):
+   - **`design_split: false`** (default): one `04-design.md` with `## Feature F1`, `## Feature F2`, … sections (≤40 lines each). Phase 3 loads one section via Grep.
+   - **`design_split: true`**: index `04-design.md` (≤60 lines) + per-feature `features/FN.md` files.
 2. **`05-test-plan.md`** — table-first compact format
 3. **`02-plan.md`** — tasks with `feature_ref: FN` field
 
-→ Token: [token-optimization.md](../engine/token-optimization.md) · Occupancy: [context-occupancy.md](../engine/context-occupancy.md) §3 Phase 2
+→ Token: [token-optimization.md](../engine/token-optimization.md) · Occupancy: [context-lifecycle.md](../engine/context-lifecycle.md) §3 Phase 2
 
 **Document history**: Before overwriting any existing active artifact (`01-blueprint`, `02-plan`, `04-design`, `05-test-plan`), archive previous content to paired `*-history.md` per [document-history.md](../engine/document-history.md). First creation skips archive.
 
 ```yaml
 context_occupancy:
-  hot: ["current feature template being written"]
-  warm: ["04-design index"]
-  cold: ["other features/*.md until merged", "scan raw"]
+  hot: ["current feature section being written"]
+  warm: ["04-design.md (single file)", "or 04-design index when design_split: true"]
+  cold: ["other feature sections", "scan raw"]
 ```
 
 ---
 
 ## Step 1: Design → Index + Feature Files
 
-When `design_split: true` (default):
+### `design_split: false` (default) — Single File
+
+Write ONE `04-design.md` with per-feature sections:
+
+```markdown
+# Design
+
+## Feature F1: [Name]
+### Business Context
+- **Related**: [existing features]
+- **Impact**: [affected flows]
+
+### Implementation Logic
+1. Entry: [route] → validate → service → response
+2. Core: [3-5 steps max]
+3. Data: [model/query]
+
+### Edge Cases
+- Happy: [...] | Err1: [...] | Err2: [...] | Boundary: [...]
+
+### Data Changes
+| Entity | Change | Details |
+
+## Feature F2: [Name]
+...
+```
+
+**Quality checks**: each section ≤40 lines; total ≤200 lines. Every feature linked to existing code.
+
+### `design_split: true` — Index + Per-Feature Files
 
 1. Write **`04-design.md`** index only (≤60 lines) — feature table + cross-cutting notes
-2. Write each **`features/FN.md`** (≤40 lines) — one file per feature
-
-When `design_split: false`: single `04-design.md` with `## Feature FN` sections; Phase 3 MUST lazy-load one section via Grep.
+2. Write each **`features/FN.md`** (≤40 lines) — one file per feature. Use template below.
 
 **Feature file template** (`features/F1.md`):
 

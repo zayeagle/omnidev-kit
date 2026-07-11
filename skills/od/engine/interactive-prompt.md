@@ -138,7 +138,7 @@ Numbered list per legacy §F.2 CLI pattern.
   "title": "OmniDev · 复杂度确认",
   "questions": [{
     "id": "phase0_complexity",
-    "prompt": "请确认需求复杂度与推荐阶段：",
+    "prompt": "复杂度: {complexity} — {reason_short}。推荐: {phases}。确认？",
     "options": [
       {"id": "confirm", "label": "确认复杂度与阶段 [默认]"},
       {"id": "adjust", "label": "调整复杂度 / 跳过阶段"},
@@ -147,6 +147,11 @@ Numbered list per legacy §F.2 CLI pattern.
   }]
 }
 ```
+
+**Placeholder values** (fill from Phase 0 §2.1 summary before invoking):
+- `{complexity}`: S / M / L / XL
+- `{reason_short}`: 1-sentence reason, ≤40 characters
+- `{phases}`: e.g. "Plan→Dev→Test" or "Dev→Test" (skip `→` prefix for S-level, which has no popup)
 
 ### 4.3 Phase 1 — Approach Selection
 
@@ -255,6 +260,29 @@ Numbered list per legacy §F.2 CLI pattern.
 }
 ```
 
+### 4.9 Open Questions — Batch Confirmation
+
+When Phase 1 §4 has open questions with defaults, present them as a single confirmation:
+
+```json
+{
+  "title": "OmniDev · 开放问题确认",
+  "questions": [{
+    "id": "open_questions",
+    "prompt": "{N} 个开放问题将使用默认值。确认？如需调整请选「逐个调整」。",
+    "options": [
+      {"id": "accept_defaults", "label": "全部接受默认值 [默认]"},
+      {"id": "review_one_by_one", "label": "逐个调整"},
+      {"id": "cancel", "label": "取消"}
+    ]
+  }]
+}
+```
+
+**Usage**: Output the open questions table (from Phase 1 §4) as prose in chat **first**, then invoke this template same turn. If user selects "逐个调整", re-invoke as sequential single-question prompts (one `AskUserQuestion` per question, reusing Phase 1 §4 table `default` values).
+
+`{N}` = number of open questions (count rows from Phase 1 §4 table).
+
 ---
 
 ## 5. Codex — `request_user_input` Templates (COPY-PASTE)
@@ -317,7 +345,7 @@ Or CLI: `codex features enable default_mode_request_user_input` — restart Code
 {
   "questions": [{
     "header": "OmniDev · 复杂度确认",
-    "question": "请确认需求复杂度与推荐阶段：",
+    "question": "复杂度: {complexity} — {reason_short}。推荐: {phases}。确认？",
     "options": [
       {"label": "确认复杂度与阶段 [默认]"},
       {"label": "调整复杂度 / 跳过阶段"},
@@ -327,6 +355,8 @@ Or CLI: `codex features enable default_mode_request_user_input` — restart Code
   "autoResolutionMs": 120000
 }
 ```
+
+**Placeholder values**: same as Claude §4.2 — fill from Phase 0 §2.1 summary before invoking.
 
 ### 5.3 Resume / Change / B.0
 
@@ -340,46 +370,31 @@ Use same option labels as Claude §4.4–§4.7; replace `header` / `question` ac
 
 **Option B** — pseudo-popup §E with `可多选，逗号分隔序号`
 
----
+### 5.5 Open Questions — Batch Confirmation
 
-## 6. Standard Option Sets (id → label_zh)
+When Phase 1 §4 has open questions with defaults, present them as a single confirmation:
 
-### Phase checkpoint (B.8)
+```json
+{
+  "questions": [{
+    "header": "OmniDev · 开放问题确认",
+    "question": "{N} 个开放问题将使用默认值。确认？如需调整请选「逐个调整」。",
+    "options": [
+      {"label": "全部接受默认值 [默认]"},
+      {"label": "逐个调整"},
+      {"label": "取消"}
+    ]
+  }],
+  "autoResolutionMs": 120000
+}
+```
 
-| id | label_zh |
-|----|----------|
-| `next` | 继续下一阶段 (`/od n`) |
-| `revise` | 修订当前产出 (`/od ad`) |
-| `help` | 查看命令 (`/od h`) |
+**Usage**: Output the open questions table (from Phase 1 §4) as prose in chat **first**, then invoke this template same turn. If user selects "逐个调整", re-invoke as sequential single-question prompts (one `request_user_input` per question, reusing Phase 1 §4 table `default` values).
 
-Always include `cancel` → `/od x`.
-
-### Phase 0 complexity
-
-| id | label_zh |
-|----|----------|
-| `confirm` | 确认复杂度与阶段 |
-| `adjust` | 调整复杂度/跳过阶段 |
-| `cancel` | 取消 |
-
-### Resume (`/od re`)
-
-| id | label_zh |
-|----|----------|
-| `continue` | 继续上次进度 |
-| `restart` | 重新开始 |
-| `cancel` | 取消 |
-
-### Resume with payload (`/od re [xxx]`)
-
-| id | label_zh |
-|----|----------|
-| `resume_execute` | 从断点继续并处理 payload [默认] |
-| `change_full` | 先走变更流程更新文档 |
-| `restart` | payload 作为新需求，从 Phase 0 开始 |
-| `cancel` | 取消 |
+`{N}` = number of open questions (count rows from Phase 1 §4 table).
 
 ---
+
 
 ## 7. Codex Setup — Enable Popup in Default/Code Mode (§C.1)
 
@@ -465,17 +480,13 @@ If native failed: `"native_error": true, "error_hint": "unavailable in chat mode
 
 ---
 
-## 11. Platform Quick Reference
+## 6. Platform Quick Reference
 
-| Platform | Primary | First fallback | Last resort |
-|----------|---------|----------------|-------------|
-| Cursor | `AskQuestion` | Pseudo-popup §E | Text §9 |
-| Claude Code | `AskUserQuestion` §4 | Pseudo-popup §E | Text §9 |
-| Codex (all modes) | `request_user_input` §5 | Pseudo-popup §E | Text §9 |
-| CLI / Other | Pseudo-popup §E | Text §9 | — |
+| Platform | Primary | Fallback | Setup |
+|----------|---------|----------|-------|
+| Cursor | `AskQuestion` | pseudo-popup §8 | — |
+| Claude Code | `AskUserQuestion` §4 | pseudo-popup §8 | — |
+| Codex | `request_user_input` §5 | pseudo-popup §8 | `default_mode_request_user_input=true` |
+| CLI | pseudo-popup §8 | text §9 | — |
 
-**User report "弹窗不触发"**:
-1. Verify `interactive_mode: true` (`/od cfg`)
-2. Claude: agent must **call** `AskUserQuestion` — not describe it
-3. Codex: enable `default_mode_request_user_input` (§7)
-4. If still failing: pseudo-popup §E is correct fallback — ensure structured table appears
+**弹窗不触发**: verify `interactive_mode:true` → Claude: must invoke tool → Codex: enable §7 flag → else pseudo-popup.

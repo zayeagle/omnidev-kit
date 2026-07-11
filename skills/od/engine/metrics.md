@@ -78,7 +78,7 @@ If file does not exist, create with `schema_version: 2`, empty arrays on first `
 | `rework` | Same file 3+ edits in Phase 3 | `rework_count` |
 | `learning_applied` | `/od ln` applies proposal | `events[]` |
 | `compress` | `/od compress` executed | `events[]`; include `hot_lines_before/after` if occupancy §9 |
-| `occupancy_guard_triggered` | context-protocol §12 breach | `events[]` |
+| `occupancy_guard_triggered` | context-lifecycle §9 breach | `events[]` |
 | `resume_cold_start` | `/od re` entry | `events[]` |
 | `resume_with_payload` | `/od re [payload]` | `events[]` + `payload_class` |
 
