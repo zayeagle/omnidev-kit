@@ -1,7 +1,5 @@
 # OmniDev Kit
 
-[中文](README.zh-CN.md)
-
 OmniDev Kit transforms AI from a **"typist who only writes code on command"** into a **"senior R&D engineer who understands cost control, architecture design, writes their own tests, and never forgets."**
 
 Activate with **`/od`** — a stateful delivery pipeline from intent to release. Not casual chat.
@@ -45,7 +43,7 @@ Config: `docs/omnidev-state/config.json` · Interactive mode: `/od cfg -i on|off
 ```text
 omnidev-kit/
 ├── INSTALL.md
-├── README.md / README.zh-CN.md
+├── README.md                 # English docs (canonical)
 ├── rules/                    # Agent trigger rules
 ├── docs/omnidev-state/       # config.json & metrics template
 └── skills/od/
@@ -71,3 +69,5 @@ Or open [INSTALL.md](INSTALL.md) in your AI assistant — it auto-detects the en
 - [INSTALL.md](INSTALL.md) — installation & config
 - [skills/od/SKILL.md](skills/od/SKILL.md) — full specification
 - [skills/od/engine/commands.md](skills/od/engine/commands.md) — all commands
+
+**Maintainers**: edit `skills/od/` only, then `powershell -File scripts/sync-skills.ps1` && `powershell -File scripts/check-compliance.ps1`.

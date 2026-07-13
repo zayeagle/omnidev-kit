@@ -9,10 +9,12 @@ alwaysApply: true
 
 ## ACTIVATE — Signal A or B only
 
-1. **Signal A**: Message starts with `/od`
-2. **Signal B**: `od/SKILL.md` loaded into active context this turn
+1. **Signal A**: Message starts with `/od` (or `$od`)
+2. **Signal B**: `od/SKILL.md` body loaded into active context this turn (not listing alone). If unsure → do **not** activate.
 
 No session-context inference. No bare `1`/`n`/`continue`.
+
+Bare workflow-looking replies → one-line tip only: `⚠️ OmniDev is not active. Send /od n (or /od re).`
 
 ## Advance & resume
 
@@ -22,11 +24,11 @@ No session-context inference. No bare `1`/`n`/`continue`.
 | Next phase | `/od n` |
 | Revise | `/od ad` |
 
-Checkpoint → `AskUserQuestion` → STOP → user sends `/od` command or UI pick.
+Checkpoint → `AskUserQuestion` → **STOP — WAIT** → UI pick or `/od` command.
 
 ## DO NOT ACTIVATE
 
-Normal chat without `/od` and without skill invoke. Do not touch `docs/omnidev-state/**`.
+Normal chat without `/od`/`$od` and without skill invoke. Do not touch `docs/omnidev-state/**`.
 
 ## Platform notes
 

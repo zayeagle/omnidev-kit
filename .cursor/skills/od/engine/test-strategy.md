@@ -1,24 +1,24 @@
-# Test Strategy Engine (测试策略引擎)
+# Test Strategy Engine
 
-**Principle**: 必要测试 **不可缺少**。单元测试 **强制**；其余层级按 **复杂度 × 项目形态 × 架构信号** 自动组合。Phase 4 执行前必须产出/校验 `Test Strategy Profile`；执行中若发现规范缺口，触发 **Gap Backfill** 回补上游文档。
+**Principle**: Required tests **must not be omitted**. Unit tests are **mandatory**; other layers are auto-composed from **complexity × project shape × architecture signals**. Before Phase 4 execution, produce/validate a `Test Strategy Profile`; if a spec gap is found during execution, trigger **Gap Backfill** to update upstream docs.
 
 → Phase 4 execution: [../phases/04-testing.md](../phases/04-testing.md)
 → Test plan authoring: [../phases/02-planning.md](../phases/02-planning.md) Step 2
 
 ---
 
-## 1. Test Layers (定义)
+## 1. Test Layers (Definitions)
 
-| Layer | Code | 含义 | 典型工具 |
-|-------|------|------|----------|
-| **Unit** | `UNIT` | 单函数/类/组件，mock 外部依赖 | jest/vitest, go test, pytest, JUnit |
-| **Integration** | `INT` | 多模块/多接口/DB/消息队列协作 | supertest, testcontainers, `@SpringBootTest` |
-| **System** | `SYS` | 完整服务链或子系统，近生产配置 | docker-compose up + API suite |
-| **E2E** | `E2E` | 浏览器/客户端 + 后端全链路 | **Playwright** (default), Cypress, Browser MCP |
-| **Smoke** | `SMK` | 部署/构建后关键路径快速验证 | 精选 Happy path TC 子集 |
-| **Regression** | `REG` | 受影响模块历史用例 | 按 Module/Package 标签定向 |
+| Layer | Code | Meaning | Typical tools |
+|-------|------|---------|---------------|
+| **Unit** | `UNIT` | Single function/class/component; mock external deps | jest/vitest, go test, pytest, JUnit |
+| **Integration** | `INT` | Multi-module / multi-API / DB / MQ collaboration | supertest, testcontainers, `@SpringBootTest` |
+| **System** | `SYS` | Full service chain or subsystem, near-prod config | docker-compose up + API suite |
+| **E2E** | `E2E` | Browser/client + backend full path | **Playwright** (default), Cypress, Browser MCP |
+| **Smoke** | `SMK` | Fast critical-path check after build/deploy | Curated Happy-path TC subset |
+| **Regression** | `REG` | Historical cases for affected modules | Targeted by Module/Package tags |
 
-**Mandatory floor**: 每个需求至少 **UNIT + SMK**。其余按 §2 矩阵追加，**不得省略矩阵标记为 Required 的层**。
+**Mandatory floor**: Every requirement at least **UNIT + SMK**. Append other layers per §2 matrix; **do not omit layers marked Required**.
 
 ---
 
@@ -34,51 +34,51 @@ Read signals from:
 
 | Complexity | UNIT | INT | SYS | E2E | SMK | REG |
 |------------|:----:|:---:|:---:|:---:|:---:|:---:|
-| **S** | ✅ 必做 | 多模块时 ✅ | ❌ | 全栈改动时 ✅ | ✅ | 最小（当前 feature） |
-| **M** | ✅ 必做 | ≥2 模块/API 边界 ✅ | 可选 | 全栈 ✅ | ✅ | 定向 REG |
-| **L** | ✅ 必做 | ✅ | 多服务 ✅ | 全栈 ✅ | ✅ | 定向 + 关键路径 |
-| **XL** | ✅ 必做 | ✅ | ✅ | 全栈 ✅ | ✅ | 定向；发布前全量 REG |
+| **S** | ✅ Required | ✅ when multi-module | ❌ | ✅ when fullstack change | ✅ | Minimal (current feature) |
+| **M** | ✅ Required | ✅ when ≥2 modules/API boundaries | Optional | ✅ fullstack | ✅ | Targeted REG |
+| **L** | ✅ Required | ✅ | ✅ multi-service | ✅ fullstack | ✅ | Targeted + critical paths |
+| **XL** | ✅ Required | ✅ | ✅ | ✅ fullstack | ✅ | Targeted; full REG before release |
 
 ### 2.2 By Project Type
 
 | Signal | Adjustment |
 |--------|------------|
-| **legacy** | 沿用仓库已有 test runner/framework；不引入新栈除非 B.0 确认；E2E 用已有 Playwright/Cypress 配置 |
-| **greenfield** | 无则 scaffold UNIT +（全栈时）Playwright E2E；CI 测试 job 写入 plan |
-| **monorepo** | REG/INT 按 `[pkg:name]` 标签；每 package 独立 UNIT 命令 |
-| **backend-only** | 无 E2E；INT 覆盖 API + DB |
-| **frontend-only** | UNIT (组件) + 可选 E2E (路由)；无 INT 除非 BFF |
-| **fullstack** | **E2E 强制**（Frontend Impact = yes 或 plan 含 frontend+backend tasks） |
+| **legacy** | Reuse existing test runner/framework; do not introduce a new stack unless B.0 confirms; E2E uses existing Playwright/Cypress config |
+| **greenfield** | If missing, scaffold UNIT + (fullstack) Playwright E2E; write CI test job into plan |
+| **monorepo** | REG/INT by `[pkg:name]` tags; independent UNIT command per package |
+| **backend-only** | No E2E; INT covers API + DB |
+| **frontend-only** | UNIT (components) + optional E2E (routes); no INT unless BFF |
+| **fullstack** | **E2E mandatory** (`Frontend Impact = yes` or plan has frontend+backend tasks) |
 
-### 2.3 Integration Triggers (INT 必做条件 — 满足任一)
+### 2.3 Integration Triggers (INT required if any)
 
-- ≥2 独立模块/包参与同一 feature
-- HTTP/gRPC/MQ 跨服务调用
-- 共享 DB / cache 读写链
-- Phase 3 改动了 API contract + consumer
+- ≥2 independent modules/packages in the same feature
+- HTTP/gRPC/MQ cross-service calls
+- Shared DB / cache read-write chain
+- Phase 3 changed API contract + consumer
 
-### 2.4 E2E Triggers (E2E 必做条件 — 满足任一)
+### 2.4 E2E Triggers (E2E required if any)
 
-- `Frontend Impact: yes` 且存在 backend API 变更
-- `02-plan.md` 同时含 `[frontend]` 与 `[backend]` 任务
-- 用户流程跨页面 + API（登录、表单提交、列表刷新等）
-- L/XL 且 `project_structure: fullstack`
+- `Frontend Impact: yes` and backend API changes exist
+- `02-plan.md` has both `[frontend]` and `[backend]` tasks
+- User flow spans pages + API (login, form submit, list refresh, etc.)
+- L/XL and `project_structure: fullstack`
 
 ### 2.5 E2E Tool Priority
 
 1. **Playwright** — default (`npx playwright test`, `playwright.config.*`)
-2. **Existing in repo** — Cypress, Puppeteer (legacy 优先匹配)
-3. **Browser MCP** — Cursor/Claude MCP 可用时辅助截图/交互
-4. **Playwright MCP** — 若已配置
-5. **Sub-agent E2E runner** — Phase 4 唯一允许的并行例外：隔离 Playwright 长输出（见 04-testing.md §6）
+2. **Existing in repo** — Cypress, Puppeteer (prefer legacy match)
+3. **Browser MCP** — assist screenshots/interaction when Cursor/Claude MCP available
+4. **Playwright MCP** — if configured
+5. **Sub-agent E2E runner** — Phase 4 only allowed parallel exception: isolate long Playwright output (see 04-testing.md §6)
 
 Scan `package.json`, `playwright.config.*`, `e2e/`, `tests/e2e/` before choosing.
 
 ---
 
-## 3. Test Strategy Profile (写入 `05-test-plan.md` frontmatter)
+## 3. Test Strategy Profile (Write to `05-test-plan.md` frontmatter)
 
-Phase 2 **必须**生成；Phase 4 **入口校验** — 缺层则补 plan 或 Block。
+Phase 2 **must** generate; Phase 4 **entry validates** — missing layers → backfill plan or Block.
 
 ```yaml
 ---
@@ -161,16 +161,16 @@ Minimum per feature (when layer required):
 
 ## 5. Phase 3 — Unit Tests During Development
 
-**Mandatory**: Phase 3 每个 backend/逻辑任务完成时，必须存在对应 **UNIT** 测试（新增或更新），与 `05-test-plan.md` TC-ID 对应。
+**Mandatory**: When each backend/logic task completes in Phase 3, corresponding **UNIT** tests must exist (new or updated), mapped to `05-test-plan.md` TC-IDs.
 
 | project_type | Rule |
 |--------------|------|
-| legacy | 扩展已有 `*_test.go` / `*.test.ts` 模式 |
-| greenfield | 与实现同 PR 批次写入测试文件 |
+| legacy | Extend existing `*_test.go` / `*.test.ts` patterns |
+| greenfield | Write test files in the same PR batch as implementation |
 
-Phase 3 checkpoint 附加项：`unit_tests_written: [TC-F1-U01, ...]` 写入 `03-progress.md`。
+Phase 3 checkpoint add-on: write `unit_tests_written: [TC-F1-U01, ...]` to `03-progress.md`.
 
-Phase 4 **不得** 以「未写测试」为由跳过 UNIT — 若缺失，Phase 4 Step 0 触发 Gap Backfill → Phase 3 补测或当场补写（B.0 确认范围）。
+Phase 4 **must not** skip UNIT because "tests were not written" — if missing, Phase 4 Step 0 triggers Gap Backfill → Phase 3 backfill or write on the spot (B.0 confirms scope).
 
 ---
 
@@ -189,26 +189,26 @@ Phase 4 **不得** 以「未写测试」为由跳过 UNIT — 若缺失，Phase 
 9. Report    — 05-test-report.md
 ```
 
-**Gate rule**: UNIT 失败 → **阻塞** Phase 4 完成与 Phase 5 入口。E2E 失败且 `e2e_required: true` → 阻塞，除非用户 B.0 确认降级。
+**Gate rule**: UNIT failure → **blocks** Phase 4 completion and Phase 5 entry. E2E failure with `e2e_required: true` → blocks unless user B.0 confirms downgrade.
 
 ---
 
-## 7. Gap Backfill (测试依赖缺口回补)
+## 7. Gap Backfill (Test Dependency Gap Repair)
 
-测试执行中发现缺口时 **不得静默跳过**：
+When a gap is found during test execution, **do not silently skip**:
 
 | Gap Type | Symptom | Action |
 |----------|---------|--------|
-| **G1 Design** | API 契约/字段不明 | 更新 `features/FN.md` + archive；`/od ad` Phase 2 或 inline 同步 |
-| **G2 Test plan** | 缺 TC/层 | 追加 `05-test-plan.md` 对应层表格；不覆盖 history |
-| **G3 Env** | 缺 `.env.test`、docker | 写入 plan `## Test Environment`；B.0 确认后创建 |
-| **G4 Fixture** | 缺 seed data | Database MCP / script；记录于 report |
-| **G5 Implementation** | 代码 bug | 修复 → 重跑失败 TC；重大变更走 Change Impact |
+| **G1 Design** | API contract/fields unclear | Update `features/FN.md` + archive; `/od ad` Phase 2 or inline sync |
+| **G2 Test plan** | Missing TC/layer | Append corresponding layer tables in `05-test-plan.md`; do not overwrite history |
+| **G3 Env** | Missing `.env.test`, docker | Write plan `## Test Environment`; create after B.0 confirm |
+| **G4 Fixture** | Missing seed data | Database MCP / script; record in report |
+| **G5 Implementation** | Code bug | Fix → re-run failed TC; major changes use Change Impact |
 
 **Protocol**:
-1. 记录 gap 到 `05-test-report.md` § Gaps
-2. 若 G1/G2：interactive prompt — 回补文档 / 继续跳过(需明确理由) / 取消
-3. 回补完成后 **从失败层重跑**，更新 inline 结果
+1. Log gap to `05-test-report.md` § Gaps
+2. If G1/G2: interactive prompt — backfill docs / continue skip (needs explicit reason) / cancel
+3. After backfill, **re-run from the failed layer**; update inline results
 4. metrics event: `test_gap_backfill`
 
 ---
@@ -239,7 +239,7 @@ When E2E suite >3 specs OR raw output >100 lines:
 - **Claude Code**: `Task` with readonly=false, Playwright scope
 - **Codex**: `create_thread` + `send_message_to_thread`
 
-Worker returns ≤30 line summary. Main agent merges to `05-test-report.md`. **Only for E2E** — UNIT/INT 主 agent 串行。
+Worker returns ≤30 line summary. Main agent merges to `05-test-report.md`. **Only for E2E** — UNIT/INT run serially on the main agent.
 
 ---
 
@@ -258,14 +258,14 @@ Worker returns ≤30 line summary. Main agent merges to `05-test-report.md`. **O
 
 ## 10. Config (`config.json`)
 
-| Key | Default | 说明 |
-|-----|---------|------|
+| Key | Default | Description |
+|-----|---------|-------------|
 | `e2e_tool` | `"playwright"` | playwright / cypress / browser_mcp / auto |
-| `e2e_required_fullstack` | `true` | 全栈时强制 E2E |
-| `unit_gate_blocking` | `true` | UNIT 全过才完成 Phase 4 |
+| `e2e_required_fullstack` | `true` | Force E2E for fullstack |
+| `unit_gate_blocking` | `true` | Phase 4 completes only when all UNIT pass |
 | `regression_mode` | `"targeted"` | targeted / full |
-| `allow_e2e_sub_agent` | `true` | Phase 4 E2E 隔离 runner |
-| `coverage_gate` | `false` | true 时覆盖率未达标阻塞 |
+| `allow_e2e_sub_agent` | `true` | Phase 4 E2E isolated runner |
+| `coverage_gate` | `false` | When true, block if coverage below gate |
 
 ---
 

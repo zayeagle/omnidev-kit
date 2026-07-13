@@ -33,15 +33,12 @@ context_requires:
    - [List changes, or "None"]
    ```
 
-2. If `interactive_mode` is `true`, use platform interactive prompt (SKILL.md §F.2):
-   - **One-click auto**: `git add .` → auto-generate message → commit → push.
-   - **Manual select**: wait for user to `git add`, then generate message.
-   - **Cancel**.
-3. If `interactive_mode` is `false`, wait for user to `git add`, then generate message.
-4. Confirm message (platform interactive prompt §F.2 if interactive).
-5. `git commit` + `git push origin <current-branch>`.
-
-**Never commit unless user explicitly confirms** (aligns with git safety rules).
+2. **MUST** invoke [interactive-prompt.md](interactive-prompt.md) §3.6 `push_confirm` via §4/§5/§6 (same turn):
+   - `commit` — `git add` (per convention) → use the message above → commit → push
+   - `edit_msg` — user edits the message, then confirms again
+   - `cancel` — cancel
+3. Execute `git commit` + `git push` only after the user confirms via UI pick or `/od y` equivalent.
+4. **Never commit** without interactive confirm (aligns with git safety). Do not ask in prose “Commit?” without calling the tool.
 
 ---
 
@@ -71,29 +68,29 @@ Determine whether the change is:
 - **Lightweight**: modifies details within an existing feature (e.g., field rename, validation rule change). Strategy: update `04-design.md` + `05-test-plan.md` inline with CHANGE_LOG markers. Do NOT regenerate `02-plan.md`. Archive feature snapshot to `04-design-history.md` only if the feature file content changes substantively.
 - **Structural**: alters architecture, data flow, or feature boundaries. Strategy: **archive** then regenerate `04-design.md` + `05-test-plan.md` + `02-plan.md` per [document-history.md](document-history.md).
 
-Present the classification to user for confirmation before proceeding.
+Present the classification to user via §3.6 `change_confirm` (or classify first, then `change_confirm`) — **MUST** §4/§5/§6 → **STOP — WAIT**.
 
 For Structural changes: spawn 1 worker per feature to regenerate `04-design.md` sections in parallel, then 1 worker per feature for `05-test-plan.md`. Main agent handles `02-plan.md` traceability merge and final sync report.
 
-2. **变更影响报告**: Present a structured impact report:
+2. **Change impact report**: Present a structured impact report:
 
    ```
-   📋 **需求变更影响分析**
-   📝 变更描述: [description]
-   📂 受影响文件:
+   📋 **Requirement Change Impact Analysis**
+   📝 Change description: [description]
+   📂 Affected files:
      - 01-blueprint.md: [impact description]
      - 02-plan.md: [impact description]
      - ...
-   ✅ 未受影响: [list]
-   ⏳ 尚未生成: [list — will be generated in later phases]
+   ✅ Unaffected: [list]
+   ⏳ Not yet generated: [list — will be generated in later phases]
    ```
 
-3. If interactive, use platform interactive prompt (SKILL.md §F.2) to confirm: Proceed / Revise / Cancel.
-4. **全局文档同步** (per B.14, after confirmation):
+3. **MUST** invoke §3.6 `change_confirm` via §4/§5/§6 → **STOP — WAIT** (Proceed / Revise / Cancel).
+4. **Global document sync** (per B.14, after confirmation):
    - Archive previous active content to paired `*-history.md` per [document-history.md](document-history.md) §2 (before any overwrite).
    - Update each affected **active** state file to reflect the new requirements.
    - Regenerate blueprint/plan sections as needed.
-5. **同步完成报告**: Output final sync summary per B.14 protocol.
+5. **Sync completion report**: Output final sync summary per B.14 protocol.
 
 ### 2.2 Sub-Agent Dispatch for Structural Changes
 
@@ -125,25 +122,25 @@ context_requires:
 ## 3.1 Next-Step Prompt Format (B.8)
 
 After every phase checkpoint, call [interactive-prompt.md](interactive-prompt.md):
-- Cursor → `AskQuestion` §4.1 (same turn, mandatory when tool present)
-- Claude Code → `AskUserQuestion` §5.1 (same turn, mandatory)
-- Codex → `request_user_input` §6.1 (same turn, mandatory)
-- On failure → pseudo-popup §8
+- Cursor → §3.1 catalog + §4 `AskQuestion` (same turn, mandatory when tool present)
+- Claude Code → §3.1 catalog + §5 `AskUserQuestion` (same turn, mandatory)
+- Codex → §3.1 catalog + §6 `request_user_input` (same turn, mandatory)
+- On failure → pseudo-popup §8 → **STOP — WAIT**
 
-Standard checkpoint options (Chinese when `interactive_mode=true`):
+Standard checkpoint options (Chinese labels when `interactive_mode=true` use English below):
 
-| Option | Typical Label (zh) |
-|--------|-------------------|
-| Continue next phase | 继续下一阶段 (`/od n`) |
-| Revise current output | 修订当前产出 (`/od ad`) |
-| Skip optional phase | 跳过 [phase] (`/od sk`) |
-| End / Push / Deploy | 结束 / 推送 / 部署 (context-dependent) |
-| Help | 查看命令 (`/od h`) — **always last option** |
+| Option | Typical Label |
+|--------|---------------|
+| Continue next phase | Continue to next phase (`/od n`) |
+| Revise current output | Revise current output (`/od ad`) |
+| Skip optional phase | Skip [phase] (`/od sk`) |
+| End / Push / Deploy | End / Push / Deploy (context-dependent) |
+| Help | View commands (`/od h`) — **always last option** |
 
 **Rules**:
 - MUST STOP and WAIT after presenting options (native UI or text fallback).
 - User picks in UI **or** sends **full `/od` command** in next message (`/od n`, `/od ad`, …).
-- Bare numbers/aliases (`1`, `n`, `继续`) without `/od` → **do NOT** activate — normal chat.
+- Bare numbers/aliases (`1`, `n`, `continue`) without `/od` → **do NOT** activate — normal chat.
 - If native prompt fails → text fallback same turn ([interactive-prompt.md](interactive-prompt.md) §8); fallback text must show `/od` commands (never bare `1`/`2`/`3`).
 
 ---
@@ -219,7 +216,7 @@ context_requires:
    - **Codex**: `rm -rf ~/.codex/skills/od/; cp -r .../skills/od/ ~/.codex/skills/od/` (user-level only). Skip `rules/`.
    - **Platform auto-detection**: Use §F.1 table at the start of the update flow to determine current platform.
 
-  **Kit repo layout**: Source files live at repo root `skills/od/` and `rules/` — same structure as install source.
+  **Kit repo layout**: Source files live at repo root `skills/od/` and `rules/` — same structure as install source. **Maintainers** of omnidev-kit: after editing SSOT, run `powershell -File scripts/sync-skills.ps1` then `powershell -File scripts/check-compliance.ps1` so `.cursor/skills/od/` mirrors `skills/od/`.
 
 3. Diff & present change summary (New / Changed / Obsolete / Unchanged). Compare temp clone vs local target.
 4. Confirm with user — update MUST NOT proceed without explicit approval.

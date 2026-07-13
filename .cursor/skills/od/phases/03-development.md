@@ -64,13 +64,17 @@ context_occupancy:
 
 ---
 
-## 1.1 Confirmation Levels (B.15)
+## 1.1 Confirmation Levels (B.15) — Interactive Gates
 
-| Complexity | Pre-Dev | Per-Group Impact | Phase End |
-|------------|---------|------------------|-----------|
-| S | Skip | Skip | Skip |
-| M | Once (≤25 lines) | Skip unless deviation | Required |
-| L/XL | Required | Required | Required |
+All complexity levels **must** show `checkpoint` (B.8) popup at **phase end**. Intermediate gates:
+
+| Complexity | Pre-Dev (`pre_dev`) | Per-Group Impact (`change_impact`) | Phase End |
+|------------|---------------------|--------------------------------------|-----------|
+| S | Only when departing from plan / user requests | Only when departing | **Required** `checkpoint` |
+| M | **Required** once (interactive) | **Required** when departing | **Required** |
+| L/XL | **Required** | **Required** every group | **Required** |
+
+Invoke: [interactive-prompt.md](../engine/interactive-prompt.md) §3.8 → §4/§5/§6 → **STOP — WAIT**. Do not write prose option tables without the popup.
 
 ---
 

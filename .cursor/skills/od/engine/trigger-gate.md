@@ -8,28 +8,35 @@
 
 **No session-context inference. No bare-number checkpoint replies. No same-thread continuation.**
 
-### Signal A — `/od` prefix
+### Signal A — `/od` or `$od` prefix
 
 ```
-/^\s*\/od(\s|$|[\u4e00-\u9fff])/i
+/^\s*[\/$]od(\s|$|[\u4e00-\u9fff])/i
 ```
 
-Matches: `/od`, `/od h`, `/od n`, `/od re`, `/od implement login` (CJK after `/od` also matches)  
-Does NOT match: `please use /od to …` (not at start), `code/od`, bare `1` / `n` / `continue`
+| Prefix | Platforms |
+|--------|-----------|
+| `/od` | Cursor · Claude Code · Codex (universal) |
+| `$od` | **Codex compatible** (equivalent to `/od`) |
+
+Matches: `/od`, `$od`, `/od h`, `$od n`, `/od re`, `/od implement login`  
+Does NOT match: `please use /od to …` (not line-start), `code/od`, bare `1` / `n` / `continue`
+
+Strip leading `/od` or `$od` the same way before command routing.
 
 ### Signal B — Explicit skill invocation (platform-specific)
 
 Skill **listed** is **NOT** enough — must be **actively loaded this turn**:
 
-| Platform | YES | NO (normal chat) |
-|----------|-----|------------------|
-| **Cursor** | `@od` attached / `manually_attached_skills` / SKILL body inlined | od only in `available_skills` |
-| **Claude Code** | `od/SKILL.md` loaded into active context this turn | on disk, not loaded |
-| **Codex** | od skill invoked for this message | manifest-only |
+| Platform | YES (observable) | NO |
+|----------|------------------|-----|
+| **Cursor** | User message / system shows `@od` attach, or SKILL **body** injected this turn | Only appears in `available_skills` |
+| **Claude Code** | This turn context contains `od/SKILL.md` body | Skill on disk, not loaded |
+| **Codex** | User explicitly invokes / @od, or system injects SKILL **body** | `<skills_instructions>` is manifest list only |
 
-**Codex 重要说明**: `<skills_instructions>` 中 od skill 的常规 listing **不等于** Signal B。Codex 在每次 turn 列出已安装 skill 的 manifest，这不构成"invoked for this message"。只有当用户显式 @od 或系统将 SKILL.md body 加载到上下文时，才视为 Signal B 触发。
+**Uncertainty rule**: Cannot confirm Signal B → **treat as not triggered** (prefer not activating). Listing alone **must not** activate.
 
-When Signal B fires without `/od` prefix → treat as `/od [requirement]` → Phase 0 (full bootstrap).
+When Signal B fires without prefix → treat as `/od [requirement]` → Phase 0.
 
 ---
 
@@ -47,24 +54,37 @@ When **neither** Signal A nor B:
 
 **Normal chat** — even if previous turn was OmniDev, even if `session-log` is `in_progress`.
 
+### 2.1 Explicit non-activation feedback (prevent silent failure)
+
+If **neither** A nor B fired, but the user message looks like advancing the workflow, reply **one line only** (then normal chat; do not load OmniDev):
+
+Match (whole message trimmed, case-insensitive): `^(n|ad|re|ch|x|y|1|2|3|continue|\u7ee7\u7eed|\u4e0b\u4e00\u6b65)$`
+
+```
+⚠️ OmniDev not active. Send a full command such as /od n (Codex: $od n). Resume with /od re.
+```
+
+Other ordinary chat: **do not** insert this tip.
+
 ---
 
-## 3. Interactive iteration (strict `/od` commands)
+## 3. Interactive iteration
 
-Workflow advances **only** when user sends a **new message** with Signal A or B.
+Workflow advances when:
+
+1. **New user message** carries Signal A or B, **or**
+2. **Same turn** native interactive tool returned a selection (UI pick) → route by option; no extra `/od` needed
 
 | Intent | User must send | NOT valid |
 |--------|----------------|-----------|
-| Resume / crash recovery | `/od re` or `/od re [payload]` | bare `continue`, chat-context guessing |
-| Next phase | `/od n` | bare `n`, `1`, plain prose |
-| Revise output | `/od ad` | bare `ad`, `2` |
-| Requirement change | `/od ch` | bare `ch` |
+| Resume | `/od re` or `$od re` | bare `continue` |
+| Next phase | `/od n` / `$od n` | bare `n`, `1` |
+| Revise | `/od ad` / `$od ad` | bare `ad`, `2` |
+| Change | `/od ch` | bare `ch` |
 | Confirm / cancel | `/od y` / `/od x` | bare `y`, `n` |
-| End and save session | `/od x` | closing chat without command |
 
-**Checkpoint UX**: Present native interactive prompt (platform-specific). Labels show `/od` command. User picks in UI **or** types full `/od` command in **next message**. Agent MUST STOP and WAIT.
-
-**Resume UX**: Always disk-based via `session-log.md` — never conversation-memory resume.
+**Checkpoint UX**: Native popup → STOP → UI pick **or** next full `/od`/`$od` command.  
+**Resume UX**: Disk `session-log.md` only — forbid resume from chat memory.
 
 ---
 
@@ -73,13 +93,11 @@ Workflow advances **only** when user sends a **new message** with Signal A or B.
 | Signal | Action |
 |--------|--------|
 | A or B | Full [activation.md](activation.md) §1–§6 — tool calls first |
-| None | Zero OmniDev loading |
+| None | Zero OmniDev loading (except §2.1 tip) |
 
 ---
 
 ## 5. Platform support (PAL)
-
-OmniDev supports **Cursor**, **Claude Code**, and **Codex** via Platform Abstraction Layer (SKILL.md §F).
 
 | Platform | Interactive prompt | Workers | Skill install path | Gate / rules |
 |----------|-------------------|---------|-------------------|--------------|
@@ -87,9 +105,9 @@ OmniDev supports **Cursor**, **Claude Code**, and **Codex** via Platform Abstrac
 | **Claude Code** | `AskUserQuestion` | `Task` tool | `.claude/skills/od/` or `~/.claude/skills/od/` | `CLAUDE.md` + `rules/02-omnidev-workflow.claude.md` |
 | **Codex** | `request_user_input` | `create_thread` | `~/.codex/skills/od/` | `rules/03-omnidev-workflow.codex.md` + skill `description` |
 
-**Codex recommendation**: enable `default_mode_request_user_input = true` in `~/.codex/config.toml`.
+**Codex**: enable `default_mode_request_user_input = true`; prefixes `/od` and `$od` are equivalent.
 
-**Config override**: `docs/omnidev-state/config.json` → `"platform_override": "cursor" | "claude_code" | "codex" | "cli_other"`.
+**Config**: `platform_override`: `"cursor" | "claude_code" | "codex" | "cli_other"`.
 
 ---
 
@@ -97,14 +115,13 @@ OmniDev supports **Cursor**, **Claude Code**, and **Codex** via Platform Abstrac
 
 | Symptom | Fix |
 |---------|-----|
-| `/od` ignored (Cursor) | Rule `alwaysApply: true`; run `/od up` |
-| Codex: od activates in normal chat (false trigger) | Check if SKILL.md body loaded or just manifest listed; if manifest-only → ignore. Send `no`/`cancel` to dismiss. |
-| Replied `1` / `n`, nothing happens | **Expected** — send `/od n` or `/od re` |
-| New chat, want to continue | `/od re` (reads `session-log.md` from disk) |
-| Stale `in_progress` | `/od re` to resume or `/od x` then `/od [new requirement]` |
-| Codex no popup | Enable `default_mode_request_user_input`; fallback pseudo-popup still works |
-| Cursor no AskQuestion popup | Tool missing (Composer/Auto Agent) → §8 pseudo-popup + switch Claude/GPT or Plan mode; tool present but skipped → agent bug, must call §4 |
-| Phase 0 chat dump / messy YAML | Violation — chat ≤6 lines; details → session-log; no `od_interactive:` in chat |
+| `/od` / `$od` ignored (Cursor) | Rule `alwaysApply: true`; `scripts/sync-skills`; `/od up` |
+| User only sent `n`/`1` | **Expected** — send `/od n` or see §2.1 tip |
+| Codex `$od` | Same trigger as `/od`; if still broken check skill install |
+| Codex false trigger | manifest-only ≠ Signal B |
+| Cursor no AskQuestion | §8 pseudo-popup + switch to Claude/GPT or Plan; tool exists but skipped = violation |
+| Phase 0 output messy | ≤6 lines; details → session-log; forbid `od_interactive:` |
+| skills vs .cursor drift | From repo root: `powershell -File scripts/sync-skills.ps1` |
 
 ---
 
@@ -116,4 +133,4 @@ OmniDev supports **Cursor**, **Claude Code**, and **Codex** via Platform Abstrac
 | Claude Code | `CLAUDE.md` + `rules/02-omnidev-workflow.claude.md` |
 | Codex | `rules/03-omnidev-workflow.codex.md` + skill `description` |
 
-See [INSTALL.md](../../../INSTALL.md) for full install steps.
+See [INSTALL.md](../../../INSTALL.md). Kit maintainers: keep `skills/od/` SSOT → sync to `.cursor/skills/od/` via `scripts/sync-skills.ps1`.

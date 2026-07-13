@@ -10,11 +10,11 @@
 
 | Layer | Budget | Content | Enter | Leave |
 |-------|--------|---------|-------|-------|
-| **HOT** | ≤150 | SKILL B摘要 + phase 指令 + 当前 task 切片 | task 开始时加载 | task 完成 → 卸载 |
-| **WARM** | ≤250 | plan 当前 Group + design index + 3条决策 | phase 入口加载 | phase exit → purge, only ≤5行 transition |
-| **COLD** | disk | features/, test-plan, tool raw, `*-history.md` | 显式 Grep/Read | 读后摘要→state file，标记 expired |
+| **HOT** | ≤150 | SKILL B summary + phase instruction + current task slice | Load at task start | Unload when task completes |
+| **WARM** | ≤250 | plan current Group + design index + 3 decisions | Load at phase entry | Phase exit → purge; keep ≤5-line transition only |
+| **COLD** | disk | features/, test-plan, tool raw, `*-history.md` | Explicit Grep/Read | After read: summarize → state file, mark expired |
 
-**Golden rule**: 磁盘有 state file → 禁止在对话中重复粘贴全文；用路径指针代替。
+**Golden rule**: If a state file exists on disk → do not paste its full text into chat; use a path pointer instead.
 
 ---
 
@@ -65,10 +65,10 @@ Phase 3: `grep '## Feature {FN}'` for current task (≈20-40 lines). Never load 
 ### Enter Phase N+1
 1. Load new phase instruction file
 2. Re-read state files from disk (NOT from conversation history)
-3. Context should be: SKILL B摘要 + phase instruction + state slices + transition summary
+3. Context should be: SKILL B summary + phase instruction + state slices + transition summary
 
 #### After `/od re` (cold start, ≤200 lines)
-1. `session-log.md` YAML + 恢复指引 (≤20 lines)
+1. `session-log.md` YAML + resume guidance (≤20 lines)
 2. Active phase instruction
 3. `02-plan.md` frontmatter + active group only
 4. `03-progress.md` blockers only
@@ -105,7 +105,7 @@ RETAIN (≤5 lines to session-log):
 [Interactive prompt: 2-4 options]
 ```
 
-**Instead of** full state file paste → use path pointers ("F2 设计见 `04-design.md` §F2，route `/api/user`")  
+**Instead of** full state file paste → use path pointers ("F2 design: `04-design.md` §F2, route `/api/user`")  
 **Instead of** full test output → 3-column table (TC-ID / Result / Note)  
 **Instead of** phase essay → standard 4-line checkpoint
 

@@ -1,29 +1,29 @@
-# Session Memory (会话记忆持久化)
+# Session Memory (Persistent Session State)
 
 → Platform mapping: SKILL.md §F.2 (Interactive Prompt)
 
 ## Overview
 
-每次 **`/od re`** 从磁盘 `session-log.md` 恢复断点。**不依赖**同一会话上下文推断。用户换对话、断电后 → 仅 `/od re` 续传。
+Every **`/od re`** resumes from disk `session-log.md`. It does **not** rely on same-chat context inference. After switching chats or a crash → resume only with `/od re`.
 
-## 1. Session Log 文件
+## 1. Session Log File
 
-**路径**: `docs/omnidev-state/[branch]/session-log.md`
+**Path**: `docs/omnidev-state/[branch]/session-log.md`
 
-**生命周期**: 一个分支只保留 **最近 1 份** session-log。新会话结束时覆盖旧的（旧的关键信息已沉淀到 state files 中）。
+**Lifecycle**: One branch keeps only the **latest 1** session-log. When a new session ends it overwrites the old one (prior key facts are already settled into state files).
 
-## 2. 写入触发
+## 2. Write Triggers
 
-在以下时机自动生成/更新 `session-log.md`：
+Auto-generate/update `session-log.md` at:
 
-| 触发场景 | 动作 |
-|---------|------|
-| 用户输入 `/od x` 或选择"结束" | 生成完整 session-log |
-| Q&A Loop 中用户长时间无响应（会话自然结束） | 下次 `/od re` 时基于上下文补写 |
-| `/od st` (stash) | 生成 session-log 作为暂存的一部分 |
+| Trigger | Action |
+|---------|--------|
+| User sends `/od x` or chooses "End" | Write full session-log |
+| Long no-response during Q&A Loop (session ends naturally) | On next `/od re`, backfill from available context |
+| `/od st` (stash) | Write session-log as part of stash |
 | Phase exit (every checkpoint) | Minimal snapshot: phase, group, feature, last decision. **No state file body copy.** |
 
-## 3. Session Log 格式
+## 3. Session Log Format
 
 ```markdown
 ---
@@ -43,62 +43,62 @@ resume_payload: null
 resume_payload_at: null
 ---
 
-## 会话目标
-[1-2 句话，用户最初的需求描述]
+## Session Goal
+[1-2 sentences describing the user's original requirement]
 
-## 关键决策
-- **[决策点]**: 选择了 [方案A]，原因：[理由]
-- **[决策点]**: 用户要求 [具体偏好]
+## Key Decisions
+- **[Decision point]**: Chose [Option A], reason: [rationale]
+- **[Decision point]**: User requested [specific preference]
 
-## 执行进度
-- Phase 0: ✅ 复杂度 M，推荐 Plan → Dev → Test
-- Phase 1: ⏭️ 已跳过
-- Phase 2: ✅ 计划已生成，共 8 个任务 / 3 组
-- Phase 3: 🔄 进行中，Group 2/3 完成，T6 中断 (files: src/pages/users.tsx, src/api/users.ts)
-- Phase 4: ⏳ 未开始
-- Phase 5: ⏳ 未开始（L/XL 部署阶段）
+## Progress
+- Phase 0: ✅ Complexity M, recommended Plan → Dev → Test
+- Phase 1: ⏭️ Skipped
+- Phase 2: ✅ Plan generated, 8 tasks / 3 groups
+- Phase 3: 🔄 In progress, Group 2/3 done, T6 interrupted (files: src/pages/users.tsx, src/api/users.ts)
+- Phase 4: ⏳ Not started
+- Phase 5: ⏳ Not started (L/XL deploy phase)
 
-## 未完成项
-- [-] T6: 用户列表前端页面 (Group 3) — 已修改 src/pages/users.tsx, src/api/users.ts
-- [ ] T7: 集成测试 (Group 3)
-- [ ] Phase 4 测试尚未执行
+## Incomplete Items
+- [-] T6: User list frontend page (Group 3) — modified src/pages/users.tsx, src/api/users.ts
+- [ ] T7: Integration tests (Group 3)
+- [ ] Phase 4 testing not yet run
 
-## 用户反馈要点
-- 要求 API 返回格式统一用 `{code, data, message}`
-- 偏好先完成后端再做前端
-- 跳过了 Blueprint 阶段（认为 M 级别不需要）
+## User Feedback Highlights
+- Require API response format `{code, data, message}`
+- Prefer backend first, then frontend
+- Skipped Blueprint (not needed at M complexity)
 
-## 恢复指引
-下次继续时：T6 已修改 src/pages/users.tsx, src/api/users.ts, 从断点继续；读取 `02-plan.md` Group 3。T6 依赖 T3 的 API 输出。
+## Resume Instructions
+Next continue: T6 already modified src/pages/users.tsx, src/api/users.ts — resume from breakpoint; read `02-plan.md` Group 3. T6 depends on T3 API output.
 ```
 
-## 4. 写入规则
+## 4. Write Rules
 
-1. **极简原则**: session-log 控制在 **50 行以内**。只记录对"恢复执行"有价值的信息，不复制 state files 的内容。
-2. **决策优先**: 重点记录"为什么这样做"而非"做了什么"——后者已在 state files 中。
-3. **用户反馈必记**: 用户在会话中给出的口头偏好、修正、要求，即使未触发 evolution-log，也必须记录在 `## 用户反馈要点` 中。
-4. **中断任务记录**: 当 `/od x` 中断一个 `[-]` 任务时，必须在 YAML frontmatter 记录 `mid_task` + `mid_task_files`，并在 `## 未完成项` + `## 恢复指引` 中标注已修改文件。
-5. **不阻塞退出**: 生成 session-log 是会话的最后一步，在输出关闭摘要的同时静默写入，不需要用户确认。
+1. **Minimalism**: Keep session-log within **50 lines**. Record only what helps resume execution; do not copy state file bodies.
+2. **Decisions first**: Emphasize "why" over "what" — the latter already lives in state files.
+3. **Must capture user feedback**: Verbal preferences, corrections, and requests during the session must go in `## User Feedback Highlights`, even if they did not trigger evolution-log.
+4. **Interrupted task record**: When `/od x` interrupts a `[-]` task, YAML frontmatter MUST record `mid_task` + `mid_task_files`, and mark modified files under `## Incomplete Items` + `## Resume Instructions`.
+5. **Do not block exit**: Writing session-log is the last step of the session — write silently while outputting the closing summary; no user confirmation required.
 
-## 5. 读取场景
+## 5. Read Scenarios
 
-| 命令 | 行为 |
-|------|------|
-| `/od re` | **必读** `session-log.md`（磁盘）。恢复断点，加载对应 phase 的 `context_requires`。不读聊天历史。 |
-| `/od re [payload]` | 同上 + **§6.1** 解析 payload。 |
-| `/od` (新需求，同分支) | 若存在 `in_progress` session-log，弹窗提醒：先 `/od re` 恢复或 `/od x` 结束旧会话。 |
-| `/od st` | session-log 随 stash 一起保存。 |
-| `/od po` | session-log 随 stash 一起恢复。 |
+| Command | Behavior |
+|---------|----------|
+| `/od re` | **Must read** `session-log.md` (disk). Restore breakpoint; load phase `context_requires`. Do not read chat history. |
+| `/od re [payload]` | Same + **§6.1** payload parse. |
+| `/od` (new requirement, same branch) | If an `in_progress` session-log exists, prompt: resume with `/od re` or end old session with `/od x`. |
+| `/od st` | session-log is saved with stash. |
+| `/od po` | session-log is restored with stash. |
 
 ---
 
-## 6. Resume 操作流程 (`/od re`)
+## 6. Resume Flow (`/od re`)
 
 ```yaml
 context_requires:
   read:
     - docs/omnidev-state/config.json
-    - session-log.md                 # YAML + 恢复指引 only
+    - session-log.md                 # YAML + Resume Instructions only
     - 02-plan.md                     # frontmatter + active group ONLY
     - 03-progress.md                 # blockers + snapshot ONLY
   read_on_demand:
@@ -115,7 +115,7 @@ context_requires:
 1. **Read session-log.md** (if exists):
    - Extract `last_phase`, `last_task_group`, `status` from YAML frontmatter
    - Restore decision context from `## Key Decisions`
-   - Restore user preference context from `## User Feedback`
+   - Restore user preference context from `## User Feedback Highlights`
    - Get resume guidance from `## Resume Instructions`
 
 1.5. **Verify state file integrity**: Cross-check `state_files` manifest against disk. If any missing: report "⚠️ Session state incomplete. Missing: [files]. Recoverable: [yes/no]." Ask user.
@@ -151,7 +151,7 @@ context_requires:
 ```
 
 - `payload` = all text after `re`/`resume`, trimmed. Empty → pure §6 resume.
-- Examples: `/od re`, `/od re 继续 Group 3`, `/od re ch 字段改为 email`, `/od re -f 修登录 500`, `/od re n`
+- Examples: `/od re`, `/od re continue Group 3`, `/od re ch change field to email`, `/od re -f fix login 500`, `/od re n`
 
 ### Flow (MANDATORY order)
 
@@ -167,7 +167,7 @@ Step D: Execute routed workflow at resumed phase — NO restart from Phase 0 unl
 ```
 ♻️ Session Resumed
 Branch: [branch] · Phase [N] Group [G]
-Payload: [payload or "无"]
+Payload: [payload or "none"]
 Next: [routed action]
 ```
 
@@ -190,14 +190,14 @@ Next: [routed action]
 
 ### 6.1.1 Free-Text Payload Classification
 
-When payload is free text (e.g. `/od re 把登录改成 OAuth`):
+When payload is free text (e.g. `/od re change login to OAuth`):
 
 | Class | Signals | Action |
 |-------|---------|--------|
-| **A: Requirement change** | 改/变更/新增/删除/调整/换成/instead/add/remove | B.14 doc sync → [special-flows.md](special-flows.md) §2 (lightweight vs structural) at **current** `last_phase` |
-| **B: Continue hint** | 继续/接着/还是/按原计划/continue | Append to `## 用户反馈要点`; execute resume point with no extra routing |
-| **C: Phase instruction** | 先测/先写测试/部署/审查 | Route to Phase 4/5/`/od rv` per keywords |
-| **D: Default (work intent)** | anything else | Log payload → `session-log.md` `resume_payload` + `## 用户反馈要点`; **continue current phase** at `last_task_group` incorporating payload |
+| **A: Requirement change** | change / modify / add / remove / adjust / replace / instead / add / remove | B.14 doc sync → [special-flows.md](special-flows.md) §2 (lightweight vs structural) at **current** `last_phase` |
+| **B: Continue hint** | continue / resume / still / as planned | Append to `## User Feedback Highlights`; execute resume point with no extra routing |
+| **C: Phase instruction** | test first / write tests first / deploy / review | Route to Phase 4/5/`/od rv` per keywords |
+| **D: Default (work intent)** | anything else | Log payload → `session-log.md` `resume_payload` + `## User Feedback Highlights`; **continue current phase** at `last_task_group` incorporating payload |
 
 **Forbidden**:
 - Ignoring payload after resume
@@ -213,7 +213,7 @@ resume_payload: "[user text]"
 resume_payload_at: "[ISO timestamp]"
 ```
 
-Append to `## 用户反馈要点`:
+Append to `## User Feedback Highlights`:
 
 ```
 - [resume] [timestamp]: [payload]
@@ -225,18 +225,18 @@ Log `metrics.json`: `type: "resume_with_payload"`, fields: `payload_class`, `las
 
 When payload is non-empty and class A or ambiguous, use [interactive-prompt.md](interactive-prompt.md) §Resume with payload:
 
-| id | label_zh |
-|----|----------|
-| `resume_execute` | 从断点继续并处理 payload [默认] |
-| `change_full` | 按需求变更流程更新文档后再继续 |
-| `restart` | 放弃断点，payload 作为新需求从 Phase 0 开始 |
-| `cancel` | 取消 |
+| id | label |
+|----|-------|
+| `resume_execute` | Continue from breakpoint and handle payload [default] |
+| `change_full` | Run requirement-change doc sync, then continue |
+| `restart` | Discard breakpoint; treat payload as new requirement from Phase 0 |
+| `cancel` | Cancel |
 
 When payload empty, use standard §Resume (Continue / Restart / Cancel).
 
 ---
 
-## 7. Session Exit 操作流程 (`/od x`)
+## 7. Session Exit Flow (`/od x`)
 
 When user ends session (`/od x` or selects "End"):
 
@@ -261,7 +261,7 @@ When user ends session (`/od x` or selects "End"):
 
 Per [context-lifecycle.md](context-lifecycle.md) §10:
 
-1. session-log YAML + 恢复指引 only (≤20 lines) — skip body unless needed
+1. session-log YAML + Resume Instructions only (≤20 lines) — skip body unless needed
 2. Active phase instruction only
 3. `02-plan.md` frontmatter + **active group section only**
 4. `03-progress.md` `## Blockers` + `## State Snapshot` only
@@ -281,8 +281,8 @@ Codex automatically compacts conversation history when token limits are exceeded
 The `session-log.md` YAML frontmatter is the **only reliable source of phase state** after a Codex compaction. Design it accordingly:
 
 - All critical fields MUST be in YAML (`last_phase`, `last_task_group`, `active_feature`, `status`, `state_files`), not only in prose sections.
-- Prose sections (`## 会话目标`, `## 关键决策`, etc.) are supplementary — the AI can recover without them.
-- `## 恢复指引` should contain **actionable next steps**, not historical context.
+- Prose sections (`## Session Goal`, `## Key Decisions`, etc.) are supplementary — the AI can recover without them.
+- `## Resume Instructions` should contain **actionable next steps**, not historical context.
 
 ### 9.2 Post-Compaction Resume Protocol
 
@@ -298,7 +298,7 @@ When `/od re` is triggered and the AI suspects compaction occurred (truncated co
    Reloaded [N] state files from disk.
    ```
 4. **Reset occupancy estimates**: Set HOT to 80, WARM to 40 (defensive defaults per context-lifecycle §8).
-5. **Do NOT attempt to recover conversation history**. Prior user decisions live in `session-log.md` `## 关键决策` and `## 用户反馈要点`.
+5. **Do NOT attempt to recover conversation history**. Prior user decisions live in `session-log.md` `## Key Decisions` and `## User Feedback Highlights`.
 
 ### 9.3 Compaction-Safe Writing Practices
 
@@ -307,9 +307,9 @@ During an active `/od` session on Codex, write to `session-log.md` at these chec
 | Trigger | What to write |
 |---------|--------------|
 | After every task completion | Update `last_task_group` and `active_group` in YAML frontmatter |
-| After user makes a key decision | Append to `## 关键决策` immediately — don't wait for session end |
-| After user gives feedback/correction | Append to `## 用户反馈要点` immediately |
-| Every 10 turns | Update `## 恢复指引` with current "next step" |
+| After user makes a key decision | Append to `## Key Decisions` immediately — don't wait for session end |
+| After user gives feedback/correction | Append to `## User Feedback Highlights` immediately |
+| Every 10 turns | Update `## Resume Instructions` with current "next step" |
 
 This ensures that even if Codex compacts before a normal `/od x` saves the full session-log, the file contains up-to-date recovery state.
 

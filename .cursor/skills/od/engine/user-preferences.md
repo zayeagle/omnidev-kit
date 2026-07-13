@@ -1,80 +1,79 @@
 # User Preferences Memory
 
 → Platform mapping: SKILL.md §F (Platform Abstraction Layer)
- (用户偏好档案)
 
 ## Overview
 
-自动、被动地采集用户在 `/od` 会话中表现出的行为模式和偏好，持久化为结构化档案。每次 `/od` 激活时轻量加载，让 AI "记住"用户习惯。
+Automatically and passively capture behavioral patterns and preferences the user shows during `/od` sessions, and persist them as a structured profile. Load lightly on every `/od` activation so the AI "remembers" user habits.
 
-## 1. 偏好档案文件
+## 1. Preferences Profile File
 
-**路径**: `docs/omnidev-state/user-preferences.md` （全局级，不分分支）
+**Path**: `docs/omnidev-state/user-preferences.md` (global; not per-branch)
 
-**大小限制**: 控制在 **30 行以内**。这是一个高频加载文件，必须极致精简。
+**Size limit**: Keep within **30 lines**. This is a high-frequency load file and must stay extremely lean.
 
-## 2. 档案格式
+## 2. Profile Format
 
 ```markdown
 ---
 last_updated: 2026-06-03T08:30:00+08:00
 ---
 
-## 工作流偏好
-- complexity_skip: [S 任务从不生成状态文件]
-- phase_skip_pattern: [通常跳过 Blueprint，只做 Plan → Dev → Test]
-- checkpoint_style: [偏好简洁，不需要详细 checkpoint 输出]
+## Workflow Preferences
+- complexity_skip: [Never generate state files for S tasks]
+- phase_skip_pattern: [Usually skip Blueprint; only Plan → Dev → Test]
+- checkpoint_style: [Prefer concise; no detailed checkpoint output]
 
-## 代码风格
-- naming: [变量用 camelCase，文件用 kebab-case]
-- comments_language: [代码注释用英文]
-- error_format: [{code, data, message} 统一格式]
-- quotes: [单引号]
+## Code Style
+- naming: [Variables camelCase; files kebab-case]
+- comments_language: [Code comments in English]
+- error_format: [{code, data, message} unified format]
+- quotes: [Single quotes]
 
-## 交互偏好
-- output_verbosity: [concise | detailed]  # 默认 concise
-- language: [回复用中文，代码注释用英文]
-- confirm_style: [快速确认，不需要重复展示已知信息]
+## Interaction Preferences
+- output_verbosity: [concise | detailed]  # default concise
+- language: [Reply in Chinese; code comments in English]
+- confirm_style: [Fast confirm; do not re-show known info]
 
-## 技术偏好
+## Tech Preferences
 - test_framework: [jest + react-testing-library]
-- api_style: [RESTful, 不用 GraphQL]
+- api_style: [RESTful, no GraphQL]
 - state_management: [zustand]
 - orm: [prisma]
 ```
 
-## 3. 采集规则（被动学习）
+## 3. Capture Rules (Passive Learning)
 
-以下场景自动采集，**无需用户显式触发**：
+Capture automatically in these scenarios — **no explicit user trigger required**:
 
-| 信号类型 | 采集条件 | 写入字段 |
-|---------|---------|---------|
-| **Phase 跳过模式** | 用户连续 2 次在同类型任务中跳过同一 phase | `phase_skip_pattern` |
-| **Checkpoint 偏好** | 用户在 checkpoint 输出后立即输入 `/od n` 不看内容 | `checkpoint_style: concise` |
-| **代码风格纠正** | 用户修改 AI 生成的代码风格（命名、引号、缩进等） | `naming` / `quotes` 等 |
-| **输出语言偏好** | 用户要求"用中文回复"或"comments in English" | `language` / `comments_language` |
-| **技术栈偏好** | 用户指定或纠正框架/库选择 | `test_framework` / `orm` 等 |
-| **API 格式偏好** | 用户纠正返回格式 | `error_format` / `api_style` |
-| **输出详细程度** | 用户说"简洁点"/"详细点"/"不用解释" | `output_verbosity` |
+| Signal type | Capture condition | Write field |
+|-------------|-------------------|-------------|
+| **Phase skip pattern** | User skips the same phase twice in a row on similar tasks | `phase_skip_pattern` |
+| **Checkpoint preference** | User immediately sends `/od n` after checkpoint without reading | `checkpoint_style: concise` |
+| **Code style correction** | User edits AI-generated style (naming, quotes, indent, etc.) | `naming` / `quotes` etc. |
+| **Output language preference** | User asks for "reply in Chinese" or "comments in English" | `language` / `comments_language` |
+| **Stack preference** | User specifies or corrects framework/library choice | `test_framework` / `orm` etc. |
+| **API format preference** | User corrects response format | `error_format` / `api_style` |
+| **Output verbosity** | User says "be concise" / "more detail" / "no explanation" | `output_verbosity` |
 
-### 采集约束
+### Capture Constraints
 
-1. **置信度门槛**: 同一偏好信号出现 **2 次以上** 才写入档案。单次可能是个例。
-2. **不重复**: 已存在的偏好不重复写入，只在值变更时更新。
-3. **不阻塞**: 偏好采集在后台静默进行，不向用户展示"已记录您的偏好"之类的提示。
-4. **可覆盖**: 新偏好覆盖旧偏好（用户习惯可能变化）。
-5. **与 evolution-log 互补**: evolution-log 记录错误修正和规则演化（重型），user-preferences 记录日常行为习惯（轻型）。两者不重复。
+1. **Confidence threshold**: Write to profile only after the same preference signal appears **2+ times**. A single event may be an outlier.
+2. **No duplicates**: Do not re-write existing preferences; update only when the value changes.
+3. **Non-blocking**: Capture runs silently in the background; do not show tips like "your preference was recorded".
+4. **Overwritable**: New preferences overwrite old ones (habits can change).
+5. **Complementary to evolution-log**: evolution-log records error fixes and rule evolution (heavy); user-preferences records daily habits (light). Do not duplicate.
 
-## 4. 加载规则
+## 4. Load Rules
 
-| 场景 | 行为 |
-|------|------|
-| **每次 `/od` 激活** | 在读取 `config.json` 的同时读取 `user-preferences.md`（如果存在）。文件很小（< 30 行），对上下文开销可忽略。 |
-| **Phase 3 开发** | 参考 `## 代码风格` 和 `## 技术偏好` 指导代码生成。 |
-| **Phase Checkpoint** | 参考 `checkpoint_style` 和 `output_verbosity` 调整输出详细程度。 |
+| Scenario | Behavior |
+|----------|----------|
+| **Every `/od` activation** | Read `user-preferences.md` alongside `config.json` (if present). File is small (< 30 lines); context cost is negligible. |
+| **Phase 3 development** | Use `## Code Style` and `## Tech Preferences` to guide codegen. |
+| **Phase Checkpoint** | Use `checkpoint_style` and `output_verbosity` to adjust output detail. |
 
-## 5. 用户可控
+## 5. User Control
 
-- **查看**: `/od cfg` 同时展示 config.json 和 user-preferences.md 的内容。
-- **清除**: 用户可以手动删除 `user-preferences.md` 重置所有偏好。
-- **编辑**: 用户可以直接编辑文件，AI 下次激活时会读取最新版本。
+- **View**: `/od cfg` shows both config.json and user-preferences.md.
+- **Clear**: User may manually delete `user-preferences.md` to reset all preferences.
+- **Edit**: User may edit the file directly; AI reads the latest version on next activation.

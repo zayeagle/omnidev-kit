@@ -1,5 +1,5 @@
 ---
-description: OmniDev trigger gate for Codex — /od prefix OR explicit skill invoke only. Resume via /od re only.
+description: OmniDev trigger gate for Codex — /od or $od prefix OR explicit skill invoke only. Resume via /od re or $od re only.
 alwaysApply: true
 ---
 
@@ -9,24 +9,27 @@ alwaysApply: true
 
 ## ACTIVATE — Signal A or B only
 
-1. **Signal A**: Message starts with `/od`
-2. **Signal B**: od skill invoked for this message
+1. **Signal A**: Message starts with `/od` **or** `$od` (equivalent)
+2. **Signal B**: od skill invoked for this message (SKILL body injected; manifest listing alone = NO). If unsure → do **not** activate.
 
 No session-context inference. No bare `1`/`n`/`continue`.
+
+Bare workflow-looking replies → one-line tip only:
+`⚠️ OmniDev is not active. Send /od n or $od n. Resume with /od re.`
 
 ## Advance & resume
 
 | Action | Command |
 |--------|---------|
-| Resume / crash recovery | `/od re` |
-| Next phase | `/od n` |
-| Revise | `/od ad` |
+| Resume / crash recovery | `/od re` or `$od re` |
+| Next phase | `/od n` or `$od n` |
+| Revise | `/od ad` or `$od ad` |
 
-Checkpoint → `request_user_input` → STOP → user sends `/od` command or UI pick.
+Checkpoint → `request_user_input` → **STOP — WAIT** → UI pick or `/od`/`$od` command.
 
 ## DO NOT ACTIVATE
 
-Normal chat without `/od` and without skill invoke. Do not touch `docs/omnidev-state/**`.
+Normal chat without `/od`/`$od` and without skill invoke. Do not touch `docs/omnidev-state/**`.
 
 ## Platform notes
 

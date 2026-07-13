@@ -29,5 +29,6 @@
   "codex_conservative_occupancy": true,
   "codex_thread_overhead_tokens": 4000,
   "codex_max_turns_before_compress": 15,
-  "codex_popup_hint_shown": false
+  "codex_popup_hint_shown": false,
+  "codex_auto_resolve": false
 }

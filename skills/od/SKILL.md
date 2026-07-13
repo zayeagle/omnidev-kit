@@ -1,9 +1,9 @@
 ---
 name: od
 description: >-
-  OmniDev workflow. Load ONLY when: (1) message STARTS WITH /od, OR (2) skill explicitly
-  attached/invoked this turn. Resume: /od re only. Advance: /od n, /od ad, etc.
-  Bare 1/n/continue without /od does NOT trigger. No chat-context inference.
+  OmniDev workflow. Load ONLY when: (1) message STARTS WITH /od or $od, OR (2) skill
+  explicitly attached/invoked this turn. Resume: /od re or $od re. Advance: /od n, /od ad,
+  etc. Bare 1/n/continue does NOT trigger. No chat-context inference.
   Supports Cursor, Claude Code, and Codex.
 ---
 
@@ -21,45 +21,45 @@ description: >-
 
 ## B. Core Rules
 
-### B.0 — 不确定就问，禁止自我发挥
-**最高优先级**：任何不确定/歧义/猜测 → 停下来确认。删改/部署等破坏性操作默认"不执行"。
-→ Full rules: [engine/context-lifecycle.md](engine/context-lifecycle.md) §1 · [engine/interactive-prompt.md](engine/interactive-prompt.md) §4.7 / §5.7
+### B.0 — When unsure, ask; do not invent
+**Highest priority**: Any uncertainty / ambiguity / guess → stop and confirm. Destructive actions (delete, deploy, etc.) default to "do not execute".
+→ Full rules: [engine/context-lifecycle.md](engine/context-lifecycle.md) §1 · [engine/interactive-prompt.md](engine/interactive-prompt.md) §3.4 `b0_confirm`
 
 ### B.1 — Trigger & Activation
-**仅 Signal A** (`/od` 前缀) 或 **Signal B** (skill 被显式 invoke) 才激活。Phase 0–5 按序执行；`/od re` 磁盘恢复；bare `1`/`n`/`继续` 不触发。
+Activate **only** on **Signal A** (`/od` or `$od` prefix) or **Signal B** (skill explicitly invoked, observable). If Signal B is uncertain → do not activate. Phases 0–5 in order; `/od re`/`$od re` resume from disk; bare `1`/`n`/`continue` do not trigger (may show a one-line "OmniDev not active" tip).
 → [engine/trigger-gate.md](engine/trigger-gate.md) · [engine/activation.md](engine/activation.md)
 
-### B.4 — Interactive Prompt (主要工作模式)
-`interactive_mode: true` 默认开启。决策点 **必须先调原生工具**（Cursor `AskQuestion` / Claude `AskUserQuestion` / Codex `request_user_input`），与摘要同 turn 发出；禁止仅 prose。对话只留短摘要（Phase 0 ≤6 行）；禁止贴 `od_interactive` 元数据或「回复 1/2/3」。原生失败 → §8 干净 `/od` 表。
+### B.4 — Interactive Prompt (primary working mode)
+`interactive_mode: true` is on by default. At decision points **must call the native tool first**, same turn as the summary; prose-only is forbidden. Keep short chat summaries (Phase 0 ≤6 lines); forbid `od_interactive` metadata or "reply 1/2/3". On native failure → §8 clean `/od`/`$od` table. **Always STOP — WAIT** (never auto-continue after a pseudo-popup).
 → [engine/interactive-prompt.md](engine/interactive-prompt.md)
 
 ### B.11 — Session Resume
-`/od re` 从 `session-log.md` YAML frontmatter 恢复；`/od re [payload]` 续传变更；`/od x` 保存退出。禁止对话上下文推断。
+`/od re` or `$od re` resumes from `session-log.md` YAML frontmatter; with payload continues changes; `/od x` saves and exits. Do not infer from chat context.
 → [engine/session-memory.md](engine/session-memory.md)
 
 ---
 
-### Quick Reference (其余规则详见对应 engine 文件)
+### Quick Reference (other rules: see corresponding engine files)
 
 | Rule | Short | Reference |
 |------|-------|-----------|
 | B.2 Workflow | Blueprint→Plan→Dev→Test→Deploy · S→P3, M→P2, L/XL→P1 | [activation.md](engine/activation.md) §3 |
-| B.3 State Files | `docs/omnidev-state/` · active+history 配对 · append-only | [engine/document-history.md](engine/document-history.md) |
-| B.5 Context Lifecycle | HOT≤150 · WARM≤250 · COLD 磁盘按需 · Phase 结束 purge | [engine/context-lifecycle.md](engine/context-lifecycle.md) |
+| B.3 State Files | `docs/omnidev-state/` · active+history pair · append-only | [engine/document-history.md](engine/document-history.md) |
+| B.5 Context Lifecycle | HOT≤150 · WARM≤250 · COLD disk on-demand · purge on phase end | [engine/context-lifecycle.md](engine/context-lifecycle.md) |
 | B.6 Config | `/od cfg` · `interactive_mode`/`auto_checkpoint`/`design_split` | [engine/user-preferences.md](engine/user-preferences.md) |
-| B.8 Checkpoint | ≤12 行 · 2-4 选项 · STOP-WAIT | [engine/special-flows.md](engine/special-flows.md) §3.1 |
+| B.8 Checkpoint | ≤12 lines · 2-4 options · STOP-WAIT | [engine/special-flows.md](engine/special-flows.md) §3.1 |
 | B.9 Progress | `[✅/🔄/⏳] Task — Time` → `03-progress.md` | [phases/03-development.md](phases/03-development.md) §1 |
 | B.10 Errors | Log → diagnose → propose fix → confirm (B.0) | [engine/special-flows.md](engine/special-flows.md) §5 |
 | B.12 Stash | `/od st` save, `/od po` restore | [engine/stash.md](engine/stash.md) |
 | B.13 Governance | `/od gv` token audit | [engine/governance.md](engine/governance.md) |
-| B.14 Doc Sync | 需求变更 → 确认 → 归档到 `*-history.md` → 更新 active | [engine/special-flows.md](engine/special-flows.md) §2 |
-| B.15 Confirm Throttling | S: minimal, M: reduced, L/XL: full | [phases/03-development.md](phases/03-development.md) §1.1 |
-| B.16 Git Safety | 禁止 auto-commit · `git stash` 仅 `auto_checkpoint: true` | [engine/metrics.md](engine/metrics.md) |
-| B.17 Token Opt | Read cap 150行 · Sub-agent ≤30行 report · diff `--stat` 优先 | [engine/token-optimization.md](engine/token-optimization.md) |
-| B.18 Occupancy | HOT+WARM≤300 · section切片 · 路径指针代全文 | [engine/context-lifecycle.md](engine/context-lifecycle.md) |
-| B.19 Doc History | active+history 双文件 · append-only · workflow 只加载 active | [engine/document-history.md](engine/document-history.md) |
-| B.20 Test Strategy | UNIT强制 · INT/E2E/SMK/REG 按复杂度组合 · Gap Backfill | [engine/test-strategy.md](engine/test-strategy.md) |
-| B.21 Deploy | Makefile + 一键部署 · Greenfield docker+k8s · 生产需确认 | [phases/05-deploy.md](phases/05-deploy.md) |
+| B.14 Doc Sync | Requirement change → confirm → archive to `*-history.md` → update active | [engine/special-flows.md](engine/special-flows.md) §2 |
+| B.15 Confirm Throttling | Required at phase end; mid-phase gates for S/M/L per Phase 3 §1.1 (do not skip all for S) | [phases/03-development.md](phases/03-development.md) §1.1 |
+| B.16 Git Safety | No auto-commit · `git stash` only when `auto_checkpoint: true` | [engine/metrics.md](engine/metrics.md) |
+| B.17 Token Opt | Read cap 150 lines · Sub-agent ≤30-line report · prefer diff `--stat` | [engine/token-optimization.md](engine/token-optimization.md) |
+| B.18 Occupancy | HOT+WARM≤300 · section slices · path pointers instead of full text | [engine/context-lifecycle.md](engine/context-lifecycle.md) |
+| B.19 Doc History | active+history dual files · append-only · workflow loads active only | [engine/document-history.md](engine/document-history.md) |
+| B.20 Test Strategy | UNIT required · INT/E2E/SMK/REG by complexity · Gap Backfill | [engine/test-strategy.md](engine/test-strategy.md) |
+| B.21 Deploy | Makefile + one-click deploy · Greenfield docker+k8s · production needs confirm | [phases/05-deploy.md](phases/05-deploy.md) |
 
 ---
 
@@ -102,10 +102,10 @@ After each phase, **first execute silent learning, then output checkpoint**.
 
 **Checkpoint Output** (≤12 lines per B.18 — no state file echo):
 ```
-✅ Phase N 完成: [Name]
-📦 产出物: [state files created/updated]
-📍 进度: Phase 0 ✅ → Phase 1 ✅ → Phase 2 🔧 → ...
-🔔 下一阶段: Phase N+1 — [Name]
+✅ Phase N complete: [Name]
+📦 Artifacts: [state files created/updated]
+📍 Progress: Phase 0 ✅ → Phase 1 ✅ → Phase 2 🔧 → ...
+🔔 Next phase: Phase N+1 — [Name]
 ```
 
 **Phase 3 special rules**: Pre-Dev and Change Impact per B.15. Learning guard: phase_3 insights need 2+ observations unless error_resolution. After checkpoint, display next-step prompt (B.8). STOP — WAIT.
@@ -135,14 +135,15 @@ OmniDev supports three code-agent platforms: **Cursor**, **Claude Code**, and **
 
 ### F.1 Platform Detection
 
-On `/od` activation, detect the current platform via available tools. Check in order:
+On `/od` or `$od` activation, check `platform_override` first; else detect via tools:
 
 | # | Signal | Platform |
 |---|--------|----------|
-| 1 | `AskQuestion` tool exists | **Cursor** |
-| 2 | `Task` tool (sub-agent) AND `AskUserQuestion` tool exists | **Claude Code** |
-| 3 | `request_user_input` tool exists AND `SKILL.md`-based skill system | **Codex** |
-| 4 | Fallback: treat as generic text-only agent | **CLI / Other** |
+| 1 | `AskUserQuestion` tool exists | **Claude Code** |
+| 2 | `AskQuestion` tool exists | **Cursor** |
+| 3 | `request_user_input` OR `create_thread` | **Codex** |
+| 4 | `Task` without AskQuestion/AskUserQuestion | **Claude Code** (likely) |
+| 5 | Fallback | **CLI / Other** |
 
 Store detected platform in session memory; do not re-detect mid-session.
 
@@ -161,10 +162,11 @@ Store detected platform in session memory; do not re-detect mid-session.
 
 When `interactive_mode=true`:
 
-1. Output **short** summary only（Phase 0 ≤6 行；checkpoint ≤12 行）— 禁止把完整评估贴进对话
-2. **Immediately invoke** native tool with matching §4 / §5 / §6 template — **forbidden** to end turn with prose-only options when the tool exists
-3. On tool **absent**, error, or "unavailable in this chat mode" → clean pseudo-popup §8 **same turn**（禁止「回复 1/2/3」；须提示 `/od` 命令）
-4. Log `native_attempted: true` + method to **session-log**（不要贴到对话）
+1. Output **short** summary only (Phase 0 ≤6 lines; checkpoint ≤12 lines) — do not paste the full assessment into chat
+2. **Immediately invoke** native tool using §3 catalog + §4/§5/§6 wrapper — **forbidden** to end turn with prose-only options when the tool exists
+3. On tool **absent**, error, or "unavailable in this chat mode" → clean pseudo-popup §8 **same turn** (forbid "reply 1/2/3"; must use `/od` or `$od`) → **STOP — WAIT** (forbid autoResolution / auto-continue)
+4. Log `native_attempted: true` + method to **session-log** (do not paste into chat)
+5. Decision points: follow [interactive-prompt.md](engine/interactive-prompt.md) **§3 Decision Matrix** (full Phase 0–5 coverage, including S-level `phase0_s_fastpath`)
 
 #### Codex Default/Code Mode Setup
 
@@ -178,16 +180,16 @@ CLI: `codex features enable default_mode_request_user_input` — restart Codex. 
 
 #### Codex Multi-Select Simulation
 
-`request_user_input` has no native multi-select. When the calling engine file specifies `allow_multiple: true` (e.g., skill-composition §4, stash §3), simulate multi-select on Codex/CLI by:
+`request_user_input` has no native multi-select. When `allow_multiple: true`:
 
-1. List all options as numbered choices with **`/od` command** or skill id in each row (same as CLI/Other fallback).
-2. At end of prompt, add: "可以多选：在下一条消息说明要启用的技能名" / "Multi-select: name the skills to enable in the next message".
-3. Parse the user's response to extract multiple selections.
-4. If `request_user_input` IS available, use `autoResolutionMs` (see below) to avoid indefinite blocking.
+1. Sequential single-select, or §8 + "multi-select OK: explain in next message"
+2. Parse user response for multiple selections
+3. **Do NOT** set `autoResolutionMs` (unless `config.codex_auto_resolve: true`)
 
-#### Codex `request_user_input` Auto-Resolution
+#### Codex `autoResolutionMs` — OFF by default
 
-When using `request_user_input` on Codex, set `autoResolutionMs` to a value between 60000 and 240000 when the question is non-blocking (e.g., next-step prompts B.8, skill selection). This allows the session to continue with best judgment if the user doesn't answer. Omit `autoResolutionMs` only for decisions that genuinely require explicit user confirmation (B.0 critical decisions, Pre-Dev scope).
+**By default forbid** `autoResolutionMs`, to avoid auto-picking when unanswered and breaking full-flow interaction.
+Only when `docs/omnidev-state/config.json` → `"codex_auto_resolve": true` and the decision point explicitly allows it, may you set 60000–240000 for non-B.0 points. Blocking points such as B.0 / deploy_prod / pre_dev **always** omit this field.
 
 **Usage rule**: When any engine file says "use `AskQuestion`" or "platform interactive prompt", execute [interactive-prompt.md](engine/interactive-prompt.md) — native tool first, **text fallback mandatory** if unavailable or error.
 
@@ -236,7 +238,7 @@ When `sub_agents` is `auto` or `on` and platform is Codex, dispatch tasks via th
 |----------|---------------------------|
 | **Cursor** | `/od …` prefix **OR** attach `@od` skill / skill picker (no `/od` required when skill is attached) |
 | **Claude Code** | `/od …` prefix **OR** invoke `od` skill (Claude loads SKILL.md into context) |
-| **Codex** | `/od …` prefix **OR** invoke `od` skill for the message |
+| **Codex** | `/od …` **or** `$od …` prefix **OR** invoke `od` skill for the message |
 
 | Platform | Gate enforcement file |
 |----------|----------------------|

@@ -1,30 +1,30 @@
-# Stash & Pop (任务上下文暂存/恢复)
+# Stash & Pop (Task Context Stash / Restore)
 
 → Platform mapping: SKILL.md §F.2 (Interactive Prompt)
 
 ## Overview
 
-当用户需要临时切换到另一个任务（如紧急 hotfix）时，`/od st` 将当前工作上下文完整快照保存，`/od po` 在切回时恢复，实现多任务无缝切换。
+When the user needs to temporarily switch to another task (e.g. an urgent hotfix), `/od st` saves a full snapshot of the current work context, and `/od po` restores it on switch-back — enabling seamless multi-task switching.
 
-## 1. 存储结构
+## 1. Storage Layout
 
-**路径**: `docs/omnidev-state/stash/`
+**Path**: `docs/omnidev-state/stash/`
 
 ```
 docs/omnidev-state/stash/
-├── stash-index.json          # 暂存索引（所有暂存条目）
-├── <id>/                     # 每个暂存一个子目录
-│   ├── snapshot.json         # 暂存元数据
-│   └── session-log.md        # 会话记忆快照
+├── stash-index.json          # Stash index (all stash entries)
+├── <id>/                     # One subdirectory per stash
+│   ├── snapshot.json         # Stash metadata
+│   └── session-log.md        # Session memory snapshot
 ```
 
-**索引文件** `stash-index.json`:
+**Index file** `stash-index.json`:
 ```json
 [
   {
     "id": "stash-20260603-083000",
     "branch": "feature/user-auth",
-    "description": "用户认证模块 - Phase 3 Group 2 进行中",
+    "description": "User auth module - Phase 3 Group 2 in progress",
     "timestamp": "2026-06-03T08:30:00+08:00",
     "phase": 3,
     "task_group": 2
@@ -32,7 +32,7 @@ docs/omnidev-state/stash/
 ]
 ```
 
-**快照文件** `snapshot.json`:
+**Snapshot file** `snapshot.json`:
 ```json
 {
   "id": "stash-20260603-083000",
@@ -50,106 +50,106 @@ docs/omnidev-state/stash/
 }
 ```
 
-## 2. `/od st` (Stash) 流程
+## 2. `/od st` (Stash) Flow
 
 ```yaml
 context_requires:
   read:
-    - session-log.md              # 当前会话记忆（如果有）
-    - 03-progress.md              # 当前进度
+    - session-log.md              # Current session memory (if any)
+    - 03-progress.md              # Current progress
   scan:
-    - git status --short          # 未提交文件列表
+    - git status --short          # Uncommitted file list
   skip:
     - all other state files
 ```
 
-### 步骤
+### Steps
 
-1. **检查前置条件**:
-   - 如果没有活跃的 `/od` 工作流（没有 state files），提示"当前没有可暂存的任务"并退出。
+1. **Check preconditions**:
+   - If there is no active `/od` workflow (no state files), prompt "No task available to stash" and exit.
 
-2. **生成会话记忆**: 按 `session-memory.md` 的规则生成 `session-log.md`（如果尚未存在），状态标记为 `stashed`。
+2. **Generate session memory**: Write `session-log.md` per `session-memory.md` rules (if not already present); mark status `stashed`.
 
-3. **处理未提交代码**:
-   - 运行 `git status --short` 检查是否有未提交变更。
-   - 如果有未提交变更，使用 platform interactive prompt (SKILL.md §F.2)（或文本提示）：
+3. **Handle uncommitted code**:
+   - Run `git status --short` to check for uncommitted changes.
+   - If there are uncommitted changes, **MUST** invoke [interactive-prompt.md](interactive-prompt.md) `b0_confirm` or custom options via §4/§5/§6 → **STOP — WAIT**:
 
-   | id | 选项 |
-   |----|------|
-   | `git_stash` | Git stash 暂存代码变更 |
-   | `git_commit` | 先提交再暂存任务 (`git commit`) |
-   | `skip_code` | 只暂存任务上下文，不处理代码 |
+   | id | Option |
+   |----|--------|
+   | `git_stash` | Git stash code changes |
+   | `git_commit` | Commit first, then stash the task (`git commit`) |
+   | `skip_code` | Stash task context only; leave code as-is |
 
-4. **创建快照**:
-   - 生成 stash ID: `stash-YYYYMMDD-HHmmss`
-   - 创建 `docs/omnidev-state/stash/<id>/` 目录
-   - 写入 `snapshot.json`（元数据）
-   - 复制当前 `session-log.md` 到 stash 目录
-   - 更新 `stash-index.json`
+4. **Create snapshot**:
+   - Generate stash ID: `stash-YYYYMMDD-HHmmss`
+   - Create `docs/omnidev-state/stash/<id>/` directory
+   - Write `snapshot.json` (metadata)
+   - Copy current `session-log.md` into the stash directory
+   - Update `stash-index.json`
 
-5. **输出确认**:
+5. **Output confirmation**:
    ```
-   📦 任务已暂存
+   📦 Task stashed
    ID: stash-20260603-083000
-   分支: feature/user-auth
-   阶段: Phase 3 — Group 2 进行中
-   代码: [已 git stash | 已提交 | 未处理]
+   Branch: feature/user-auth
+   Phase: Phase 3 — Group 2 in progress
+   Code: [git stashed | committed | not handled]
    
-   使用 `/od po` 恢复此任务
+   Use `/od po` to restore this task
    ```
 
-## 3. `/od po` (Pop) 流程
+## 3. `/od po` (Pop) Flow
 
 ```yaml
 context_requires:
   read:
-    - docs/omnidev-state/stash/stash-index.json  # 暂存索引
+    - docs/omnidev-state/stash/stash-index.json  # Stash index
   skip:
     - all other files until user selects which stash to restore
 ```
 
-### 步骤
+### Steps
 
-1. **读取索引**: 加载 `stash-index.json`。如果为空或不存在，提示"没有暂存的任务"并退出。
+1. **Read index**: Load `stash-index.json`. If empty or missing, prompt "No stashed tasks" and exit.
 
-2. **选择恢复目标**:
-   - 如果只有 1 个暂存条目，直接确认是否恢复。
-   - 如果有多个，使用 platform interactive prompt (SKILL.md §F.2) 列出所有条目让用户选择：
+2. **Select restore target**:
+   - If only 1 stash entry, confirm whether to restore.
+   - If multiple, **MUST** invoke [interactive-prompt.md](interactive-prompt.md) via §4/§5/§6 to list entries → **STOP — WAIT**:
 
-   | id | 选项 |
-   |----|------|
-   | `stash_N` | [分支名] — [描述] (Phase N, [时间]) |
-   | `cancel` | 取消 |
+   | id | Option |
+   |----|--------|
+   | `stash_N` | [branch] — [description] (Phase N, [time]) |
+   | `cancel` | Cancel |
 
-3. **恢复快照**:
-   - 读取选中 stash 的 `snapshot.json`
-   - 检查当前分支是否匹配。如果不匹配，提示用户切换分支：
+3. **Restore snapshot**:
+   - Read selected stash `snapshot.json`
+   - Check whether the current branch matches. If not, prompt the user to switch branches:
      ```
-     ⚠️ 暂存的任务在分支 `feature/user-auth`，当前在 `main`。
-     是否自动切换？
+     ⚠️ Stashed task is on branch `feature/user-auth`, current branch is `main`.
+     Switch automatically?
      ```
-   - 如果 `snapshot.json` 中有 `git_stash_ref`，执行 `git stash pop`
-   - 将 stash 目录中的 `session-log.md` 复制回 `docs/omnidev-state/[branch]/session-log.md`
+   - If `snapshot.json` has `git_stash_ref`, run `git stash pop`
+   - Copy stash directory `session-log.md` back to `docs/omnidev-state/[branch]/session-log.md`
 
-4. **清理 stash**:
-   - 删除 stash 子目录 `docs/omnidev-state/stash/<id>/`
-   - 从 `stash-index.json` 移除该条目
+4. **Clean up stash**:
+   - Delete stash subdirectory `docs/omnidev-state/stash/<id>/`
+   - Remove the entry from `stash-index.json`
 
-5. **自动进入恢复流程**: 执行 `/od re` 逻辑（读取 session-log + state files 恢复上下文）。
+5. **Enter resume flow automatically**: Run `/od re` logic (read session-log + state files to restore context).
 
-6. **输出确认**:
+6. **Output confirmation**:
    ```
-   ♻️ 任务已恢复
-   分支: feature/user-auth
-   阶段: Phase 3 — 从 Group 3 继续
-   代码: [已恢复 git stash | 无需恢复]
+   ♻️ Task restored
+   Branch: feature/user-auth
+   Phase: Phase 3 — continuing from Group 3
+   Code: [git stash restored | no restore needed]
    
-   正在加载上下文...
+   Loading context...
    ```
 
-## 4. 约束
+## 4. Constraints
 
-- **最大暂存数**: 5 个。超过时提示用户清理旧的暂存。
-- **过期清理**: 超过 30 天的暂存条目，在 `/od po` 时提示"此暂存已超过 30 天，state files 可能已过时，是否仍要恢复？"
-- **分支安全**: pop 时如果目标分支已被删除，提示用户并终止恢复。
-- **不自动 pop**: `/od po` 必须由用户显式触发，不会自动恢复。
+- **Max stash count**: 5. When exceeded, prompt the user to clean up old stashes.
+- **Expiry cleanup**: For stash entries older than 30 days, on `/od po` prompt: "This stash is over 30 days old; state files may be stale. Still restore?"
+- **Branch safety**: On pop, if the target branch has been deleted, warn the user and abort restore.
+- **No auto-pop**: `/od po` must be explicitly triggered by the user; never auto-restore.

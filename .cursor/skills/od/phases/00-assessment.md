@@ -65,21 +65,21 @@ If multiple `package.json` / `go.mod` at subdirectories or workspace config (`pn
 First output a brief summary to the conversation (NOT in the popup). **Hard cap: ≤6 lines.** This is the **only** Phase 0 content allowed in chat before the popup:
 
 ```
-🚀 Phase 0 评估完成
-复杂度: [S/M/L/XL] — [reason, 1 sentence]
-项目结构: [fullstack|frontend-only|backend-only|monorepo] · 前端: [fw] · 后端: [fw]
-推荐阶段: [phases] · 确认级别: [full|reduced|minimal]
+🚀 Phase 0 assessment complete
+Complexity: [S/M/L/XL] — [reason, 1 sentence]
+Project structure: [fullstack|frontend-only|backend-only|monorepo] · Frontend: [fw] · Backend: [fw]
+Recommended phases: [phases] · Confirmation level: [full|reduced|minimal]
 ```
 
-**FORBIDDEN in chat** (write to `session-log.md` `## Phase 0 评估` only):
-- Requirement Analysis 长段落
-- Stability / Frontend Impact / Test Strategy Hint 明细
-- Recommended Scope 编号列表
-- `od_interactive` / `decision_point` / `platform` 元数据
-- 与弹窗重复的选项表（原生弹窗成功时）
+**FORBIDDEN in chat** (write to `session-log.md` `## Phase 0 Assessment` only):
+- Long Requirement Analysis paragraphs
+- Stability / Frontend Impact / Test Strategy Hint details
+- Recommended Scope numbered lists
+- `od_interactive` / `decision_point` / `platform` metadata
+- Option tables that duplicate the popup (when native popup succeeds)
 
 <details>
-<summary>完整评估模板（仅写入 session-log.md，不输出到对话或弹窗）</summary>
+<summary>Full assessment template (write to session-log.md only; do not output to chat or popup)</summary>
 
 ```markdown
 ## Phase 0 Assessment
@@ -95,38 +95,31 @@ First output a brief summary to the conversation (NOT in the popup). **Hard cap:
 ```
 </details>
 
-### 2.2 Interactive Confirmation (same turn, popup — SKIP for S-Level)
+### 2.2 Interactive Confirmation (same turn, popup — **required for all complexity levels**)
 
-**S-Level**: Skip popup entirely. Output prose "复杂度: S → 直接进入开发" then proceed to Phase 3 without confirmation.
+After the ≤6-line prose summary, **same turn** invoke [interactive-prompt.md](../engine/interactive-prompt.md):
 
-Prose output must include a lightweight check line:
-```
-复杂度: S → 直接进入开发。如评估有误，回复 `/od ad` 调整。
-```
+| Complexity | decision_point | Catalog |
+|------------|----------------|---------|
+| **S** | `phase0_s_fastpath` | §3.2b — confirm fast path / upgrade (**must not skip**) |
+| **M/L/XL** | `phase0_complexity` | §3.2 |
 
-**M/L/XL**: After the ≤6-line prose summary, **same turn** invoke [interactive-prompt.md](../engine/interactive-prompt.md) native tool:
+| Platform | Invoke |
+|----------|--------|
+| **Cursor** | §4 `AskQuestion` — **must call** when tool is in the list |
+| **Claude Code** | §5 `AskUserQuestion` |
+| **Codex** | §6 `request_user_input` (no autoResolutionMs) |
 
-| Platform | Template |
-|----------|----------|
-| **Cursor** | §4.2 `AskQuestion` — **必调**（工具在列表中时） |
-| **Claude Code** | §5.2 `AskUserQuestion` |
-| **Codex** | §6.2 `request_user_input` |
+On native missing/error → §8 → **STOP — WAIT**.
 
-Fill `prompt`/`question` with:
-```
-"复杂度: {complexity} — {reason_short}。推荐: {phases}。确认？"
-```
-
-On native missing/error → §8 pseudo-popup（干净表格 + `/od` 命令；禁止「回复 1/2/3」）。
-
-If `interactive_mode=false`: use §9 minimal text instead.
+If the user insists on closing the popup: they must first `/od cfg -i off` + `b0_confirm`; otherwise keep `interactive_mode=true`.
 
 ### S-Level Tasks
 
-- Do NOT generate full state files (`02-plan.md`, etc.).
-- **Skip Phase 0 popup** — no complexity confirmation needed.
-- **Still write**: minimal `session-log.md` on exit (for `/od re`) and `metrics.json` event if user opts to track.
-- Resolve requirement directly; offer optional lightweight progress note in conversation only.
+- Do NOT generate full state files (`02-plan.md`, etc.) unless user upgrades via `phase0_s_fastpath`.
+- **MUST** run `phase0_s_fastpath` popup — do not silently enter development.
+- **Still write**: minimal `session-log.md` on exit (`/od re`) and `metrics.json` if tracked.
+- User picks `fast` → Phase 3; `upgrade` → re-assess complexity via `/od ad`.
 
 ---
 

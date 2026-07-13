@@ -1,4 +1,4 @@
-# Document History Protocol (文档历史留存)
+# Document History Protocol
 
 **Principle**: Every state artifact uses **exactly two files** — **active (current)** + **history (append-only archive)**. Never overwrite history; never delete archived content.
 
@@ -125,7 +125,7 @@ Keep last **10 entries** in active file; older entries live only in history.
 
 ```markdown
 <!-- CHANGE_LOG
-[2026-07-04 14:00] v2→v3 | reason: /od ch 登录改 OAuth | archived to 02-plan-history.md
+[2026-07-04 14:00] v2→v3 | reason: /od ch login switch to OAuth | archived to 02-plan-history.md
 [2026-07-03 10:00] v1→v2 | reason: Phase 2 revision | archived
 -->
 ```
@@ -170,7 +170,7 @@ context_requires:
 | `/od report`, `/od rp` | All `*-history.md` summaries (frontmatter + CHANGE_LOG headers only, not full snapshots) |
 | `/od gv --scope compliance` | Verify archive protocol |
 | `/od ch` structural | Last 1 snapshot of affected artifact for diff |
-| User: "查看历史计划" | Specific `*-history.md` |
+| User: "show plan history" | Specific `*-history.md` |
 
 ---
 

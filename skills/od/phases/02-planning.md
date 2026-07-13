@@ -182,7 +182,7 @@ Traceability table: Task Group ↔ Features ↔ TC-IDs.
 
 ---
 
-## Step 4: Checkpoint → WAIT
+## Step 4: Checkpoint → Interactive → WAIT
 
 Record token estimate in `metrics.json` if `log_token_estimates: true`.
 
@@ -194,6 +194,15 @@ Record token estimate in `metrics.json` if `log_token_estimates: true`.
 - [ ] `02-plan.md` has `feature:` on every task
 - [ ] Traceability complete
 - [ ] Prior versions archived to `*-history.md` if this is a revision (not first run)
+
+### Interactive gate (mandatory)
+
+After checklist prose (≤12 lines), **same turn** invoke [interactive-prompt.md](../engine/interactive-prompt.md):
+
+1. §3.7 `phase2_plan_ready` — confirm design/plan ready for development
+2. Then §3.1 `checkpoint` (B.8) — next step `/od n`, etc.
+
+Platform: §4 / §5 / §6; on failure → §8. **STOP — WAIT**. Workers must not show popups.
 
 ---
 

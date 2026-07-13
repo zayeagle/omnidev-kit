@@ -1,4 +1,4 @@
-# Dynamic Skill Composition (动态 Skill 组合)
+# Dynamic Skill Composition
 
 → Platform mapping: SKILL.md §F.2 (Interactive Prompt), §F.5 (Skill Discovery Paths)
 
@@ -10,16 +10,16 @@ During Phase 0 (Complexity Assessment) or when processing any `/od` message, det
 
 | Signal Category | Keywords / Patterns |
 |-----------------|---------------------|
-| **Error investigation** | 报错, 500, 4xx, 5xx, 502, 503, 504, 异常, exception, error, failed, failure, crash, panic, 崩溃 |
-| **Problem diagnosis** | 排查, 排障, troubleshoot, debug, diagnose, 定位问题, 查问题, 问题分析, root cause |
-| **Log analysis** | 查日志, 看日志, 日志查询, log, logging, 错误日志, trace |
-| **Behavior anomaly** | 不符预期, 不对, 应该是, 但实际, unexpected, 行为异常, 返回不正确 |
-| **Ops / infra** | Pod, K8s, 容器, 实例, 部署失败, 服务挂了, 超时, timeout, OOM, 内存溢出 |
-| **Fix request** | 修复, 修bug, fix, hotfix, patch, 漏洞, 修正, 纠错 |
+| **Error investigation** | error, 500, 4xx, 5xx, 502, 503, 504, exception, failed, failure, crash, panic |
+| **Problem diagnosis** | troubleshoot, debug, diagnose, root cause, investigate, locate issue, problem analysis |
+| **Log analysis** | log, logging, error log, trace, check logs, view logs, log query |
+| **Behavior anomaly** | unexpected, incorrect, should be, but actually, wrong behavior, incorrect return |
+| **Ops / infra** | Pod, K8s, container, instance, deploy failed, service down, timeout, OOM, out of memory |
+| **Fix request** | fix, hotfix, patch, vulnerability, correct, repair, bugfix |
 
 **If none of these signals are detected**, proceed with the normal OmniDev workflow (Phase 0 → sizing → phases). **If signals are detected**, enter the Skill Discovery flow (§2).
 
-## 2. Skill Discovery (本地 Skill 扫描)
+## 2. Skill Discovery (Local Skill Scan)
 
 Scan the following directories for `SKILL.md` files (using `Glob` tool with pattern `**/SKILL.md`):
 
@@ -39,9 +39,9 @@ Scan the following directories for `SKILL.md` files (using `Glob` tool with patt
 Match the user's request against each discovered skill using a two-step process:
 
 1. **Keyword Match**: Compare the user's request keywords against the skill's `description` field. Look for overlap in:
-   - Domain terms (e.g. "troubleshoot", "排查", "日志", "log", "Pod", "K8s")
+   - Domain terms (e.g. "troubleshoot", "log", "Pod", "K8s")
    - Service/product names mentioned by the user that appear in the skill description
-   - Action verbs (e.g. "查", "分析", "排查", "fix")
+   - Action verbs (e.g. "check", "analyze", "investigate", "fix")
 
 2. **Category Classification**: Classify each matching skill into a relevance tier:
 
@@ -55,34 +55,33 @@ Match the user's request against each discovered skill using a two-step process:
 
 ## 4. User Confirmation (Mandatory)
 
-**NEVER auto-load an external skill without explicit user confirmation.**
+**NEVER auto-load an external skill without interactive confirmation.**
 
-Present the discovered skills to the user using the platform's interactive prompt mechanism per SKILL.md §F.2 (if `interactive_mode` is `true`, with multi-select enabled per SKILL.md §F.2) or numbered prompt (if `false`).
+**MUST** invoke [interactive-prompt.md](interactive-prompt.md) §3.5 `skill_select` via §4/§5/§6 (`allow_multiple: true`) → **STOP — WAIT**.
 
-Prompt: zh → `"🔍 检测到问题排查/修复类需求，发现以下可用的专业 Skill："` / en → `"🔍 Troubleshooting/fix request detected. Found these specialized skills:"`
+Prompt: `"🔍 Troubleshooting/fix request detected. Found these specialized skills:"`
 
-| id | zh label | en label |
-|----|----------|----------|
-| `skill_N` (per match) | 🎯 [name] — [desc] (直接匹配) | 🎯 [name] — [desc] (direct match) |
-| `skill_N` (supporting) | 🔧 [name] — [desc] (辅助能力) | 🔧 [name] — [desc] (supporting) |
-| `od_only` | 不加载外部 Skill，使用 OmniDev 内置流程处理 | Skip external skills, use OmniDev built-in flow |
-| `cancel` | 取消，重新描述需求 | Cancel, let me rephrase my request |
+| id | label |
+|----|-------|
+| `skill_N` (per match) | 🎯 [name] — [desc] (direct match) |
+| `skill_N` (supporting) | 🔧 [name] — [desc] (supporting) |
+| `od_only` | Skip external skills, use OmniDev built-in flow |
+| `cancel` | Cancel, let me rephrase my request |
 
 **Rules**:
 - **Direct match** skills are listed first with 🎯 prefix.
 - **Supporting** skills are listed after with 🔧 prefix.
 - Always include the `od_only` and `cancel` escape options.
-- `allow_multiple: true` — the user may select a primary troubleshooting skill plus supporting skills (e.g. `kdb-troubleshoot` + `cloud-logging` + `sre-aiops-assistant`).
+- `allow_multiple: true` — the user may select a primary troubleshooting skill plus supporting skills.
 
-**Platform multi-select mapping** (from SKILL.md §F.2/§F.2.1):
+| Platform | Invoke |
+|----------|--------|
+| **Cursor** | §4 `AskQuestion` + `allow_multiple: true` |
+| **Claude Code** | §5 `AskUserQuestion` + `allow_multiple: true` |
+| **Codex** | §6 sequential single-select or §8 multi-select instructions (no native multi; no autoResolutionMs) |
+| **CLI / Other** | §8 / §9 |
 
-| Platform | Multi-Select Mechanism |
-|----------|----------------------|
-| **Cursor** | `AskQuestion` with `allow_multiple: true` (native) |
-| **Claude Code** | `AskUserQuestion` with `allow_multiple: true` — **§4 template, same turn** |
-| **Codex** | `request_user_input` — **§6 template, same turn** (all modes; enable `default_mode_request_user_input`). Multi-select: §6.4 or pseudo-popup §8 |
-| **CLI / Other** | Numbered prompt + comma-separated reply |
-- **STOP — WAIT for user selection.** Do NOT proceed until the user confirms.
+Workers must not show prompts; when confirmation is needed, return to the Orchestrator.
 
 ## 5. Skill Loading & Execution
 
@@ -91,22 +90,22 @@ After the user confirms which skills to load:
 1. **Read the full `SKILL.md`** of each selected skill (now reading the body, not just frontmatter).
 2. **Set execution context**: The loaded skill's rules and workflow take priority for the current troubleshooting task. OmniDev's core rules (B.0–B.2) remain active as baseline guardrails.
 3. **Execute the loaded skill's workflow**: Follow its steps, checkpoints, and sub-document loading rules exactly as defined in that skill.
-4. **Combine supporting skills on-demand**: If the user selected supporting skills (e.g. `cloud-logging`), invoke them as needed during the primary skill's execution — for example, when `kdb-troubleshoot` reaches its "查日志" step, use the `cloud-logging` skill's rules for the log query.
+4. **Combine supporting skills on-demand**: If the user selected supporting skills (e.g. `cloud-logging`), invoke them as needed during the primary skill's execution — for example, when `kdb-troubleshoot` reaches its "check logs" step, use the `cloud-logging` skill's rules for the log query.
 
 ## 6. Return to OmniDev Workflow
 
 When the external skill's workflow completes (user selects "end" or the skill reaches its final checkpoint):
 
 1. **Summarize findings**: Output a brief summary of the troubleshooting results.
-2. **Bridge back to OmniDev**: If the troubleshooting identified a code fix needed, present options via the platform's interactive prompt per SKILL.md §F.2:
+2. **Bridge back to OmniDev**: **MUST** `present_options` via §4/§5/§6 → **STOP — WAIT**:
 
-   Prompt: zh → `"🔧 排查完成。是否需要在 OmniDev 工作流中继续修复？"` / en → `"🔧 Troubleshooting complete. Continue with a fix in OmniDev?"`
+   Prompt: `"🔧 Troubleshooting complete. Continue with a fix in OmniDev?"`
 
-   | id | zh label | en label |
-   |----|----------|----------|
-   | `fix_od` | 进入 OmniDev 开发流程修复问题 (`/od -f`) | Enter OmniDev dev flow to fix (`/od -f`) |
-   | `fix_plan` | 先制定修复计划再动手 (`/od [修复需求]`) | Plan the fix first (`/od [fix requirement]`) |
-   | `done` | 排查结束，无需修复 | Done, no fix needed |
+   | id | label |
+   |----|-------|
+   | `fix_od` | Enter OmniDev dev flow to fix (`/od -f`) |
+   | `fix_plan` | Plan the fix first (`/od [fix requirement]`) |
+   | `done` | Done, no fix needed |
 
 3. If the user chooses to fix, seamlessly transition into the OmniDev development workflow with the troubleshooting findings as input context.
 

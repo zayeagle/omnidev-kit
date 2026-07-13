@@ -22,7 +22,7 @@ context_requires:
     - source code full-file reads
 ```
 
-**Trigger mode**: Manual only ? run when user types `/od gv` or `/od governance`.
+**Trigger mode**: Manual only — run when user types `/od gv` or `/od governance`.
 
 **Flags**:
 
@@ -37,11 +37,11 @@ During Phase 3, append to Change Impact Summary when triggered:
 
 | Trigger | Threshold | Severity |
 |---------|-----------|----------|
-| File rework | Same file 3+ edits | ?? High |
-| Task rework | Same group 2+ times | ?? Critical |
-| Rollback | 2+ reverts | ?? High |
-| Test loop | Same test fails 3+ times | ?? Critical |
-| Token guard | context-lifecycle §7 breach | ?? High |
+| File rework | Same file 3+ edits | High |
+| Task rework | Same group 2+ times | Critical |
+| Rollback | 2+ reverts | High |
+| Test loop | Same test fails 3+ times | Critical |
+| Token guard | context-lifecycle §7 breach | High |
 
 ---
 
@@ -52,8 +52,8 @@ During Phase 3, append to Change Impact Summary when triggered:
    - Flag M complexity with `sub_agents_spawned_total` > 0
    - Recommend per [token-optimization.md](token-optimization.md)
 2. **Governance Compliance** — B.0, B.15, B.17, B.19 (active + history pairs), state files
-3. **Quality & Risk** ? rework, test gates, skipped steps
-4. **Learning Health** ? evolution-log quality
+3. **Quality & Risk** — rework, test gates, skipped steps
+4. **Learning Health** — evolution-log quality
 
 ---
 
@@ -63,4 +63,4 @@ During Phase 3, append to Change Impact Summary when triggered:
 
 Sections: Executive Summary, Token & Cost, Compliance, Quality, Learning, Top 5 Actions.
 
-Does NOT auto-apply changes ? requires `/od ln` approval.
+Does NOT auto-apply changes — requires `/od ln` approval.

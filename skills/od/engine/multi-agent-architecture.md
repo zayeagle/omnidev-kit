@@ -1,6 +1,6 @@
 # Multi-Agent Architecture (Recommended)
 
-**Model**: **Orchestrator + Selective Phase Workers + Task Workers** — not「一阶段一常驻 Agent」.
+**Model**: **Orchestrator + Selective Phase Workers + Task Workers** — not one permanent agent per phase.
 
 → Platform dispatch: SKILL.md §F.3 · Token policy: [token-optimization.md](token-optimization.md) §2
 
@@ -12,6 +12,7 @@
 |-----------|------|
 | **One orchestrator always** | User interaction, routing, checkpoint, B.0, merge, `/od re` — **only** main agent |
 | **Workers are ephemeral** | Spawn → write disk → ≤30 line summary → exit; never hold user session |
+| **Workers never prompt users** | Forbidden: AskQuestion / AskUserQuestion / request_user_input / pseudo-popup; product decisions return to Orchestrator |
 | **State files are the contract** | Workers read/write `docs/omnidev-state/` only; no worker-to-worker chat |
 | **Spawn when ROI > cost** | S/M serial; L/XL parallel when ≥3 units OR heavy I/O isolation |
 | **Phase 0/1/5 default serial** | Light, interactive, or consent-heavy — orchestrator direct |
@@ -34,13 +35,13 @@ flowchart TB
 
 | Tier | Role | Count | Examples |
 |------|------|-------|----------|
-| **T0 Orchestrator** | 主编排 | 1 per session | activation, checkpoint, interactive prompt, merge conflicts |
-| **T1 Phase Worker** | 整阶段外包（可选） | 0–2 per requirement | Phase 2 planning bundle, Phase 5 deploy bundle |
-| **T2 Task Worker** | 阶段内并行（现有 sub_agents） | 0–N | feature design, dev task, E2E runner |
+| **T0 Orchestrator** | Main orchestration | 1 per session | activation, checkpoint, interactive prompt, merge conflicts |
+| **T1 Phase Worker** | Whole-phase outsourcing (optional) | 0–2 per requirement | Phase 2 planning bundle, Phase 5 deploy bundle |
+| **T2 Task Worker** | In-phase parallelism (existing sub_agents) | 0–N | feature design, dev task, E2E runner |
 
 ---
 
-## 3. Agent Roster（推荐 5 类 Worker，非 6 阶段 Agent）
+## 3. Agent Roster (Recommended 5 Worker Types, Not 6 Phase Agents)
 
 | Worker type | Phase | Trigger (auto) | Delivers |
 |-------------|-------|----------------|----------|
@@ -206,8 +207,8 @@ Same contract all platforms.
 
 ---
 
-## 10. Summary —「最合适」方案一句话
+## 10. Summary — Best-Fit Approach in One Sentence
 
-> **1 个 Orchestrator 贯穿全程 + L/XL 按需派 ephemeral Task Worker（Phase 2/3/E2E）+ 极少数 Phase Worker 整包（Phase 2 XL / Phase 5 full）；S/M 全 serial；交接只认 state 文件。**
+> **1 Orchestrator throughout + L/XL on-demand ephemeral Task Workers (Phase 2/3/E2E) + rare Phase Worker full bundles (Phase 2 XL / Phase 5 full); S/M fully serial; handoff trusts state files only.**
 
 This preserves UX continuity, token discipline, and parallel gains where they matter — without six-agent overhead.

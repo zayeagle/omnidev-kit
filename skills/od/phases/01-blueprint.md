@@ -54,8 +54,8 @@ Score each approach as ✅ (strong) / ⚠️ (moderate) / ❌ (weak) on each dim
 **Rules**:
 
 - Always include at least 2 approaches. If only one is feasible, state why others are infeasible.
-- If `interactive_mode=true`, use the platform interactive prompt (§F.2) to let user select. If `false`, present with a clear recommendation.
-- **STOP — WAIT for user selection** before proceeding.
+- **MUST** invoke [interactive-prompt.md](../engine/interactive-prompt.md) §3.3 `blueprint_approach` via §4/§5/§6 (same turn).
+- **STOP — WAIT** before proceeding.
 
 ---
 
@@ -76,7 +76,7 @@ After user selects the approach, explicitly list all unvalidated assumptions:
 - 🔴 **blocking**: if wrong, entire approach collapses — must validate before Phase 3.
 - 🟡 **acceptable**: significant rework but approach still viable.
 - 🟢 **low**: minor adjustment if wrong.
-- Present assumptions to user for confirmation.
+- Output assumptions table (short), **same turn** invoke §3.4 `assumptions_confirm` via §4/§5/§6 → **STOP — WAIT**.
 
 ---
 
@@ -94,10 +94,10 @@ After user selects the approach, explicitly list all unvalidated assumptions:
 
 - Sort by blocking impact — blueprint-structure questions first.
 - Provide a reasonable default for each.
-- If `interactive_mode=true`: output the questions table as prose in chat **first**, then same turn invoke [interactive-prompt.md](../engine/interactive-prompt.md) **Open Questions batch confirmation** template (§4.9 Cursor / §5.9 Claude / §6.5 Codex) to let user accept all defaults or opt into per-question review.
-  - User picks "全部接受默认值" → accept all defaults, proceed.
-  - User picks "逐个调整" → re-invoke sequential single-question prompts (one per row, reusing the `Default` column as the recommended option).
-- If `interactive_mode=false`: use §9 minimal text instead.
+- Output open questions table as prose **first**, then same turn invoke §3.5 `open_questions` via §4/§5/§6.
+  - `accept_defaults` → accept all defaults, proceed.
+  - `review_one_by_one` → sequential single-question prompts (one per turn).
+- **STOP — WAIT**. When `interactive_mode=false`, use §9 (only after user explicitly disables).
 
 ---
 
@@ -166,10 +166,10 @@ Add findings to Risk Log (section 8).
 ## 6. Checkpoint → WAIT
 
 ```
-✅ Phase 1 Complete: Blueprint
-📦 Output: 01-blueprint.md
+✅ Phase 1 complete: Blueprint
+📦 Artifacts: 01-blueprint.md
 📍 Progress: Phase 0 ✅ → Phase 1 ✅ → Phase 2 ⏳
-🔔 Next: Phase 2 — Detailed Design & Test Planning
+🔔 Next phase: Phase 2 — Detailed Design & Test Planning
 ```
 
 ### Handoff Checklist (before WAIT)

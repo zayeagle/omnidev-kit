@@ -4,108 +4,109 @@
 
 All commands require **`/od` prefix**. Short aliases are used **after** `/od` (e.g. `/od n`, not bare `n`).
 
-**Strict rule**: bare `1`, `n`, `y`, `继续` without `/od` do **NOT** advance workflow. Resume → **`/od re` only**.
+**Strict rule**: bare `1`, `n`, `y`, `continue` without `/od` do **NOT** advance workflow. Resume → **`/od re` only**.
 
 ## Core Commands
 
-| Command | Alias | 说明 |
-|---------|-------|------|
-| `/od [需求]` | — | 引导式工作流：评估 → 推荐阶段 → 可跳过 |
-| `/od -f [需求]` | — | 快速模式：跳过蓝图/计划，直接开发（S 级确认规则） |
-| `/od -p [需求]` | — | 仅规划：蓝图 + 计划，不写代码 |
-| `/od h` | `/od help` | 显示所有命令 |
-| `/od ob` | `/od onboard` | 扫描项目，生成上下文文档 |
-| `/od rp` | `/od report` | 生成周报 |
-| `/od gv` | `/od governance` | AI 治理与成本审计（手工触发） |
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/od [requirement]` | — | Guided workflow: assess → recommend phases → may skip |
+| `/od -f [requirement]` | — | Fast mode: skip blueprint/plan, go straight to development (S-level confirm rules) |
+| `/od -p [requirement]` | — | Plan only: blueprint + plan, no code |
+| `/od h` | `/od help` | Show all commands |
+| `/od ob` | `/od onboard` | Scan project, generate context docs |
+| `/od rp` | `/od report` | Generate weekly report |
+| `/od gv` | `/od governance` | AI governance and cost audit (manual) |
 | `/od gv --scope <...>` | — | phase0–5 / learning / cost / compliance / quality |
-| `/od gv --since <7d\|14d\|30d\|90d>` | — | 审计时间窗口（默认 14d） |
-| `/od rv` | `/od review` | 代码审查（只读） |
-| `/od qa` | — | 测试阶段快捷入口（Phase 4） |
-| `/od ch [新需求]` | `/od change` | 需求变更管理 |
-| `/od ln` | `/od learn` | 自学习：错误回顾 + 规则演化 |
-| `/od ln -r` | — | 查看学习日志和待处理提案 |
-| `/od ln -a` | — | 自动应用所有待处理提案 |
-| `/od ln --rb [N]` | — | 回滚第 N 条演化 |
-| `/od up` | `/od update` | 更新 OmniDev Kit |
-| `/od i <url>` | `/od install` | 从 Git 仓库安装 |
-| `/od ps` | `/od push` | 提交并推送（需用户确认） |
-| `/od st` | `/od stash` | 暂存任务上下文 |
-| `/od po` | `/od pop` | 恢复暂存上下文 |
-| `/od sy` | `/od sync` | 同步到 GitHub Issue / Jira |
-| `/od db` | `/od dashboard` | 生成效率 ROI 面板 |
-| `/od re` | `/od resume` | 恢复上次会话 |
-| `/od re [指令或需求]` | `/od resume […]` | **恢复会话 + 处理 payload**（见 session-memory §6.1） |
+| `/od gv --since <7d\|14d\|30d\|90d>` | — | Audit time window (default 14d) |
+| `/od rv` | `/od review` | Code review (read-only) |
+| `/od qa` | — | Testing phase shortcut (Phase 4) |
+| `/od ch [new requirement]` | `/od change` | Requirement change management |
+| `/od ln` | `/od learn` | Self-learning: error review + rule evolution |
+| `/od ln -r` | — | View learning log and pending proposals |
+| `/od ln -a` | — | Auto-apply all pending proposals |
+| `/od ln --rb [N]` | — | Roll back the Nth evolution |
+| `/od up` | `/od update` | Update OmniDev Kit |
+| `/od i <url>` | `/od install` | Install from Git repository |
+| `/od ps` | `/od push` | Commit and push (requires user confirm) |
+| `/od st` | `/od stash` | Stash task context |
+| `/od po` | `/od pop` | Restore stashed context |
+| `/od sy` | `/od sync` | Sync to GitHub Issue / Jira |
+| `/od db` | `/od dashboard` | Generate efficiency ROI dashboard |
+| `/od re` | `/od resume` | Resume last session |
+| `/od re [instruction or requirement]` | `/od resume […]` | **Resume session + handle payload** (see session-memory §6.1) |
 
-**`/od re [payload]` 示例**:
+**`/od re [payload]` examples**:
 
-| 命令 | 行为 |
-|------|------|
-| `/od re` | 纯恢复断点 |
-| `/od re 继续 Group 3` | 恢复 + 从 Group 3 继续（B 类 hint） |
-| `/od re ch 登录改 OAuth` | 恢复 + 需求变更流程 |
-| `/od re -f 修 500 错误` | 恢复 + 快速开发模式 |
-| `/od re n` | 恢复 + 进入下一阶段 |
-| `/od re 新增导出 Excel` | 恢复 + 分类处理（默认 D：并入当前阶段） |
-| `/od cfg` | `/od config` | 查看配置 |
-| `/od cfg -i on\|off` | — | 开关交互模式 |
+| Command | Behavior |
+|---------|----------|
+| `/od re` | Pure breakpoint resume |
+| `/od re continue Group 3` | Resume + continue from Group 3 (type-B hint) |
+| `/od re ch login switch to OAuth` | Resume + requirement change flow |
+| `/od re -f fix 500 error` | Resume + fast development mode |
+| `/od re n` | Resume + enter next phase |
+| `/od re add Excel export` | Resume + classify (default D: merge into current phase) |
+| `/od cfg` | `/od config` | View configuration |
+| `/od cfg -i on\|off` | — | Toggle interactive mode; **off requires `b0_confirm` popup first**, then write config |
 
 ## Phase Navigation
 
-| Command | Alias | 说明 |
-|---------|-------|------|
-| `/od n` | `/od next` | 下一阶段 |
-| `/od ad [内容]` | `/od adj` | 修订当前阶段输出 |
-| `/od sk [阶段]` | `/od skip` | 跳过阶段（0–5） |
-| `/od bk [阶段]` | `/od back` | 返回阶段 |
-| `/od al` | `/od all` | 执行剩余阶段（**含 deploy_autonomy: full** — 部署脚本可自主增改；生产执行仍需确认） |
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/od n` | `/od next` | Next phase |
+| `/od ad [content]` | `/od adj` | Revise current phase output |
+| `/od sk [phase]` | `/od skip` | Skip phase (0–5) |
+| `/od bk [phase]` | `/od back` | Go back to phase |
+| `/od al` | `/od all` | Run remaining phases (**includes deploy_autonomy: full** — deploy scripts may be added/changed autonomously; production execution still needs confirm) |
 
 ## Confirmation
 
 Interactive confirmations use platform native prompt (SKILL.md §F.2). User confirms via UI **or** `/od y` / `/od x` / `/od n` etc. — not bare aliases.
 
-| Command | Alias | 说明 |
-|---------|-------|------|
-| `/od y` | `/od confirm` | 确认当前操作 |
-| `/od x` | `/od cancel` | 取消 / 结束会话 |
-| `/od em [msg]` | — | 修改提交信息（`/od ps` 流程） |
-| `/od ln y` | — | 接受所有学习提案 |
-| `/od ln y [N,N]` | — | 接受指定编号提案 |
-| `/od ln x` | — | 拒绝所有提案 |
-| `/od ln ad [N] [反馈]` | — | 调整指定提案 |
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/od y` | `/od confirm` | Confirm current operation |
+| `/od x` | `/od cancel` | Cancel / end session |
+| `/od em [msg]` | — | Edit commit message (`/od ps` flow) |
+| `/od ln y` | — | Accept all learning proposals |
+| `/od ln y [N,N]` | — | Accept proposals by number |
+| `/od ln x` | — | Reject all proposals |
+| `/od ln ad [N] [feedback]` | — | Adjust specified proposal |
 
 ## Config Options (`config.json`)
 
-| Key | Default | 说明 |
-|-----|---------|------|
-| `interactive_mode` | `true` | **主要工作模式** — 弹窗优先；Cursor `AskQuestion` / Claude `AskUserQuestion` / Codex `request_user_input` 同 turn 必调（见 interactive-prompt.md §4/§5/§6） |
-| `ask_mode_after_od` | `true` | `/od` 后进入问答模式 |
-| `update_source_url` | kit repo URL | `/od up` 源 |
-| `auto_checkpoint` | `false` | Phase 3 前 git stash（非 commit） |
+| Key | Default | Description |
+|-----|---------|-------------|
+| `interactive_mode` | `true` | **Primary working mode** — Decision Matrix §3 popups throughout; platforms §4/§5/§6; failure → §8 STOP-WAIT |
+| `codex_auto_resolve` | `false` | Whether Codex may use `autoResolutionMs` (forbidden by default; keep interactive wait) |
+| `ask_mode_after_od` | `true` | Enter Q&A mode after `/od` |
+| `update_source_url` | kit repo URL | `/od up` source |
+| `auto_checkpoint` | `false` | git stash before Phase 3 (not commit) |
 | `confirmation_level` | `"auto"` | `full` / `reduced` / `minimal` — B.15 |
-| `coverage_gate` | `false` | 覆盖率未达标是否阻塞 |
-| `e2e_tool` | `"playwright"` | E2E 工具：playwright / cypress / browser_mcp / auto |
-| `e2e_required_fullstack` | `true` | 全栈需求强制 E2E |
-| `unit_gate_blocking` | `true` | UNIT 未全过阻塞 Phase 4 完成 |
+| `coverage_gate` | `false` | Whether unmet coverage blocks |
+| `e2e_tool` | `"playwright"` | E2E tool: playwright / cypress / browser_mcp / auto |
+| `e2e_required_fullstack` | `true` | Force E2E for fullstack requirements |
+| `unit_gate_blocking` | `true` | Unpassed UNIT blocks Phase 4 completion |
 | `regression_mode` | `"targeted"` | targeted / full |
-| `allow_e2e_sub_agent` | `true` | Phase 4 E2E 可用 sub-agent 隔离 Playwright 输出 |
-| `deploy_modes` | `["docker","k8s","binary"]` | Phase 5 默认支持的部署模式 |
-| `deploy_autonomy` | `"conservative"` | `conservative` = legacy 改 deploy/Makefile 须用户同意；`full` = 完整流水线可自主增改 |
-| `deploy_use_makefile` | `true` | Phase 5 根目录 Makefile 作为一键部署主入口 |
-| `sub_agents` | `"auto"` | `off` / `auto` / `on` — T2 Task Worker（阶段内并行） |
-| `phase_workers` | `"auto"` | `off` / `auto` / `on` — T1 Phase Worker（整阶段外包，见 multi-agent-architecture.md） |
-| `design_split` | `true` | 设计 index + `features/*.md` |
-| `log_token_estimates` | `true` | phase_exit 写入 metrics |
-| `max_read_lines` | `150` | 单次 Read 行数上限 |
-| `context_mode` | `"slim"` | `slim` / `standard` — 上下文占用策略 |
-| `max_hot_lines` | `150` | HOT 层行数上限 |
-| `max_resident_lines` | `300` | HOT+WARM 合计上限 |
-| `checkpoint_max_lines` | `12` | Checkpoint 输出上限 |
-| `platform_override` | `null` | 手动覆盖平台检测：`"cursor"`, `"claude_code"`, `"codex"`, `"cli_other"`, 或 `null` (自动) |
-| `codex_compaction_multiplier` | `1.3` | Codex 平台 token 估算倍率（补偿 invisible compaction 开销） |
-| `codex_conservative_occupancy` | `true` | Codex 平台是否启用防御性上下文占用策略 |
-| `codex_thread_overhead_tokens` | `4000` | Codex 平台每个 sub-agent 线程的 token 开销 |
-| `codex_max_turns_before_compress` | `15` | Codex 平台触发压缩的 turn 阈值（比默认 25 更保守） |
-| `jira_base_url` | — | `/od sy` Jira（可选） |
-| `jira_project_key` | — | Jira 项目键（可选） |
+| `allow_e2e_sub_agent` | `true` | Phase 4 E2E may use sub-agent to isolate Playwright output |
+| `deploy_modes` | `["docker","k8s","binary"]` | Default deploy modes supported in Phase 5 |
+| `deploy_autonomy` | `"conservative"` | `conservative` = legacy changes to deploy/Makefile need user consent; `full` = full pipeline may add/change autonomously |
+| `deploy_use_makefile` | `true` | Phase 5 root Makefile as one-click deploy entry |
+| `sub_agents` | `"auto"` | `off` / `auto` / `on` — T2 Task Worker (in-phase parallelism) |
+| `phase_workers` | `"auto"` | `off` / `auto` / `on` — T1 Phase Worker (outsource whole phase; see multi-agent-architecture.md) |
+| `design_split` | `true` | Design index + `features/*.md` |
+| `log_token_estimates` | `true` | Write metrics on phase_exit |
+| `max_read_lines` | `150` | Max lines per Read |
+| `context_mode` | `"slim"` | `slim` / `standard` — context occupancy strategy |
+| `max_hot_lines` | `150` | HOT layer line cap |
+| `max_resident_lines` | `300` | HOT+WARM combined cap |
+| `checkpoint_max_lines` | `12` | Checkpoint output cap |
+| `platform_override` | `null` | Manual platform override: `"cursor"`, `"claude_code"`, `"codex"`, `"cli_other"`, or `null` (auto) |
+| `codex_compaction_multiplier` | `1.3` | Codex token estimate multiplier (compensate invisible compaction cost) |
+| `codex_conservative_occupancy` | `true` | Whether Codex uses defensive context occupancy |
+| `codex_thread_overhead_tokens` | `4000` | Token overhead per Codex sub-agent thread |
+| `codex_max_turns_before_compress` | `15` | Codex compress turn threshold (more conservative than default 25) |
+| `jira_base_url` | — | `/od sy` Jira (optional) |
+| `jira_project_key` | — | Jira project key (optional) |
 
 See [engine/context-lifecycle.md](engine/context-lifecycle.md), [engine/token-optimization.md](engine/token-optimization.md), [engine/metrics.md](engine/metrics.md), SKILL.md §F.8 (Codex compaction).

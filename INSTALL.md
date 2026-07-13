@@ -150,6 +150,25 @@ Then: `/od ob` or `/od [requirement]`.
 ## 6. Platform notes for installers
 
 - Map tools via **PAL** (`SKILL.md` §F) — never hardcode Cursor-only APIs on Claude/Codex.
+- **Codex prefixes**: `/od` and `$od` are equivalent.
 - **Never auto-commit** — `/od ps` only when user asks.
 - **Legacy deploy**: Phase 5 audits existing Makefile/deploy; modifications need user consent unless `deploy_autonomy: full` or `/od al`.
 - **Codex compaction**: persist to state files before long tool runs (`session-memory.md`, §F.8).
+
+---
+
+## 7. Kit maintainers (this repo)
+
+`skills/od/` is the **single source of truth**. `.cursor/skills/od/` is a deploy mirror for Cursor.
+
+```powershell
+# After editing skills/od or rules/
+powershell -File scripts/sync-skills.ps1
+powershell -File scripts/check-compliance.ps1
+```
+
+```bash
+bash scripts/sync-skills.sh
+bash scripts/check-compliance.sh
+```
+`check-compliance` fails if the two trees drift, required fixtures (`$od`, STOP-WAIT, AskQuestion) are missing, or `interactive-prompt.md` exceeds the size budget.
