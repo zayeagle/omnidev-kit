@@ -74,7 +74,7 @@ Use `config.platform_override` or SKILL.md §F.1 / activation.md §2 detection.
 
 ### Step D — Pseudo-Popup Fallback
 
-Use §8 structured pseudo-popup — **干净表格**，无 YAML 元数据块。**STOP — WAIT**.
+Use §8 structured pseudo-popup — **干净表格**，无 YAML 元数据块。阻塞决策（B.0 destructive）：**STOP — WAIT**。非阻塞检查点（B.8、Phase 0、resume）：**自动继续默认选项** — 展示表格后立即推进.
 
 ### Step E — Minimal Text (interactive_mode=false only)
 
@@ -645,7 +645,7 @@ Multi-select: `> 可多选：下一条消息发送多个命令，或说明要启
 **Rules**:
 - ≤6 options + cancel
 - Mark `[默认]` on recommended
-- **STOP — WAIT** after output (blocking=true)
+- **阻塞决策（B.0 destructive）→ STOP — WAIT**；**非阻塞检查点（B.8、Phase 0、resume）→ 自动继续默认选项**
 - Same visual structure every time
 - **Never** say「回复 1 / 2 / 3」
 - **Never** dump Requirement Analysis / Stability / Test Strategy into this block

@@ -135,7 +135,7 @@ At **every** decision point (Phase 0 sizing, Phase 1 approach, checkpoints, Pre-
    - Cursor → `AskQuestion`（§4 模板）— 工具在列表中时 **必调**
    - Claude Code → `AskUserQuestion`（§5 模板）
    - Codex → `request_user_input`（§6 模板）— try in **all modes**
-3. If native missing/fails → **pseudo-popup §8** immediately（干净表格 + `/od` 命令；禁止「回复 1/2/3」）
+3. If native missing/fails → **pseudo-popup §8** immediately（干净表格 + `/od` 命令；禁止「回复 1/2/3」）。非阻塞检查点（B.8、Phase 0、resume）自动继续默认选项；阻塞决策（B.0 destructive）STOP-WAIT
 4. **NEVER** end turn with "是否继续?" / 选项散文 without tool call when `interactive_mode=true`
 5. User advances via **full `/od` command** in next message (`/od n`, `/od ad`, …) or UI pick — bare numbers/aliases alone do **NOT** activate
 
