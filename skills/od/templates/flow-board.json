@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "status": "idle",
+  "mode": "manual",
+  "current_phase": 0,
+  "phases_enabled": [0, 1, 2, 3, 4, 5],
+  "phases_skipped": [],
+  "phases_done": [],
+  "started_at": null,
+  "updated_at": null,
+  "last_action": null
+}

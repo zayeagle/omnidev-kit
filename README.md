@@ -28,6 +28,7 @@ All state persists under `docs/omnidev-state/` — auditable, resumable, handoff
 | `/od [req]` | Start workflow (Phase 0) |
 | `/od -f [req]` | Fast dev (S-level) |
 | `/od ob` | Onboard / scan project |
+| `/od board` / `start` / `next` | Flow board (default manual; start = only entry) |
 | `/od n` / `/od ad` / `/od sk` | Phase navigation |
 | `/od re` / `/od re [payload]` | Resume session |
 | `/od ch` | Requirement change + doc sync |

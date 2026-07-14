@@ -6,9 +6,9 @@
 > **Install strategy**
 > - `skills/od/`: **full overwrite** — `rm -rf <target>/od/` then `cp -r` so renames/deletes in the kit are reflected.
 > - `rules/` (Cursor): merge into `.cursor/rules/` if user rules exist.
-> - Project state: create `docs/omnidev-state/` and copy **`docs/omnidev-state/config.json`** + **`metrics.json`** from this kit (do not hand-roll a partial config).
+> - Project state: create `docs/omnidev-state/` and copy **`docs/omnidev-state/config.json`** + **`metrics.json`** + **`flow-board.json`** / **`flow-board.md`** from this kit (do not hand-roll a partial config).
 
-After install, tell the user: start with **`/od ob`** (onboard) or **`/od [requirement]`**.
+After install, tell the user: start with **`/od board`** (control plane), **`/od ob`** (onboard), or **`/od [requirement]`**.
 
 ---
 
@@ -121,6 +121,7 @@ Later updates: `/od up` (same scope rules; default `project`).
 | Key | Purpose |
 |-----|---------|
 | `interactive_mode` | Popup-first UX (default `true`) |
+| `board_ui` / `board_default_mode` / `board_cursor_canvas` | Flow board (`/od board`); default mode `manual` |
 | `sub_agents` / `phase_workers` | Task & phase worker spawn (`auto`) |
 | `design_split` | Design index + `features/*.md` |
 | `e2e_required_fullstack` / `unit_gate_blocking` | Test gates |
@@ -145,6 +146,7 @@ Under **`docs/omnidev-state/`**:
 | `[branch]/session-log.md` | Resume checkpoint (`/od re`) |
 | `metrics.json` | Silent telemetry |
 | `config.json` | Workflow toggles |
+| `flow-board.json` / `flow-board.md` | Flow board state + human view (`/od board`) |
 
 Phase 5 may add project **`Makefile`** and **`deploy/`** (docker · k8s · binary one-click scripts).
 

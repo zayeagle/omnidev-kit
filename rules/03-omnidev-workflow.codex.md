@@ -22,6 +22,7 @@ Bare workflow-looking replies → one-line tip only:
 | Action | Command |
 |--------|---------|
 | Resume / crash recovery | `/od re` or `$od re` |
+| Flow board (manual default) | `$od board` / `$od board start` / `$od board next` |
 | Next phase | `/od n` or `$od n` |
 | Revise | `/od ad` or `$od ad` |
 

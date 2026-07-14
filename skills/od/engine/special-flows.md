@@ -239,6 +239,7 @@ Announce resolved scope + target path in the change summary before confirm.
 6. Apply (after confirm): skills = full overwrite (delete-then-copy); Cursor `project` rules = non-destructive merge.
 7. Cleanup `_omnidev-kit-tmp/`.
 8. Report: scope, target path, New N / Changed N / Deleted N / Unchanged N.
+9. **Board seed** ([board.md](board.md) §7): ensure `docs/omnidev-state/` exists; if `flow-board.json` / `flow-board.md` missing, copy from skill `templates/`; merge `board_ui` / `board_default_mode` / `board_cursor_canvas` into `config.json` when keys absent. Do not overwrite in-progress board state.
 
 ---
 
@@ -365,6 +366,7 @@ Clone to `_omnidev-kit-tmp`, then copy to targets from §6.1 matrix (SKILL.md §
 2. **Copy skills (full overwrite)** to resolved skill target.
 3. **Copy rules / AGENTS**: Cursor `project` only — merge `rules/` → `.cursor/rules/`; refresh project `AGENTS.md` if applicable. Cursor `user` / Claude / Codex: skip.
 4. Write `update_source_url` (and optionally `install_scope` if user asked to persist) to `docs/omnidev-state/config.json`.
-5. Cleanup `_omnidev-kit-tmp/`. Codex: `codex skills refresh` if available.
+5. **Board seed**: copy `templates/flow-board.json` + `templates/flow-board.md` into `docs/omnidev-state/` if missing; merge board config keys (`board_ui`, `board_default_mode`, `board_cursor_canvas`) if absent.
+6. Cleanup `_omnidev-kit-tmp/`. Codex: `codex skills refresh` if available.
 
 **Full overwrite policy**: Skills = delete-then-copy. Cursor project rules = non-destructive merge.

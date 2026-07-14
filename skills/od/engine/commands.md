@@ -51,15 +51,30 @@ All commands require **`/od` prefix**. Short aliases are used **after** `/od` (e
 | `/od cfg` | `/od config` | View configuration |
 | `/od cfg -i on\|off` | — | Toggle interactive mode; **off requires `b0_confirm` popup first**, then write config |
 
+## Flow Board (control plane)
+
+→ Full protocol: [engine/board.md](board.md). Codex: `$od board …` (same args).
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| `/od board` | — | Open board (mode + phases). **Does not start** |
+| `/od board start [--mode manual\|auto] [--skip N,N]` | — | **Only entry that starts execution** (default `--mode manual`) |
+| `/od board next` | — | Manual mode: advance after pause |
+| `/od board apply --skip N,N` | — | Set skip plan while idle |
+| `/od board run [--skip N,N]` | — | `start --mode auto` then continuous advance |
+| `/od board reset` | — | Back to idle |
+
+Required phases **0** and **3** cannot be skipped. Hard gates still confirm in `auto`.
+
 ## Phase Navigation
 
 | Command | Alias | Description |
 |---------|-------|-------------|
-| `/od n` | `/od next` | Next phase |
+| `/od n` | `/od next` | Next phase (board paused → treat as `board next` when manual) |
 | `/od ad [content]` | `/od adj` | Revise current phase output |
-| `/od sk [phase]` | `/od skip` | Skip phase (0–5) |
+| `/od sk [phase]` | `/od skip` | Skip phase (0–5); board idle → updates skip plan |
 | `/od bk [phase]` | `/od back` | Go back to phase |
-| `/od al` | `/od all` | Run remaining phases (**includes deploy_autonomy: full** — deploy scripts may be added/changed autonomously; production execution still needs confirm) |
+| `/od al` | `/od all` | Run remaining phases (≈ `board run`; **includes deploy_autonomy: full** — production execution still needs confirm) |
 
 ## Confirmation
 
@@ -80,6 +95,10 @@ Interactive confirmations use platform native prompt (SKILL.md §F.2). User conf
 | Key | Default | Description |
 |-----|---------|-------------|
 | `interactive_mode` | `true` | **Primary working mode** — Decision Matrix §3 popups throughout; platforms §4/§5/§6; failure → §8 STOP-WAIT |
+| `board_ui` | `true` | Enable flow board (`/od board`); seed `flow-board.json` on install |
+| `board_default_mode` | `"manual"` | Wizard default: manual step-by-step |
+| `board_cursor_canvas` | `true` | Cursor: materialize Canvas from `templates/board.canvas.tsx` when useful |
+| `board_required_phases` | `[0, 3]` | Phases that cannot be skipped |
 | `codex_auto_resolve` | `false` | Whether Codex may use `autoResolutionMs` (forbidden by default; keep interactive wait) |
 | `ask_mode_after_od` | `true` | Enter Q&A mode after `/od` |
 | `update_source_url` | kit repo URL | `/od up` / `/od i` source |

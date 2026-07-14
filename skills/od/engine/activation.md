@@ -48,6 +48,9 @@ Optional same turn: `user-preferences.md`, `session-log.md` (`/od re` or in-prog
 ```
 Defaults:
   interactive_mode: true
+  board_ui: true
+  board_default_mode: manual
+  board_cursor_canvas: true
   design_split: false
   confirmation_level: auto
   context_mode: slim
@@ -55,7 +58,7 @@ Defaults:
   platform_override: null
 ```
 
-Proceed with defaults. Do NOT fail — Phase 0 may create `docs/omnidev-state/` + copy kit templates when missing.
+Proceed with defaults. Do NOT fail — Phase 0 may create `docs/omnidev-state/` + copy kit templates when missing. If `flow-board.json` missing and `board_ui` → seed from skill `templates/flow-board.json` (+ `flow-board.md`).
 
 ---
 
@@ -84,6 +87,7 @@ Parse after stripping `/od` or `$od` (Signal A only):
 | Pattern | Load file | Start phase |
 |---------|-----------|-------------|
 | `h` / `help` | `engine/commands.md` | — |
+| `board` / `board start\|next\|apply\|run\|reset` | `engine/board.md` | board control plane |
 | `re` / `resume` | `engine/session-memory.md` | resume |
 | `re [payload]` / `resume [payload]` | `engine/session-memory.md` §6.1 | resume + payload |
 | `ob` / `onboard` | `phases/00-assessment.md` | 0 |
@@ -93,8 +97,8 @@ Parse after stripping `/od` or `$od` (Signal A only):
 | `ps` / `push` | `engine/special-flows.md` §1 | — |
 | `ch` / `change` | `engine/special-flows.md` §2 | — |
 | `gv` / `ln` / `st` / `po` / `x` / `cfg` / `compress` / `db` / `sy` / `rp` / `up` / `i` | per SKILL.md C.0 | — |
-| `n` / `next` | current phase + 1 | continue |
-| `ad` / `sk` / `bk` / `al` | current phase instruction | adjust |
+| `n` / `next` | current phase + 1 · if board `paused`+manual → `engine/board.md` `next` | continue |
+| `ad` / `sk` / `bk` / `al` | current phase instruction · `al`≈`board run` | adjust |
 | `[requirement]` (default) | `phases/00-assessment.md` | **0** |
 
 **Default flow**: full bootstrap. Stale `in_progress` → interactive resume vs restart — do not skip bootstrap.

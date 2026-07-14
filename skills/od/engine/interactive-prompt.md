@@ -68,6 +68,7 @@ Every decision point: **same turn** `present_options`. `checkpoint` (B.8) is **a
 |--------------|----------------|------|
 | 0 | `phase0_complexity` | M/L/XL complexity confirm |
 | 0 | `phase0_s_fastpath` | **S-level also must popup** (confirm fast path / upgrade) |
+| board | `board_mode` / `board_confirm_start` / `board_next` / `board_resume` | [board.md](board.md) · §3.10 |
 | 1 | `blueprint_approach` | Approach selection |
 | 1 | `assumptions_confirm` | Design assumptions confirm |
 | 1 | `open_questions` | Open questions batch confirm |
@@ -129,19 +130,30 @@ Codex multi-select: sequential single-select or §8 "multi-select OK; explain in
 | `push_confirm` | `commit` · `edit_msg` · `cancel` (/od ps) |
 | `up_confirm` | after `/od up`/`/od i` diff: `apply`[default] · `switch_scope` · `cancel` — show resolved `scope`+path in prompt |
 
-### 3.7 Phase 2 `phase2_plan_ready`
+### 3.10 Flow Board (`board_*`) — [board.md](board.md)
+
+| id | When | options |
+|----|------|---------|
+| `board_mode` | `/od board` idle wizard step 1 | `manual`[default] · `auto` · `cancel` |
+| `board_confirm_start` | after mode (+ skip) chosen | `start`[default] · `edit` · `cancel` |
+| `board_next` | manual mode phase-end pause | `next`[default]→`/od board next` · `revise`→`/od ad` · `end`→`/od x` |
+| `board_resume` | `start` while already running/paused | `continue`[default] · `reset`→`/od board reset` · `cancel` |
+
+Skip optional phases: Cursor/Claude may use multi-select on phases 1/2/4/5; Codex sequential or free-text `1,5` / `none`. Never offer skip for 0 or 3.
+
+### 3.11 Phase 2 `phase2_plan_ready`
 
 - prompt: `Design/plan/test plan ready. Confirm enter development?`
 - options: `next`→(/od n) · `revise`→(/od ad) · `cancel`→(/od x)
 
-### 3.8 Phase 3 `pre_dev` · `change_impact`
+### 3.12 Phase 3 `pre_dev` · `change_impact`
 
 | id | prompt | options |
 |----|--------|---------|
 | `pre_dev` | Pre-Dev scope above. Confirm start implementation? | `proceed`[default] · `revise` · `cancel` |
 | `change_impact` | Change impact above. Confirm continue? | `proceed`[default] · `revise` · `cancel` |
 
-### 3.9 Phase 4 `test_layers` · `test_gate_fail` · `gap_backfill`
+### 3.13 Phase 4 `test_layers` · `test_gate_fail` · `gap_backfill`
 
 | id | options |
 |----|---------|
@@ -149,7 +161,7 @@ Codex multi-select: sequential single-select or §8 "multi-select OK; explain in
 | `test_gate_fail` | `fix_rerun`[default] · `waive` (B.0+reason) · `backfill` · `cancel` |
 | `gap_backfill` | `backfill_docs` · `implement_now`[default] · `skip_with_reason` · `cancel` |
 
-### 3.10 Phase 5 `deploy_consent` · `deploy_prod`
+### 3.14 Phase 5 `deploy_consent` · `deploy_prod`
 
 | id | options |
 |----|---------|
