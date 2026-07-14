@@ -200,31 +200,45 @@ context_requires:
 
 **Source**: Use `update_source_url` from `config.json`. Default: `https://github.com/zayeagle/omnidev-kit.git`.
 
-**Steps**:
+### 6.1 Install scope (`project` | `user`)
 
-1. Clone remote to temp: `git clone --depth 1 <update_source_url> _omnidev-kit-tmp`
-2. Build file manifest:
+| Flag | Meaning |
+|------|---------|
+| `/od up` | **Default `project`** |
+| `/od up --scope project` / `/od up -s project` | Project-level install |
+| `/od up --scope user` / `/od up -s user` | User-level install |
 
-   | Remote source path | Local target path (Cursor / Claude Code / Codex) |
-   |--------------------|--------------------------------------------------|
-   | `_omnidev-kit-tmp/rules/` | `.cursor/rules/` (Cursor only; others skip) |
-   | `_omnidev-kit-tmp/skills/od/` | `.cursor/skills/od/` / `.claude/skills/od/` (or `~/.claude/skills/od/`) / `~/.codex/skills/od/` |
+Optional: `config.json` → `install_scope` (`"project"` \| `"user"`) overrides the default when the flag is omitted. Explicit `--scope` / `-s` always wins.
 
-   **Platform mapping for step 5 (apply)**: Consult SKILL.md §F.7 for per-platform install targets. Key rules:
-   - **Cursor**: `rm -rf .cursor/skills/od/; cp -r .../skills/od/ .cursor/skills/od/`. Rules: non-destructive merge into `.cursor/rules/`.
-   - **Claude Code**: `rm -rf <target>/od/; cp -r .../skills/od/ <target>/od/` (project-level `.claude/skills/od/`, fallback to `~/.claude/skills/od/`). Skip `rules/`.
-   - **Codex**: `rm -rf ~/.codex/skills/od/; cp -r .../skills/od/ ~/.codex/skills/od/` (user-level only). Skip `rules/`.
-   - **Platform auto-detection**: Use §F.1 table at the start of the update flow to determine current platform.
+**Target matrix** (resolve after platform detect §F.1):
 
-  **Kit repo layout**: Source files live at repo root `skills/od/` and `rules/` — same structure as install source. **Maintainers** of omnidev-kit: after editing SSOT, run `powershell -File scripts/sync-skills.ps1` then `powershell -File scripts/check-compliance.ps1` so `.cursor/skills/od/` mirrors `skills/od/`.
+| Platform | `project` (default) | `user` |
+|----------|---------------------|--------|
+| **Cursor** | `.cursor/skills/od/` + merge `.cursor/rules/` + project `AGENTS.md` | `~/.cursor/skills/od/` only (no project rules / AGENTS) |
+| **Claude Code** | `.claude/skills/od/` | `~/.claude/skills/od/` |
+| **Codex** | No project skill path — **remap to `user`** with one-line notice; install `~/.codex/skills/od/` | `~/.codex/skills/od/` |
 
-3. Diff & present change summary (New / Changed / Obsolete / Unchanged). Compare temp clone vs local target.
-4. Confirm with user — update MUST NOT proceed without explicit approval.
-5. Apply changes (only after confirmation):
-   - **skills/od/**: Full overwrite. Delete target skill directory first (`rm -rf <target>/od/`), then copy entire `skills/od/` from temp clone. This ensures removed files do not persist.
-   - **rules/**: Cursor only — non-destructive merge. Do NOT overwrite user-customized rules; compare and only apply OmniDev-specific additions.
-6. Cleanup: Delete `_omnidev-kit-tmp/`.
-7. Report result: New N / Changed N / Deleted N / Unchanged N.
+Announce resolved scope + target path in the change summary before confirm.
+
+### 6.2 Steps
+
+1. Parse scope (flag → config `install_scope` → **`project`**). Detect platform (§F.1). Codex+`project` → remap to `user` + notice.
+2. Clone remote to temp: `git clone --depth 1 <update_source_url> _omnidev-kit-tmp`
+3. Build file manifest against **resolved targets** (skills always; Cursor `project` also rules + AGENTS).
+
+   **Apply rules** (step 6):
+   - **Cursor `project`**: `rm -rf .cursor/skills/od/; cp -r …/skills/od/ .cursor/skills/od/`. Rules: non-destructive merge into `.cursor/rules/`. Refresh project `AGENTS.md` OmniDev section if kit ships one.
+   - **Cursor `user`**: `rm -rf ~/.cursor/skills/od/; cp -r …/skills/od/ ~/.cursor/skills/od/`. Skip rules / AGENTS.
+   - **Claude Code**: `rm -rf <target>/od/; cp -r …/skills/od/ <target>/od/` (`project` → `.claude/skills/od/`, `user` → `~/.claude/skills/od/`). Skip `rules/`.
+   - **Codex**: `rm -rf ~/.codex/skills/od/; cp -r …/skills/od/ ~/.codex/skills/od/`. Skip `rules/`. Prefer `codex skills refresh` after copy.
+
+   **Kit repo layout**: SSOT at `skills/od/` + `rules/`. Maintainers: `scripts/sync-skills.*` then `scripts/check-compliance.*`.
+
+4. Diff & present change summary (New / Changed / Obsolete / Unchanged) vs resolved target. Include `scope=` and path.
+5. Confirm — [interactive-prompt.md](interactive-prompt.md) `up_confirm`. MUST NOT apply without approval.
+6. Apply (after confirm): skills = full overwrite (delete-then-copy); Cursor `project` rules = non-destructive merge.
+7. Cleanup `_omnidev-kit-tmp/`.
+8. Report: scope, target path, New N / Changed N / Deleted N / Unchanged N.
 
 ---
 
@@ -337,12 +351,20 @@ If `config.json` contains `jira_base_url` and `jira_project_key`:
 
 ## 9. Install (`/od i <url>`)
 
-Clone to `_omnidev-kit-tmp`, then copy to platform-specific targets per SKILL.md §F.7:
+Same **install scope** as §6.1 (`project` default; `--scope` / `-s` / config `install_scope`).
 
-1. **Detect platform** using §F.1 table (auto-detect or `config.json` `platform_override`).
-2. **Copy skills (full overwrite)**: `rm -rf <target>/od/; cp -r _omnidev-kit-tmp/skills/od/ <target>/od/` — target path per platform: Cursor: `.cursor/skills/od/`, Claude Code: `.claude/skills/od/` or `~/.claude/skills/od/`, Codex: `~/.codex/skills/od/`.
-3. **Copy rules**: Cursor only — `_omnidev-kit-tmp/rules/` → `.cursor/rules/`. Claude Code and Codex skip this step (they trigger via SKILL.md).
-4. Write `update_source_url` to `docs/omnidev-state/config.json`.
-5. Cleanup: Delete `_omnidev-kit-tmp/`.
+```
+/od i <url>
+/od i <url> --scope project
+/od i <url> --scope user
+```
 
-**Full overwrite policy**: Skills directory is always fully replaced (delete-then-copy). Rules directory uses non-destructive merge — never overwrite user-customized rules. For Codex, run `codex skills refresh` if available after copying.
+Clone to `_omnidev-kit-tmp`, then copy to targets from §6.1 matrix (SKILL.md §F.7):
+
+1. Parse scope → detect platform (§F.1). Codex+`project` → remap to `user` + notice.
+2. **Copy skills (full overwrite)** to resolved skill target.
+3. **Copy rules / AGENTS**: Cursor `project` only — merge `rules/` → `.cursor/rules/`; refresh project `AGENTS.md` if applicable. Cursor `user` / Claude / Codex: skip.
+4. Write `update_source_url` (and optionally `install_scope` if user asked to persist) to `docs/omnidev-state/config.json`.
+5. Cleanup `_omnidev-kit-tmp/`. Codex: `codex skills refresh` if available.
+
+**Full overwrite policy**: Skills = delete-then-copy. Cursor project rules = non-destructive merge.

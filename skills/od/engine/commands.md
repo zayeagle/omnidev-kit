@@ -26,8 +26,10 @@ All commands require **`/od` prefix**. Short aliases are used **after** `/od` (e
 | `/od ln -r` | — | View learning log and pending proposals |
 | `/od ln -a` | — | Auto-apply all pending proposals |
 | `/od ln --rb [N]` | — | Roll back the Nth evolution |
-| `/od up` | `/od update` | Update OmniDev Kit |
-| `/od i <url>` | `/od install` | Install from Git repository |
+| `/od up` | `/od update` | Update OmniDev Kit (**default scope: `project`**) |
+| `/od up --scope project\|user` | `/od up -s …` | Update with explicit install scope |
+| `/od i <url>` | `/od install` | Install from Git (**default scope: `project`**) |
+| `/od i <url> --scope project\|user` | `/od i … -s …` | Install with explicit install scope |
 | `/od ps` | `/od push` | Commit and push (requires user confirm) |
 | `/od st` | `/od stash` | Stash task context |
 | `/od po` | `/od pop` | Restore stashed context |
@@ -80,7 +82,8 @@ Interactive confirmations use platform native prompt (SKILL.md §F.2). User conf
 | `interactive_mode` | `true` | **Primary working mode** — Decision Matrix §3 popups throughout; platforms §4/§5/§6; failure → §8 STOP-WAIT |
 | `codex_auto_resolve` | `false` | Whether Codex may use `autoResolutionMs` (forbidden by default; keep interactive wait) |
 | `ask_mode_after_od` | `true` | Enter Q&A mode after `/od` |
-| `update_source_url` | kit repo URL | `/od up` source |
+| `update_source_url` | kit repo URL | `/od up` / `/od i` source |
+| `install_scope` | `"project"` | Default install scope for `/od up` / `/od i` when flag omitted (`project` \| `user`) |
 | `auto_checkpoint` | `false` | git stash before Phase 3 (not commit) |
 | `confirmation_level` | `"auto"` | `full` / `reduced` / `minimal` — B.15 |
 | `coverage_gate` | `false` | Whether unmet coverage blocks |

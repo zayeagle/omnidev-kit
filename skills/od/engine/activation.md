@@ -1,6 +1,6 @@
 # OmniDev Activation Bootstrap (MANDATORY)
 
-**Execute this file only when [trigger-gate.md](trigger-gate.md) activates (Signal A or B).**
+**Execute this file only when [trigger-gate.md](trigger-gate.md) activates (Signal A — `/od` or `$od` prefix).**
 
 Load path: resolve from installed skill root (`skills/od/engine/activation.md` or `.cursor/skills/od/engine/activation.md` or `~/.codex/skills/od/engine/activation.md`).
 
@@ -15,24 +15,17 @@ Load path: resolve from installed skill root (`skills/od/engine/activation.md` o
 | Signal | Condition | Action |
 |--------|-----------|--------|
 | **A** | `/^\s*[\/$]od(\s|$|[\u4e00-\u9fff])/i` | Full bootstrap §1–§6 |
-| **B** | Skill explicitly attached/invoked this turn (observable; if unsure → no) | Full bootstrap §1–§6 |
-| **None** | No prefix, no explicit skill invoke | **STOP** — zero OmniDev; if looks like a bare command → [trigger-gate §2.1](trigger-gate.md) one-line tip |
+| **None** | No `/od`/`$od` line-start prefix (incl. `@od` attach alone) | **STOP** — zero OmniDev workflow; if looks like a bare command → [trigger-gate §2.1](trigger-gate.md) one-line tip |
 
-**No Signal C.** Bare `1`/`n`/`continue` → normal chat (may show §2.1 tip). Resume → **`/od re` or `$od re` only**.
-
-**Signal B (observable heuristics)**:
-- **Cursor**: `@od` / SKILL **body** injected — NOT mere `available_skills`
-- **Claude Code**: this turn contains `od/SKILL.md` body
-- **Codex**: explicit invoke / SKILL body — NOT manifest-only
+**Skill attach is not Signal A.** `@od` / skill invoke without `/od` prefix → normal chat (skill may be reference only). Resume → **`/od re` or `$od re` only**.
 
 **Forbidden when triggered:**
 - Jumping straight to code without loading phase instruction file
-- Ignoring SKILL.md when Signal B fired
 - Skipping Phase 0 (unless `/od -f` / `$od -f` or user confirms skip)
 
 **Forbidden when NOT triggered:**
-- Loading any OmniDev file "just in case"
-- Touching `docs/omnidev-state/**` during normal chat
+- Loading activation/phase files "just in case"
+- Touching `docs/omnidev-state/**` as OmniDev session during normal chat
 
 ---
 
@@ -86,11 +79,10 @@ AskUserQuestion **before** AskQuestion, to avoid misdetecting dual-tool environm
 
 ## 3. Command Router
 
-Parse after stripping `/od` or `$od` (Signal A). Signal B with no prefix → treat full text as requirement payload:
+Parse after stripping `/od` or `$od` (Signal A only):
 
 | Pattern | Load file | Start phase |
 |---------|-----------|-------------|
-| *(Signal B, no prefix)* | `phases/00-assessment.md` | **0** |
 | `h` / `help` | `engine/commands.md` | — |
 | `re` / `resume` | `engine/session-memory.md` | resume |
 | `re [payload]` / `resume [payload]` | `engine/session-memory.md` §6.1 | resume + payload |
@@ -176,7 +168,7 @@ Then phase work. Do not repeat SKILL.md.
 | Symptom | Cause | Fix |
 |---------|-------|-----|
 | `/od` ignored | `alwaysApply: false` / drift | sync-skills; `alwaysApply: true`; `/od up` |
-| Normal chat activates | Signal B false positive | trigger-gate — if unsure, do not activate |
+| `@od` alone starts Phase 0 | Skill attach ≠ Signal A | Require `/od` prefix; see trigger-gate |
 | Stale `~/.cursor/skills/od/` | Old user-level copy | Prefer project `.cursor/skills/od/` |
 
 Kit repo: `skills/od/` is SSOT → `powershell -File scripts/sync-skills.ps1` before commit.

@@ -82,7 +82,7 @@ Every decision point: **same turn** `present_options`. `checkpoint` (B.8) is **a
 | 5 | `deploy_consent` | Legacy asset fix consent |
 | 5 | `deploy_prod` | Production deploy execution (B.0) |
 | 5 | `checkpoint` | Phase end |
-| re / ch / st / skill / ps / up | see below | matching flow |
+| re / ch / st / skill / ps / up | `up_confirm` etc. | matching flow (§3.6) |
 
 ### 3.1 `checkpoint` (B.8)
 
@@ -118,7 +118,7 @@ Every decision point: **same turn** `present_options`. `checkpoint` (B.8) is **a
 
 Codex multi-select: sequential single-select or §8 "multi-select OK; explain in next message".
 
-### 3.6 Resume / Change / B.0 / Push
+### 3.6 Resume / Change / B.0 / Push / Update
 
 | id | options |
 |----|---------|
@@ -127,6 +127,7 @@ Codex multi-select: sequential single-select or §8 "multi-select OK; explain in
 | `change_confirm` | `proceed`[default] · `revise` · `cancel` |
 | `b0_confirm` | `yes` · `no`[default] · `clarify` — **blocking** |
 | `push_confirm` | `commit` · `edit_msg` · `cancel` (/od ps) |
+| `up_confirm` | after `/od up`/`/od i` diff: `apply`[default] · `switch_scope` · `cancel` — show resolved `scope`+path in prompt |
 
 ### 3.7 Phase 2 `phase2_plan_ready`
 

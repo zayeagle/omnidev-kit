@@ -14,7 +14,7 @@ After install, tell the user: start with **`/od ob`** (onboard) or **`/od [requi
 
 ## 1. What is OmniDev?
 
-Workflow skill activated by **`/od` prefix** or **explicit skill invoke**. **Resume: `/od re` only** (disk-based, no chat-context inference). Every step: interactive checkpoint → user sends `/od n` / `/od ad` / UI pick.
+Workflow skill activated by **`/od` / `$od` line-start prefix only**. **Resume: `/od re` only** (disk-based, no chat-context inference). `@od` attach without `/od` does not start Phase 0. Every step: interactive checkpoint → user sends `/od n` / `/od ad` / UI pick.
 
 **State** lives in `docs/omnidev-state/` (plans, design, tests, release notes, session-log). **Active + history** file pairs preserve document evolution.
 
@@ -24,9 +24,11 @@ See [README.md](README.md) for highlights; [SKILL.md](skills/od/SKILL.md) for fu
 
 | Platform | Prompts | Workers | Skill path | Gate / rules |
 |----------|---------|---------|------------|--------------|
-| **Cursor** | `AskQuestion` | Built-in | `.cursor/skills/od/` | `.cursor/rules/01-omnidev-workflow.mdc` + `AGENTS.md` |
+| **Cursor** | `AskQuestion` | Built-in | `.cursor/skills/od/` (project) / `~/.cursor/skills/od/` (user) | `.cursor/rules/01-omnidev-workflow.mdc` + `AGENTS.md` |
 | **Claude Code** | `AskUserQuestion` | `Task` | `.claude/skills/od/` or `~/.claude/skills/od/` | `CLAUDE.md` + `rules/02-omnidev-workflow.claude.md` |
 | **Codex** | `request_user_input` | `create_thread` | `~/.codex/skills/od/` | `rules/03-omnidev-workflow.codex.md` |
+
+Workflow activates on **`/od` / `$od` line-start only**. Skill attach without that prefix does not start Phase 0.
 
 PAL (Platform Abstraction Layer): `skills/od/SKILL.md` §F — never hardcode Cursor-only APIs on Claude Code or Codex.
 
@@ -49,37 +51,49 @@ Then restart Codex. Without this, OmniDev uses structured text fallback (still w
 User command:
 
 ```
-/od install https://github.com/zayeagle/omnidev-kit.git
+/od i https://github.com/zayeagle/omnidev-kit.git
+/od i https://github.com/zayeagle/omnidev-kit.git --scope project   # default
+/od i https://github.com/zayeagle/omnidev-kit.git --scope user
 ```
 
 1. Clone repo to a temp dir.
-2. Install per platform (Method B).
+2. Install per platform + **scope** (Method B). Default scope is **`project`**.
 3. Set `update_source_url` in `config.json` to that Git URL.
 4. Remove temp dir.
 
+Later updates: `/od up` (same scope rules; default `project`).
+
 ### Method B: Local kit directory
+
+#### Install scope
+
+| Scope | Cursor | Claude Code | Codex |
+|-------|--------|-------------|-------|
+| **`project` (default)** | `.cursor/skills/od/` + `.cursor/rules/` + `AGENTS.md` | `.claude/skills/od/` | Remap to user (`~/.codex/skills/od/`) |
+| **`user`** | `~/.cursor/skills/od/` | `~/.claude/skills/od/` | `~/.codex/skills/od/` |
 
 #### Cursor
 
-1. Create `.cursor/rules/` if missing; copy `rules/*.mdc`.
+1. Create `.cursor/rules/` if missing; copy `rules/*.mdc` (**project** scope only).
 2. **Verify trigger rule**: `01-omnidev-workflow.mdc` must have **`alwaysApply: true`** — otherwise `/od` messages often won't activate (rule is never injected into context).
-3. Copy root **`AGENTS.md`** (secondary trigger hint for the agent).
-4. **Full overwrite**: `rm -rf .cursor/skills/od/` → copy `skills/od/` → `.cursor/skills/od/`.
-5. Commit `.cursor/rules/`, `.cursor/skills/`, and `AGENTS.md` (do not gitignore unless intentional).
+3. Copy root **`AGENTS.md`** (**project** scope only).
+4. **Full overwrite** skills into `.cursor/skills/od/` (**project**) or `~/.cursor/skills/od/` (**user**).
+5. For **project**: commit `.cursor/rules/`, `.cursor/skills/`, and `AGENTS.md` (do not gitignore unless intentional).
 6. Create `docs/omnidev-state/`; copy `config.json` + `metrics.json` from kit `docs/omnidev-state/`.
-7. Set `update_source_url` in `config.json` if installing from a fork.
+7. Set `update_source_url` (and optional `install_scope`) in `config.json` if installing from a fork.
 
-**Troubleshooting**: If `/od` is ignored, check Cursor Settings → Rules that `01-omnidev-workflow` is enabled and always-applied. Remove stale partial copies at `~/.cursor/skills/od/` if they conflict with the project install.
+**Troubleshooting**: If `/od` is ignored, check Cursor Settings → Rules that `01-omnidev-workflow` is enabled and always-applied. Stale `~/.cursor/skills/od/` can shadow expectations — prefer project install unless you chose `--scope user`.
 
 #### Claude Code
 
-1. Target: `.claude/skills/od/` (project) or `~/.claude/skills/od/` (user).
+1. Target: `.claude/skills/od/` (**project**) or `~/.claude/skills/od/` (**user**).
 2. **Full overwrite** `skills/od/` into target.
-3. Append to `CLAUDE.md` (do not overwrite):
+3. Append to `CLAUDE.md` (do not overwrite) for **project** installs:
 
    ```markdown
    ## OmniDev Workflow
-   Activate via `/od` prefix OR invoke `od` skill. Resume: **`/od re` only**. Advance: `/od n`, `/od ad`, … — bare `1`/`n` invalid.
+   Activate via `/od` or `$od` **line-start** prefix only. `@od` / skill attach without `/od` does **not** start Phase 0.
+   Resume: **`/od re` only**. Advance: `/od n`, `/od ad`, … — bare `1`/`n` invalid.
    See `.claude/skills/od/engine/trigger-gate.md`.
    ```
 
@@ -88,9 +102,9 @@ User command:
 
 #### Codex
 
-1. **Full overwrite**: `~/.codex/skills/od/` ← `skills/od/`.
+1. **Full overwrite**: `~/.codex/skills/od/` ← `skills/od/` (Codex has no project skill path; `--scope project` remaps to user).
 2. Optional: copy `rules/03-omnidev-workflow.codex.md` for trigger-gate reference.
-3. Activate via `/od` prefix **or** explicit skill invoke — manifest listing alone does not trigger.
+3. Activate via `/od` or `$od` **line-start** only — skill listing / invoke without prefix does not start workflow.
 4. `codex skills refresh` or restart session.
 5. Create `docs/omnidev-state/`; copy `config.json` + `metrics.json`.
 6. Recommend `platform_override: "codex"` in `config.json` if auto-detect fails.
@@ -112,7 +126,8 @@ User command:
 | `e2e_required_fullstack` / `unit_gate_blocking` | Test gates |
 | `deploy_modes` / `deploy_use_makefile` / `deploy_autonomy` | Phase 5 deploy |
 | `max_resident_lines` | Context budget (300) |
-| `update_source_url` | `/od up` source |
+| `update_source_url` | `/od up` / `/od i` source |
+| `install_scope` | Default scope for `/od up` / `/od i` when flag omitted (`project` \| `user`, default `project`) |
 
 Merge existing project values only for URLs and overrides; new installs should start from the kit template.
 

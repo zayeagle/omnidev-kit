@@ -1,21 +1,22 @@
 ---
-description: OmniDev trigger gate — load ONLY on /od prefix OR explicit @od skill attach. No session-context inference.
+description: OmniDev trigger gate — load workflow ONLY on /od or $od line-start prefix. @od attach alone does NOT activate.
 alwaysApply: true
 ---
 # OmniDev Trigger Gate (Cursor)
 
 → Spec: `.cursor/skills/od/engine/trigger-gate.md`
 
-## ACTIVATE — Signal A or B only
+## ACTIVATE — Signal A only
 
 1. **Signal A**: Message starts with `/od` (or `$od`)
-2. **Signal B**: User attached `@od` skill this turn (NOT `available_skills` listing alone). If unsure → do **not** activate.
+2. **Not a trigger**: `@od` skill attach / skill picker without `/od` prefix — reference only, **do not** Phase 0
 
 On activate: Read SKILL.md → `engine/activation.md` §0–§6 → route. **Tool calls first.**
 
 ## DO NOT ACTIVATE
 
-- Normal chat without `/od`/`$od` and without skill attach
+- Normal chat without `/od`/`$od` prefix (even if `@od` is attached)
+- Mid-sentence mentions of `/od …` (must be line-start)
 - Bare `1` / `n` / `continue` — **NOT** workflow input
 - Do NOT infer OmniDev from prior turns or `in_progress` on disk
 

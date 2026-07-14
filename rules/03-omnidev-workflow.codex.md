@@ -1,5 +1,5 @@
 ---
-description: OmniDev trigger gate for Codex — /od or $od prefix OR explicit skill invoke only. Resume via /od re or $od re only.
+description: OmniDev trigger gate for Codex — /od or $od line-start prefix only. Skill invoke without prefix does NOT activate.
 alwaysApply: true
 ---
 
@@ -7,10 +7,10 @@ alwaysApply: true
 
 → Spec: `~/.codex/skills/od/engine/trigger-gate.md`
 
-## ACTIVATE — Signal A or B only
+## ACTIVATE — Signal A only
 
 1. **Signal A**: Message starts with `/od` **or** `$od` (equivalent)
-2. **Signal B**: od skill invoked for this message (SKILL body injected; manifest listing alone = NO). If unsure → do **not** activate.
+2. **Not a trigger**: od skill invoke / SKILL body without `/od`/`$od` prefix — reference only
 
 No session-context inference. No bare `1`/`n`/`continue`.
 
@@ -29,7 +29,7 @@ Checkpoint → `request_user_input` → **STOP — WAIT** → UI pick or `/od`/`
 
 ## DO NOT ACTIVATE
 
-Normal chat without `/od`/`$od` and without skill invoke. Do not touch `docs/omnidev-state/**`.
+Normal chat without `/od`/`$od` prefix. Do not touch `docs/omnidev-state/**` as OmniDev session.
 
 ## Platform notes
 

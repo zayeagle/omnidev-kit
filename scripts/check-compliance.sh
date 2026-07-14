@@ -70,7 +70,7 @@ fi
 
 if grep -qE '非阻塞（checkpoint / skill / phase0）：`autoResolutionMs`' "$ROOT/skills/od/engine/interactive-prompt.md"; then
   fail "interactive-prompt.md still recommends autoResolutionMs for non-blocking"
-elif ! grep -qE '禁止.*autoResolutionMs|默认不设' "$ROOT/skills/od/engine/interactive-prompt.md"; then
+elif ! grep -qE 'do not set.*autoResolutionMs|forbid.*autoResolutionMs|Omit the field' "$ROOT/skills/od/engine/interactive-prompt.md"; then
   fail "interactive-prompt.md missing default-off autoResolution rule"
 else
   ok "autoResolutionMs default-off"

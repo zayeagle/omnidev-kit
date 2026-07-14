@@ -1,5 +1,5 @@
 ---
-description: OmniDev trigger gate for Claude Code — /od prefix OR explicit skill invoke only. Resume via /od re only.
+description: OmniDev trigger gate for Claude Code — /od or $od line-start prefix only. Skill invoke without /od does NOT activate.
 alwaysApply: true
 ---
 
@@ -7,10 +7,10 @@ alwaysApply: true
 
 → Spec: `skills/od/engine/trigger-gate.md` (or `.claude/skills/od/engine/trigger-gate.md`)
 
-## ACTIVATE — Signal A or B only
+## ACTIVATE — Signal A only
 
 1. **Signal A**: Message starts with `/od` (or `$od`)
-2. **Signal B**: `od/SKILL.md` body loaded into active context this turn (not listing alone). If unsure → do **not** activate.
+2. **Not a trigger**: `od` skill body in context without `/od` prefix — reference only
 
 No session-context inference. No bare `1`/`n`/`continue`.
 
@@ -28,7 +28,7 @@ Checkpoint → `AskUserQuestion` → **STOP — WAIT** → UI pick or `/od` comm
 
 ## DO NOT ACTIVATE
 
-Normal chat without `/od`/`$od` and without skill invoke. Do not touch `docs/omnidev-state/**`.
+Normal chat without `/od`/`$od` prefix. Do not touch `docs/omnidev-state/**` as OmniDev session.
 
 ## Platform notes
 

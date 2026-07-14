@@ -1,15 +1,15 @@
 ---
 name: od
 description: >-
-  OmniDev workflow. Load ONLY when: (1) message STARTS WITH /od or $od, OR (2) skill
-  explicitly attached/invoked this turn. Resume: /od re or $od re. Advance: /od n, /od ad,
-  etc. Bare 1/n/continue does NOT trigger. No chat-context inference.
-  Supports Cursor, Claude Code, and Codex.
+  OmniDev workflow. Activate ONLY when message STARTS WITH /od or $od.
+  Attaching @od without /od does NOT start Phase 0 (reference only).
+  Resume: /od re or $od re. Advance: /od n, /od ad, etc. Bare 1/n/continue does NOT
+  trigger. No chat-context inference. Supports Cursor, Claude Code, and Codex.
 ---
 
 # OmniDev Workflow Skill
 
-**Single source of truth for OmniDev rules. Applies ONLY when [trigger-gate](engine/trigger-gate.md) activates.**
+**Single source of truth for OmniDev rules. Applies ONLY when [trigger-gate](engine/trigger-gate.md) activates (Signal A).**
 
 ---
 
@@ -26,7 +26,7 @@ description: >-
 → Full rules: [engine/context-lifecycle.md](engine/context-lifecycle.md) §1 · [engine/interactive-prompt.md](engine/interactive-prompt.md) §3.4 `b0_confirm`
 
 ### B.1 — Trigger & Activation
-Activate **only** on **Signal A** (`/od` or `$od` prefix) or **Signal B** (skill explicitly invoked, observable). If Signal B is uncertain → do not activate. Phases 0–5 in order; `/od re`/`$od re` resume from disk; bare `1`/`n`/`continue` do not trigger (may show a one-line "OmniDev not active" tip).
+Activate **only** on **Signal A** (`/od` or `$od` line-start prefix). Attaching `@od` / invoking the skill **without** that prefix does **not** start the workflow (reference only). Phases 0–5 in order; `/od re`/`$od re` resume from disk; bare `1`/`n`/`continue` do not trigger (may show a one-line "OmniDev not active" tip).
 → [engine/trigger-gate.md](engine/trigger-gate.md) · [engine/activation.md](engine/activation.md)
 
 ### B.4 — Interactive Prompt (primary working mode)
@@ -234,11 +234,13 @@ When `sub_agents` is `auto` or `on` and platform is Codex, dispatch tasks via th
 
 → Full spec: [engine/trigger-gate.md](engine/trigger-gate.md)
 
-| Platform | How user triggers OmniDev |
-|----------|---------------------------|
-| **Cursor** | `/od …` prefix **OR** attach `@od` skill / skill picker (no `/od` required when skill is attached) |
-| **Claude Code** | `/od …` prefix **OR** invoke `od` skill (Claude loads SKILL.md into context) |
-| **Codex** | `/od …` **or** `$od …` prefix **OR** invoke `od` skill for the message |
+| Platform | How user triggers OmniDev **workflow** |
+|----------|----------------------------------------|
+| **Cursor** | Message starts with `/od …` (or `$od …`) only |
+| **Claude Code** | Message starts with `/od …` (or `$od …`) only |
+| **Codex** | Message starts with `/od …` **or** `$od …` only |
+
+`@od` attach / skill invoke without `/od` prefix → **not** a workflow trigger (skill may be used as reference).
 
 | Platform | Gate enforcement file |
 |----------|----------------------|
@@ -246,9 +248,9 @@ When `sub_agents` is `auto` or `on` and platform is Codex, dispatch tasks via th
 | **Claude Code** | `CLAUDE.md` + `rules/02-omnidev-workflow.claude.md` |
 | **Codex** | `rules/03-omnidev-workflow.codex.md` + skill `description` |
 
-**Not a trigger**: od skill only listed without explicit invoke; bare checkpoint replies without `/od`.
+**Not a trigger**: skill listing / `@od` without `/od` prefix; mid-sentence `/od` mention; bare checkpoint replies.
 
-**Iteration**: Every workflow step requires new message with `/od` prefix (or Signal B). Checkpoint → STOP → user sends `/od n` / `/od ad` / UI pick.
+**Iteration**: Every typed workflow step requires `/od` or `$od` prefix. Checkpoint → STOP → UI pick **or** next full `/od`/`$od` command.
 
 ### F.5 Skill Discovery Paths (maps skill-composition §2)
 
@@ -305,11 +307,13 @@ Step 3: read_mcp_resource
 
 ### F.7 Platform Identity in Install/Update Docs
 
-| Platform | Skill install path | Rules install path |
-|----------|-------------------|---------------------|
-| **Cursor** | `.cursor/skills/od/` | `.cursor/rules/` (`.mdc` files) |
-| **Claude Code** | `.claude/skills/od/` (project) or `~/.claude/skills/od/` (user) | N/A — trigger via `SKILL.md` only |
-| **Codex** | `~/.codex/skills/od/` (user-level) | N/A — trigger via `SKILL.md` only; see `rules/03-omnidev-workflow.codex.md` for optional always-apply rule file |
+`/od up` and `/od i` support **`install_scope`**: `project` (default) | `user`. See [special-flows.md](engine/special-flows.md) §6.1.
+
+| Platform | `project` skill path | `user` skill path | Rules |
+|----------|----------------------|-------------------|-------|
+| **Cursor** | `.cursor/skills/od/` | `~/.cursor/skills/od/` | Project only: `.cursor/rules/` (`.mdc`) + `AGENTS.md` |
+| **Claude Code** | `.claude/skills/od/` | `~/.claude/skills/od/` | N/A — trigger via SKILL.md |
+| **Codex** | Remap to `user` (no project skill path) | `~/.codex/skills/od/` | N/A — see `rules/03-omnidev-workflow.codex.md` |
 
 ### F.8 Codex Context Compaction Awareness
 
