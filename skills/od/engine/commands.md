@@ -94,7 +94,7 @@ Interactive confirmations use platform native prompt (SKILL.md §F.2). User conf
 
 | Key | Default | Description |
 |-----|---------|-------------|
-| `interactive_mode` | `true` | **Primary working mode** — Decision Matrix §3 popups throughout; platforms §4/§5/§6; failure → §8 STOP-WAIT |
+| `interactive_mode` | `true` | **Primary working mode** — Decision Matrix §3 native UI throughout; platforms §4/§5/§6; failure → §8 Markdown table STOP-WAIT |
 | `board_ui` | `true` | Enable flow board (`/od board`); seed `flow-board.json` on install |
 | `board_default_mode` | `"manual"` | Wizard default: manual step-by-step |
 | `board_cursor_canvas` | `true` | Cursor: materialize Canvas from `templates/board.canvas.tsx` when useful |

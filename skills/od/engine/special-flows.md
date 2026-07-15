@@ -125,7 +125,7 @@ After every phase checkpoint, call [interactive-prompt.md](interactive-prompt.md
 - Cursor → §3.1 catalog + §4 `AskQuestion` (same turn, mandatory when tool present)
 - Claude Code → §3.1 catalog + §5 `AskUserQuestion` (same turn, mandatory)
 - Codex → §3.1 catalog + §6 `request_user_input` (same turn, mandatory)
-- On failure → pseudo-popup §8 → **STOP — WAIT**
+- On failure → §8 Markdown table → **STOP — WAIT**
 
 Standard checkpoint options (Chinese labels when `interactive_mode=true` use English below):
 
@@ -141,7 +141,7 @@ Standard checkpoint options (Chinese labels when `interactive_mode=true` use Eng
 - MUST STOP and WAIT after presenting options (native UI or text fallback).
 - User picks in UI **or** sends **full `/od` command** in next message (`/od n`, `/od ad`, …).
 - Bare numbers/aliases (`1`, `n`, `continue`) without `/od` → **do NOT** activate — normal chat.
-- If native prompt fails → text fallback same turn ([interactive-prompt.md](interactive-prompt.md) §8); fallback text must show `/od` commands (never bare `1`/`2`/`3`).
+- If native prompt fails → §8 Markdown table same turn ([interactive-prompt.md](interactive-prompt.md) §8); must show `/od` commands (never bare `1`/`2`/`3`; never box-drawing frames).
 
 ---
 

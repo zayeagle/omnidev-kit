@@ -2,7 +2,7 @@
 
 **Load when**: any decision point in the Decision Matrix (§3), checkpoint (B.8), B.0, skill-composition, stash, session resume, Phase 5 consent.
 
-**Principle**: Cursor / Claude Code / Codex **prefer popups throughout**. Call native tool first; missing/failure → §8 pseudo-popup. **Always STOP — WAIT**. Forbid timeout auto-pick; forbid "show then auto-continue".
+**Principle**: Native UI first. Missing/failure → §8 **Markdown table** (not a drawn "popup"). **Always STOP — WAIT**. Forbid timeout auto-pick; forbid "show then auto-continue".
 
 → PAL: SKILL.md §F.2
 
@@ -15,18 +15,18 @@
 | **Cursor** | `AskQuestion` — §4 |
 | **Claude Code** | `AskUserQuestion` — §5 |
 | **Codex** | `request_user_input` — §6 (needs flag; **forbid** default `autoResolutionMs`) |
-| **CLI** | §8 pseudo-popup |
+| **CLI** | §8 Markdown fallback table |
 
 1. Short chat summary (Phase 0 ≤6 lines; checkpoint ≤12 lines)
 2. Forbid `od_interactive` / YAML metadata in chat → session-log only
 3. Native success → do not also print an options table
-4. Labels and pseudo-popup always use `/od …` or `$od …` (forbid "reply 1/2/3")
+4. Labels and §8 always use `/od …` or `$od …` (forbid "reply 1/2/3")
 5. Tool exists but skipped = **violation**; no tool → §8 + environment hint
 6. **STOP — WAIT** until UI pick or next Signal A/B
 7. `interactive_mode` defaults to `true`. Setting `false` requires explicit user `/od cfg -i off` confirm (via `b0_confirm`); otherwise keep popups
-8. **Workers / sub-agents must not** popup to the user or make product decisions alone; only Orchestrator calls this file
+8. **Workers / sub-agents must not** prompt the user or make product decisions alone; only Orchestrator calls this file
 9. Codex: **do not set** `autoResolutionMs` by default. Only when `config.codex_auto_resolve: true` and the decision point marks `allow_auto_resolve` (non-default path)
-10. §8 / §9: Markdown table or numbered lines only — **forbid** box-drawing / pad-aligned ASCII UI
+10. **Chat UX ban**: never emit box-drawing / pad-aligned frames (`+--+`, `╔═║└┘│─`, double `||` borders, code-fence "cards"). §8 = Markdown `|` table only; §9 = plain numbered lines
 
 ---
 
@@ -34,7 +34,7 @@
 
 ```
 INPUT:  decision_point (from §3), options[{id,label}]?, title_zh?, allow_multiple?, blocking?
-OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|pseudo_popup|text_fallback
+OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|md_table|text_fallback
 ```
 
 | Step | Action |
@@ -42,7 +42,7 @@ OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|pseudo_
 | A | `interactive_mode=false` → §9 |
 | B | resolve platform (`platform_override` → activation §2) |
 | C | native in list → §3 catalog → §4/§5/§6 |
-| D | missing/error → §8 (with platform hint) |
+| D | missing/error → §8 Markdown table (with platform hint) |
 | E | **STOP — WAIT** |
 
 **UI pick** (same-turn tool return) = valid advance. Next **typed** message still needs `/od` or `$od`.
@@ -53,12 +53,12 @@ OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|pseudo_
 
 | ❌ | ✅ |
 |---|---|
-| Skip popup (including S-level) | At least call the matching §3 catalog |
+| Skip native UI (including S-level) | Call matching §3 catalog + §4/§5/§6 |
 | Codex default `autoResolutionMs` | Omit the field; wait for user |
-| Auto-continue after pseudo-popup | STOP — WAIT |
+| Auto-continue after §8 table | STOP — WAIT |
 | Worker asks user | Write disk only; return ≤30 lines to Orchestrator |
 | Phase 5 numbered prose options | `deploy_consent` / `deploy_prod` catalog |
-| ASCII / box-drawing frames (`╔═║└` etc.) | §8 Markdown table only (CJK breaks pad-aligned boxes) |
+| Drawn frames / "fake modal" ASCII | Copy §8 table template verbatim |
 
 ---
 
@@ -153,8 +153,10 @@ Skip optional phases: Cursor/Claude may use multi-select on phases 1/2/4/5; Code
 
 | id | prompt | options |
 |----|--------|---------|
-| `pre_dev` | Pre-Dev scope above. Confirm start implementation? | `proceed`[default] · `revise` · `cancel` |
-| `change_impact` | Change impact above. Confirm continue? | `proceed`[default] · `revise` · `cancel` |
+| `pre_dev` | Pre-Dev scope above. Confirm start implementation? | `proceed`[default]→`/od y` · `revise`→`/od ad` · `cancel`→`/od x` |
+| `change_impact` | Change impact above. Confirm continue? | `proceed`[default]→`/od y` · `revise`→`/od ad` · `cancel`→`/od x` |
+
+Native missing → §8 table with those three rows only (no ASCII frame).
 
 ### 3.13 Phase 4 `test_layers` · `test_gate_fail` · `gap_backfill`
 
@@ -224,37 +226,41 @@ When unavailable, hint once per session → §8 STOP — WAIT. May record `codex
 
 ---
 
-## 8. Pseudo-Popup
+## 8. Markdown Fallback Table
 
-**Render exactly as Markdown below** — copy structure, fill rows from §3 catalog. Do **not** invent borders, code-fence boxes, or pad-aligned `║` frames (they misalign with CJK).
+(Legacy name in logs: `pseudo_popup` → prefer method `md_table`.)
+
+**Copy this template exactly.** Fill Action/Send from §3. Do **not** add borders, `||` columns, `+--+`, box-drawing, or pad spaces to "align" a frame.
 
 ```markdown
-### OmniDev · [title_zh]
+### OmniDev · [title]
 
 [one-line prompt from §3]
 
 | | Action | Send |
 |---|--------|------|
-| **1** | [Option A] · default | `/od n` |
+| **1** | [Option A] · default | `/od y` |
 | **2** | [Option B] | `/od ad` |
 | **3** | Cancel | `/od x` |
 
 Reply with a full `/od` / `$od` command — bare `1`/`2`/`3` invalid.
 ```
 
-Environment hint (one line, only when native missing): `No native popup here. Cursor: Claude/GPT or Plan · Codex: enable default_mode_request_user_input.`
+`pre_dev` example Send column: `/od y` · `/od ad` · `/od x`. Other catalogs may use `/od n` etc.
 
-**STOP — WAIT**. Forbid YAML metadata; forbid "reply 1/2/3"; forbid ASCII art UI.
+Hint (one line, native missing only): `No native UI here. Cursor: Claude/GPT or Plan · Codex: enable default_mode_request_user_input.`
+
+**STOP — WAIT**. Forbid YAML in chat; forbid "reply 1/2/3"; **forbid any drawn UI**.
 
 ---
 
 ## 9. Minimal Text — only when `interactive_mode=false`
 
-Same content as §8 table, plain lines OK — still **no** ASCII boxes:
+Plain numbered lines only (same ban on frames):
 
 ```markdown
 Choose (full /od or $od; bare numbers invalid):
-1. [A] (default) → /od n
+1. [A] (default) → /od y
 2. [B] → /od ad
 3. Cancel → /od x
 ```
@@ -264,7 +270,7 @@ Choose (full /od or $od; bare numbers invalid):
 ## 10. Logging (session-log only)
 
 ```json
-{"type":"interactive_prompt","method":"cursor_ask|claude_ask|codex_input|pseudo_popup|text_fallback","platform":"cursor","decision_point":"phase0_complexity","native_attempted":true}
+{"type":"interactive_prompt","method":"cursor_ask|claude_ask|codex_input|md_table|text_fallback","platform":"cursor","decision_point":"phase0_complexity","native_attempted":true}
 ```
 
 ---

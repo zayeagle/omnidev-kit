@@ -202,7 +202,7 @@ After checklist prose (≤12 lines), **same turn** invoke [interactive-prompt.md
 1. §3.7 `phase2_plan_ready` — confirm design/plan ready for development
 2. Then §3.1 `checkpoint` (B.8) — next step `/od n`, etc.
 
-Platform: §4 / §5 / §6; on failure → §8. **STOP — WAIT**. Workers must not show popups.
+Platform: §4 / §5 / §6; on failure → §8 Markdown table. **STOP — WAIT**. Workers must not show options UI.
 
 ---
 

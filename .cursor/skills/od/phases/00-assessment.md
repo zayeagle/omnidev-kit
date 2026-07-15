@@ -70,7 +70,7 @@ Structure: [fullstack|frontend-only|backend-only|monorepo] · [fw stack]
 Path: [phases] · Confirm: [full|reduced|minimal]
 ```
 
-Do **not** wrap this summary (or the §8 fallback) in ASCII/`╔═║` boxes.
+Do **not** wrap this summary (or the §8 fallback) in box-drawing / `||` / `+--+` frames.
 
 **FORBIDDEN in chat** (write to `session-log.md` `## Phase 0 Assessment` only):
 - Long Requirement Analysis paragraphs
@@ -111,7 +111,7 @@ After the ≤6-line prose summary, **same turn** invoke [interactive-prompt.md](
 | **Claude Code** | §5 `AskUserQuestion` |
 | **Codex** | §6 `request_user_input` (no autoResolutionMs) |
 
-On native missing/error → §8 → **STOP — WAIT**.
+On native missing/error → §8 Markdown table → **STOP — WAIT**.
 
 If the user insists on closing the popup: they must first `/od cfg -i off` + `b0_confirm`; otherwise keep `interactive_mode=true`.
 

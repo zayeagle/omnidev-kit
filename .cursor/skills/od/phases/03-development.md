@@ -74,7 +74,8 @@ All complexity levels **must** show `checkpoint` (B.8) popup at **phase end**. I
 | M | **Required** once (interactive) | **Required** when departing | **Required** |
 | L/XL | **Required** | **Required** every group | **Required** |
 
-Invoke: [interactive-prompt.md](../engine/interactive-prompt.md) §3.8 → §4/§5/§6 → **STOP — WAIT**. Do not write prose option tables without the popup.
+Invoke: [interactive-prompt.md](../engine/interactive-prompt.md) §3.12 → §4/§5/§6 → **STOP — WAIT**.
+If native UI missing: copy §8 **Markdown table** (`/od y` · `/od ad` · `/od x`). **Forbidden**: prose-only menus, box-drawing, `||` frames, pad-aligned fake modals.
 
 ---
 

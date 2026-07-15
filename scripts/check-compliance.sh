@@ -54,7 +54,7 @@ check_pat() {
 
 check_pat "skills/od/engine/trigger-gate.md" '\[\\/\$\]od' 'Explicit non-activation feedback' 'STOP'
 check_pat "skills/od/engine/activation.md" '\[\\/\$\]od' 'STOP' 'AskUserQuestion' 'WAIT'
-check_pat "skills/od/engine/interactive-prompt.md" 'STOP' 'WAIT' 'AskQuestion' 'phase0_s_fastpath' 'Decision Matrix' 'deploy_consent' 'Pseudo-Popup'
+check_pat "skills/od/engine/interactive-prompt.md" 'STOP' 'WAIT' 'AskQuestion' 'phase0_s_fastpath' 'Decision Matrix' 'deploy_consent' 'Markdown Fallback Table' 'box-drawing'
 check_pat "skills/od/phases/00-assessment.md" 'phase0_s_fastpath'
 check_pat "skills/od/phases/02-planning.md" 'phase2_plan_ready'
 check_pat "skills/od/phases/05-deploy.md" 'deploy_consent' 'deploy_prod'

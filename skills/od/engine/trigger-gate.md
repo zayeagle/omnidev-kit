@@ -120,7 +120,7 @@ Workflow advances when:
 | Mid-sentence `/od up` talk | **Expected** — only line-start `/od`/`$od` activates |
 | User only sent `n`/`1` | **Expected** — send `/od n` or see §2.1 tip |
 | Codex `$od` | Same trigger as `/od`; if still broken check skill install |
-| Cursor no AskQuestion | §8 pseudo-popup + switch to Claude/GPT or Plan; tool exists but skipped = violation |
+| Cursor no AskQuestion | §8 Markdown table + switch to Claude/GPT or Plan; tool exists but skipped = violation |
 | Phase 0 output messy | ≤6 lines; details → session-log; forbid `od_interactive:` |
 | skills vs .cursor drift | From repo root: `bash scripts/sync-skills.sh` |
 

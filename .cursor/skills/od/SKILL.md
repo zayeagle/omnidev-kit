@@ -30,7 +30,7 @@ Activate **only** on **Signal A** (`/od` or `$od` line-start prefix). Attaching 
 → [engine/trigger-gate.md](engine/trigger-gate.md) · [engine/activation.md](engine/activation.md)
 
 ### B.4 — Interactive Prompt (primary working mode)
-`interactive_mode: true` is on by default. At decision points **must call the native tool first**, same turn as the summary; prose-only is forbidden. Keep short chat summaries (Phase 0 ≤6 lines); forbid `od_interactive` metadata or "reply 1/2/3". On native failure → §8 clean Markdown `/od`/`$od` table (forbid ASCII/`╔═║` boxes). **Always STOP — WAIT** (never auto-continue after a pseudo-popup).
+`interactive_mode: true` is on by default. At decision points **must call the native tool first**, same turn as the summary; prose-only is forbidden. Keep short chat summaries (Phase 0 ≤6 lines); forbid `od_interactive` metadata or "reply 1/2/3". On native failure → §8 **Markdown `/od` table** only. **Hard ban**: box-drawing / `||` / `+--+` / pad-aligned "fake modal" frames (CJK breaks them). **Always STOP — WAIT** (never auto-continue after §8).
 → [engine/interactive-prompt.md](engine/interactive-prompt.md)
 
 ### B.11 — Session Resume
@@ -157,7 +157,7 @@ Store detected platform in session memory; do not re-detect mid-session.
 | **Cursor** | **`AskQuestion` tool — REQUIRED same turn** when present. Copy-paste JSON from interactive-prompt.md **§4**. Chat: short summary only; no YAML metadata dump. |
 | **Claude Code** | **`AskUserQuestion` tool — REQUIRED same turn** at every checkpoint. Copy-paste JSON from interactive-prompt.md **§5**. Works in **all collaboration modes**. |
 | **Codex** | **`request_user_input` tool — REQUIRED same turn** in **Plan AND Default/Code mode**. Copy-paste JSON from interactive-prompt.md **§6**. Enable Default mode: `[features] default_mode_request_user_input = true` in `~/.codex/config.toml`. |
-| **CLI / Other** | Pseudo-popup §8 → minimal text §9 |
+| **CLI / Other** | §8 Markdown fallback table → §9 minimal text |
 
 #### Mandatory Tool Invocation (Cursor / Claude Code / Codex)
 
@@ -165,7 +165,7 @@ When `interactive_mode=true`:
 
 1. Output **short** summary only (Phase 0 ≤6 lines; checkpoint ≤12 lines) — do not paste the full assessment into chat
 2. **Immediately invoke** native tool using §3 catalog + §4/§5/§6 wrapper — **forbidden** to end turn with prose-only options when the tool exists
-3. On tool **absent**, error, or "unavailable in this chat mode" → clean pseudo-popup §8 **same turn** (forbid "reply 1/2/3"; must use `/od` or `$od`) → **STOP — WAIT** (forbid autoResolution / auto-continue)
+3. On tool **absent**, error, or "unavailable in this chat mode" → **copy §8 Markdown table verbatim** same turn (forbid "reply 1/2/3"; forbid drawn frames) → **STOP — WAIT**
 4. Log `native_attempted: true` + method to **session-log** (do not paste into chat)
 5. Decision points: follow [interactive-prompt.md](engine/interactive-prompt.md) **§3 Decision Matrix** (full Phase 0–5 coverage, including S-level `phase0_s_fastpath`)
 
@@ -177,7 +177,7 @@ When `interactive_mode=true`:
 default_mode_request_user_input = true
 ```
 
-CLI: `codex features enable default_mode_request_user_input` — restart Codex. Without this flag, Codex falls back to pseudo-popup §8 (clean table UX, not plain text).
+CLI: `codex features enable default_mode_request_user_input` — restart Codex. Without this flag, Codex falls back to §8 Markdown table.
 
 #### Codex Multi-Select Simulation
 

@@ -88,7 +88,7 @@ Phase 4 is **not** "run a few smoke cases". Per [test-strategy.md](../engine/tes
 | Gap Backfill path selection | §3.9 `gap_backfill` |
 | Phase 4 end | §3.1 `checkpoint` |
 
-Same turn §4/§5/§6; on failure → §8. **STOP — WAIT**. Do not use prose numbered options.
+Same turn §4/§5/§6; on failure → §8 Markdown table. **STOP — WAIT**. Do not use prose numbered options or drawn frames.
 
 ---
 

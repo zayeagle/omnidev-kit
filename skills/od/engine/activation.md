@@ -124,12 +124,12 @@ At **every** decision point:
    - Cursor → `AskQuestion` (§4) — **must call** when tool is in the list
    - Claude → `AskUserQuestion` (§5)
    - Codex → `request_user_input` (§6)
-3. Native missing/fails → **§8 pseudo-popup** (`/od` or `$od` commands; forbid "reply 1/2/3") → **always STOP — WAIT** (forbid autoResolution / auto-continue)
+3. Native missing/fails → **§8 Markdown table** (`/od` or `$od` commands; forbid "reply 1/2/3"; **forbid** box-drawing / `||` frames) → **always STOP — WAIT** (forbid autoResolution / auto-continue)
 4. **NEVER** end with prose-only "continue?" when `interactive_mode=true`
 5. Advance via UI pick (same turn) or next full `/od`/`$od` command
 6. Cover [interactive-prompt.md](interactive-prompt.md) §3 Decision Matrix (including S-level `phase0_s_fastpath`, Phase 2/4/5 gates)
 
-**Failure fix**: Tool exists but was skipped → violation; re-call §4/§5/§6. Cursor without AskQuestion → §8 + switch model/Plan. Codex → §6.1 flag; **do not add** autoResolutionMs by default.
+**Failure fix**: Tool exists but was skipped → violation; re-call §4/§5/§6. Cursor without AskQuestion → §8 table + switch model/Plan. Codex → §6.1 flag; **do not add** autoResolutionMs by default.
 
 ---
 
@@ -152,11 +152,12 @@ Then phase work. Do not repeat SKILL.md.
 |--------------|------------------|
 | `/od do X` → direct code | Phase 0 → recommended phases → then dev |
 | Skill loaded but phase file unread | Read phase file first |
-| AskQuestion failed → proceed | §8 + **WAIT** |
+| AskQuestion failed → proceed | §8 Markdown table + **WAIT** |
 | Skip AskQuestion when tool exists | **Must call** §4 |
-| Dump Phase 0 + YAML in chat | ≤6 lines + popup; details → session-log |
+| Dump Phase 0 + YAML in chat | ≤6 lines + native UI; details → session-log |
 | "Reply 1/2/3" | `/od` or `$od` commands |
-| Auto-continue after pseudo-popup | **STOP — WAIT** |
+| Drawn ASCII / `||` "modal" | Copy §8 table only |
+| Auto-continue after §8 | **STOP — WAIT** |
 | Full state file in chat | Path pointer only (B.18) |
 
 ---
