@@ -32,5 +32,5 @@ If bare `n`/`1`/`continue`/`ad`/`re` looks like workflow intent, reply **one lin
 | Revise | `/od ad` |
 | End session | `/od x` |
 
-Checkpoint: **must call** `AskQuestion` when tool exists → user picks UI **or** sends `/od` next message. If tool absent → clean `/od` table (never "reply 1/2/3"). **STOP & WAIT** (never auto-continue after pseudo-popup).
+Checkpoint: **must call** `AskQuestion` when tool exists → user picks UI **or** sends `/od` next message. If tool absent → clean Markdown `/od` table (never "reply 1/2/3"; forbid ASCII/`╔═║` boxes). **STOP & WAIT** (never auto-continue after pseudo-popup).
 Phase 0 chat: ≤6 lines only; details → session-log.

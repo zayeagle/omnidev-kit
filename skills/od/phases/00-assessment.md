@@ -64,12 +64,13 @@ If multiple `package.json` / `go.mod` at subdirectories or workspace config (`pn
 
 First output a brief summary to the conversation (NOT in the popup). **Hard cap: ≤6 lines.** This is the **only** Phase 0 content allowed in chat before the popup:
 
+```markdown
+**Phase 0 complete** · Complexity **[S/M/L/XL]** — [reason, ≤1 sentence]
+Structure: [fullstack|frontend-only|backend-only|monorepo] · [fw stack]
+Path: [phases] · Confirm: [full|reduced|minimal]
 ```
-🚀 Phase 0 assessment complete
-Complexity: [S/M/L/XL] — [reason, 1 sentence]
-Project structure: [fullstack|frontend-only|backend-only|monorepo] · Frontend: [fw] · Backend: [fw]
-Recommended phases: [phases] · Confirmation level: [full|reduced|minimal]
-```
+
+Do **not** wrap this summary (or the §8 fallback) in ASCII/`╔═║` boxes.
 
 **FORBIDDEN in chat** (write to `session-log.md` `## Phase 0 Assessment` only):
 - Long Requirement Analysis paragraphs

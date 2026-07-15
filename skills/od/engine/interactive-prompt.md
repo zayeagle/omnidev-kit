@@ -26,6 +26,7 @@
 7. `interactive_mode` defaults to `true`. Setting `false` requires explicit user `/od cfg -i off` confirm (via `b0_confirm`); otherwise keep popups
 8. **Workers / sub-agents must not** popup to the user or make product decisions alone; only Orchestrator calls this file
 9. Codex: **do not set** `autoResolutionMs` by default. Only when `config.codex_auto_resolve: true` and the decision point marks `allow_auto_resolve` (non-default path)
+10. §8 / §9: Markdown table or numbered lines only — **forbid** box-drawing / pad-aligned ASCII UI
 
 ---
 
@@ -57,6 +58,7 @@ OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|pseudo_
 | Auto-continue after pseudo-popup | STOP — WAIT |
 | Worker asks user | Write disk only; return ≤30 lines to Orchestrator |
 | Phase 5 numbered prose options | `deploy_consent` / `deploy_prod` catalog |
+| ASCII / box-drawing frames (`╔═║└` etc.) | §8 Markdown table only (CJK breaks pad-aligned boxes) |
 
 ---
 
@@ -93,7 +95,8 @@ Every decision point: **same turn** `present_options`. `checkpoint` (B.8) is **a
 ### 3.2 `phase0_complexity`
 
 - prompt: `Complexity: {complexity} — {reason_short}. Recommended: {phases}. Confirm?`
-- options: `confirm`→(/od n) · `adjust`→(/od ad) · `cancel`→(/od x)
+- options: `confirm`→(/od n) Confirm · `adjust`→(/od ad) Adjust · `cancel`→(/od x)
+- §8 rows must match this catalog only (do not invent `/od sk` / `/od al` here)
 
 ### 3.2b `phase0_s_fastpath` (S-level mandatory)
 
@@ -223,28 +226,35 @@ When unavailable, hint once per session → §8 STOP — WAIT. May record `codex
 
 ## 8. Pseudo-Popup
 
+**Render exactly as Markdown below** — copy structure, fill rows from §3 catalog. Do **not** invent borders, code-fence boxes, or pad-aligned `║` frames (they misalign with CJK).
+
 ```markdown
-## OmniDev · [title_zh]
+### OmniDev · [title_zh]
 
-| Option | Send next message |
-|--------|-------------------|
-| [Option A] [default] | `/od n` |
-| [Option B] | `/od ad` |
-| Cancel | `/od x` |
+[one-line prompt from §3]
 
-> Send a **full `/od` or `$od` command**. Bare numbers are invalid.
-> 💡 No native popup in this environment. Cursor: switch to Claude/GPT or Plan; Codex: enable default_mode_request_user_input.
+| | Action | Send |
+|---|--------|------|
+| **1** | [Option A] · default | `/od n` |
+| **2** | [Option B] | `/od ad` |
+| **3** | Cancel | `/od x` |
+
+Reply with a full `/od` / `$od` command — bare `1`/`2`/`3` invalid.
 ```
 
-**STOP — WAIT**. Forbid YAML metadata; forbid "reply 1/2/3".
+Environment hint (one line, only when native missing): `No native popup here. Cursor: Claude/GPT or Plan · Codex: enable default_mode_request_user_input.`
+
+**STOP — WAIT**. Forbid YAML metadata; forbid "reply 1/2/3"; forbid ASCII art UI.
 
 ---
 
 ## 9. Minimal Text — only when `interactive_mode=false`
 
+Same content as §8 table, plain lines OK — still **no** ASCII boxes:
+
 ```markdown
 Choose (full /od or $od; bare numbers invalid):
-1. [A] [default] → /od n
+1. [A] (default) → /od n
 2. [B] → /od ad
 3. Cancel → /od x
 ```

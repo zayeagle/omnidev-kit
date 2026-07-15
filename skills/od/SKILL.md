@@ -30,7 +30,7 @@ Activate **only** on **Signal A** (`/od` or `$od` line-start prefix). Attaching 
 → [engine/trigger-gate.md](engine/trigger-gate.md) · [engine/activation.md](engine/activation.md)
 
 ### B.4 — Interactive Prompt (primary working mode)
-`interactive_mode: true` is on by default. At decision points **must call the native tool first**, same turn as the summary; prose-only is forbidden. Keep short chat summaries (Phase 0 ≤6 lines); forbid `od_interactive` metadata or "reply 1/2/3". On native failure → §8 clean `/od`/`$od` table. **Always STOP — WAIT** (never auto-continue after a pseudo-popup).
+`interactive_mode: true` is on by default. At decision points **must call the native tool first**, same turn as the summary; prose-only is forbidden. Keep short chat summaries (Phase 0 ≤6 lines); forbid `od_interactive` metadata or "reply 1/2/3". On native failure → §8 clean Markdown `/od`/`$od` table (forbid ASCII/`╔═║` boxes). **Always STOP — WAIT** (never auto-continue after a pseudo-popup).
 → [engine/interactive-prompt.md](engine/interactive-prompt.md)
 
 ### B.11 — Session Resume
