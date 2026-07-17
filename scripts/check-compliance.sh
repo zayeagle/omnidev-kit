@@ -56,6 +56,7 @@ check_pat "skills/od/engine/trigger-gate.md" '\[\\/\$\]od' 'Explicit non-activat
 check_pat "skills/od/engine/activation.md" '\[\\/\$\]od' 'STOP' 'AskUserQuestion' 'WAIT'
 check_pat "skills/od/engine/interactive-prompt.md" 'STOP' 'WAIT' 'AskQuestion' 'phase0_s_fastpath' 'Decision Matrix' 'deploy_consent' 'Markdown Fallback Table' 'box-drawing' 'pending_decision'
 check_pat "skills/od/phases/00-assessment.md" 'phase0_s_fastpath'
+check_pat "skills/od/engine/board.md" 'autopilot' 'Resume-after-confirm' 'Hard gates' '/od auto'
 check_pat "skills/od/phases/02-planning.md" 'phase2_plan_ready'
 check_pat "skills/od/phases/05-deploy.md" 'deploy_consent' 'deploy_prod'
 check_pat "docs/omnidev-state/config.json" 'codex_auto_resolve'

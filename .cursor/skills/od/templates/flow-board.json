@@ -2,6 +2,7 @@
   "schema_version": 1,
   "status": "idle",
   "mode": "manual",
+  "autopilot": false,
   "current_phase": 0,
   "phases_enabled": [0, 1, 2, 3, 4, 5],
   "phases_skipped": [],

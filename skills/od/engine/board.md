@@ -13,9 +13,10 @@
 1. **Default `mode`: `manual`**. Never assume autopilot.
 2. **No phase work until `status` is `running` or `paused` after a successful `start`.** Showing the board alone must not advance phases.
 3. **Required phases** `0` (Assessment) and `3` (Development) cannot be skipped. Reject `--skip` that includes them.
-4. **Hard gates never auto**: `b0_confirm`, `deploy_prod` (and `pre_dev` when complexity M/L/XL). Even `mode=auto` must STOP — WAIT.
+4. **Hard gates never auto**: `b0_confirm`, `deploy_prod`, `pre_dev` (M/L/XL). Even `mode=auto` must STOP — WAIT; **after user confirms proceed, resume autopilot same turn** (§2.5).
 5. **Disk is truth**: `docs/omnidev-state/flow-board.json`. Chat/Canvas are views. After Codex compaction, re-read this file.
 6. Prefix: Cursor/Claude `/od board …` · Codex `$od board …` (either prefix accepted on all platforms per Signal A).
+7. **Autopilot resume is mandatory**: while `mode=auto`, never leave the user stranded after a successful hard-gate confirm — continue until next hard gate or `status=done`.
 
 ---
 
@@ -30,6 +31,7 @@
   "schema_version": 1,
   "status": "idle",
   "mode": "manual",
+  "autopilot": false,
   "current_phase": 0,
   "phases_enabled": [0, 1, 2, 3, 4, 5],
   "phases_skipped": [],
@@ -44,6 +46,7 @@
 |-------|--------|-------|
 | `status` | `idle` \| `running` \| `paused` \| `done` \| `cancelled` | `idle` = not started |
 | `mode` | `manual` \| `auto` | Set at `start`; locked until reset |
+| `autopilot` | `true` \| `false` | `true` when `mode=auto` or `/od auto`/`/od al`; drives resume-after-confirm |
 | `phases_enabled` | subset of 0–5 | Must include 0 and 3 |
 | `phases_skipped` | phases user opted out | Derived / stored for metrics |
 | `current_phase` | 0–5 | Next/active phase |
@@ -60,8 +63,10 @@ Also keep a human view: rewrite `docs/omnidev-state/flow-board.md` from [§5](#5
 | `/od board start [--mode manual\|auto] [--skip N,N]` | Validate → write state → `status=running` → enter first enabled phase |
 | `/od board next` | **Manual only**. Advance to next enabled phase (or finish). If `idle`, error: run `start` first. |
 | `/od board apply --skip N,N` | Update skip plan while `idle` (or before start wizard confirms). Locked after `running`. |
-| `/od board run [--skip N,N]` | Alias: `start --mode auto` then continuous advance |
+| `/od board run [--skip N,N]` | Alias: `start --mode auto` then continuous advance (§2.5) |
 | `/od board reset` | Back to `idle`, clear done; keep last skip prefs optional |
+| `/od auto [requirement?]` | **Autopilot entry** — same as `board run` (+ optional new requirement → Phase 0 first). Alias of `/od al` |
+| `/od al` | Same as `/od auto` for remaining/full flow; sets `deploy_autonomy: full` intent for Phase 5 assets |
 
 ### 2.1 Flag parsing
 
@@ -75,11 +80,12 @@ Also keep a human view: rewrite `docs/omnidev-state/flow-board.md` from [§5](#5
 2. If `status` is `running`/`paused` → prompt resume vs reset (`board_resume`).
 3. Merge CLI flags into state; compute `phases_enabled` = all − skipped; force include 0, 3.
 4. Set `status=running`, `current_phase` = min(enabled), `started_at`/`updated_at` now, `last_action=start`.
-5. Write JSON + Markdown view.
-6. Load phase instruction for `current_phase` and execute (same as normal `/od` phase entry).
-7. On phase-end checkpoint:
+5. If `mode=auto` → set `autopilot=true` (also mirror in session-log YAML `autopilot: true`).
+6. Write JSON + Markdown view.
+7. Load phase instruction for `current_phase` and execute (same as normal `/od` phase entry).
+8. On phase-end / decision:
    - **`manual`**: set `status=paused`, present `board_next` → **STOP — WAIT**
-   - **`auto`**: auto-select checkpoint `next` for non-hard gates; continue to next enabled phase; hard gates still popup
+   - **`auto`**: follow §2.5 (soft auto-pick; hard gates STOP; after confirm → resume)
 
 ### 2.3 `next` algorithm (manual)
 
@@ -88,15 +94,71 @@ Also keep a human view: rewrite `docs/omnidev-state/flow-board.md` from [§5](#5
 3. Next = smallest enabled phase > current; if none → `status=done`, checkpoint complete.
 4. Else set `current_phase`, `status=running`, load that phase file, continue.
 
-### 2.4 Relation to `/od n` / `/od sk` / `/od al`
+### 2.4 Relation to `/od n` / `/od sk` / `/od al` / `/od auto`
 
 | Legacy | Board |
 |--------|-------|
 | `/od n` | If board `paused`/`running`, treat as `board next` when `mode=manual`; else normal phase next |
 | `/od sk N` | If `idle`, update skip plan; if running, skip remaining optional phase N (not 0/3) |
-| `/od al` | Equivalent intent to `board run` (respect hard gates) |
+| `/od al` / `/od auto` | `board run` (+ remaining phases if already mid-flow); respect hard gates; **resume-after-confirm** (§2.5) |
 
-Prefer documenting `board *` as the control-plane API; keep legacy commands working.
+Prefer documenting `board *` + `/od auto` as the control-plane API; keep legacy `/od al` working.
+
+### 2.5 Autopilot contract (`mode=auto` / `autopilot=true`)
+
+**Goal**: One command runs the **entire** enabled phase pipeline. Soft decisions take catalog defaults. Hard gates ask the user once; **after affirmative confirm, continue automatically** until the next hard gate or `status=done` — no second `/od auto` required.
+
+#### Soft gates (auto-accept **default** option; do **not** STOP)
+
+| decision_point | Auto-pick |
+|----------------|-----------|
+| `phase0_complexity` / `phase0_s_fastpath` | `confirm` / `fast` |
+| `checkpoint` (B.8) / `board_next` | `next` |
+| `blueprint_approach` | first recommended / `approach_a` if marked default |
+| `assumptions_confirm` | `accept` |
+| `open_questions` | `accept_defaults` |
+| `phase2_plan_ready` | `next` |
+| `change_impact` (on-scope) | `proceed` |
+| `test_layers` | `accept_plan` |
+| `gap_backfill` | `implement_now` |
+| `deploy_consent` | `apply_fix` when `deploy_autonomy: full` (set by `/od auto`/`/od al`) |
+
+Log each soft auto-pick to session-log `## Key Decisions` as `autopilot_default: {id}`.
+
+#### Hard gates (STOP — WAIT; show §8/native UI)
+
+| decision_point | Notes |
+|----------------|-------|
+| `b0_confirm` | Always |
+| `pre_dev` | Required for complexity M/L/XL |
+| `deploy_prod` | Always (production execution) |
+| `test_gate_fail` | Always (failure disposition) |
+
+When presenting a hard gate under autopilot, footer **must** include:
+
+`Autopilot paused · confirm to resume full flow · /od 1 or /od y`
+
+Also set `pending_decision.autopilot_resume: true`.
+
+#### Resume-after-confirm (mandatory)
+
+After user affirms via UI pick / `/od y` / `/od n` (when that maps to proceed) / `/od 1` (default row) / bare `1` with pending:
+
+1. Clear `pending_decision`.
+2. If choice is **revise / cancel / no / non-default** → set `autopilot=false`, `mode=manual` (or `paused`), **STOP — WAIT**.
+3. If choice is **proceed / yes / confirm / default** **and** `autopilot=true` (or `mode=auto`):
+   - Keep `status=running`, `autopilot=true`
+   - **Same activation**: continue remaining tasks in current phase, then remaining enabled phases, applying soft-gate defaults
+   - Do **not** ask the user to send `/od auto` again
+4. Repeat until next hard gate or all enabled phases `done`.
+
+#### Start / mid-flow entry
+
+| Command | Behavior |
+|---------|----------|
+| `/od auto` / `/od al` / `/od board run` | Idle → `start --mode auto` from first enabled phase. Mid-flow → set `mode=auto`,`autopilot=true`, continue from `current_phase` |
+| `/od auto [requirement]` | Write requirement → Phase 0 assessment → soft-accept complexity → continue §2.5 |
+| Chat hint (Phase 0 summary / board idle) | One line: `Full auto: /od auto  ·  confirms only at hard gates, then continues` |
 
 ---
 
@@ -168,8 +230,10 @@ Rewrite `docs/omnidev-state/flow-board.md` on each mutation:
 
 ## Controls
 - Start: `/od board start --mode manual` (default) or `--mode auto`
+- Full autopilot: `/od auto` / `/od al` / `/od board run`
 - Next (manual): `/od board next`
 - Reset: `/od board reset`
+- After hard-gate confirm in auto: continues automatically
 ```
 
 Chat may show a 6-row compact table (same data), then STOP — WAIT when waiting for user.
@@ -206,7 +270,9 @@ Do **not** overwrite an existing in-progress `flow-board.json` on update.
 |-------------|---------|
 | Open controls (no run) | `/od board` |
 | Manual run (default) | `/od board start` |
-| Autopilot | `/od board start --mode auto` |
-| Skip blueprint+deploy | `/od board start --skip 1,5` |
-| Continue after pause | `/od board next` |
-| Codex same | `$od board` / `$od board start` … |
+| **Full autopilot** | `/od auto` or `/od al` or `/od board run` |
+| Autopilot + new requirement | `/od auto [requirement]` |
+| Skip blueprint+deploy | `/od board start --mode auto --skip 1,5` |
+| Continue after pause (manual) | `/od board next` |
+| After hard-gate confirm (auto) | *(automatic resume — no extra command)* |
+| Codex same | `$od auto` / `$od board run` … |

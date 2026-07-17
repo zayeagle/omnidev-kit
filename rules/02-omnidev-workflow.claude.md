@@ -23,9 +23,10 @@ Bare `n`/`ad`/`continue` or digit without pending → one-line tip:
 | Resume / crash recovery | `/od re` |
 | Next phase | `/od n` |
 | Index pick | `/od 1`…`/od 9` or bare `1`…`9` (pending) |
+| Full autopilot | `/od auto` / `/od al` |
 | Revise | `/od ad` |
 
-Checkpoint → `AskUserQuestion` → **STOP — WAIT** → UI pick, `/od N`, or `/od` command.
+Checkpoint → `AskUserQuestion` → **STOP — WAIT** on hard gates → UI pick, `/od N`, or `/od` command; autopilot then resumes.
 
 ## DO NOT ACTIVATE
 

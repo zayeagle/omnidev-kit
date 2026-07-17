@@ -44,7 +44,11 @@ function skipArg(enabled: Record<string, boolean>): string {
 }
 
 function startPrompt(mode: RunMode, enabled: Record<string, boolean>): string {
-  return `/od board start --mode ${mode} --skip ${skipArg(enabled)}`;
+  const skip = skipArg(enabled);
+  if (mode === "auto") {
+    return skip === "none" ? "/od auto" : `/od board run --skip ${skip}`;
+  }
+  return `/od board start --mode manual --skip ${skip}`;
 }
 
 export default function OmniDevBoardTemplate() {
@@ -92,7 +96,7 @@ export default function OmniDevBoardTemplate() {
       <Stack gap={8}>
         <H1>OmniDev Flow Board</H1>
         <Text tone="secondary">
-          Default manual. Choose mode and phases, then Start. Buttons send /od board commands.
+          Default manual. Full autopilot: /od auto (hard gates ask once, then continues).
         </Text>
       </Stack>
 
@@ -103,7 +107,7 @@ export default function OmniDevBoardTemplate() {
 
       <Callout tone="warning" title="Install-integrated control plane">
         This Canvas is a Cursor shell. Codex/Claude use popup wizards against the same
-        flow-board.json. Execution only begins after /od board start.
+        flow-board.json. Prefer /od auto for full autopilot; or /od board start.
       </Callout>
 
       <Grid columns={2} gap={16}>

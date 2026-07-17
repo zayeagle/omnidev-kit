@@ -23,6 +23,7 @@ Auto-generate/update `session-log.md` at:
 | `/od st` (stash) | Write session-log as part of stash |
 | Phase exit (every checkpoint) | Minimal snapshot: phase, group, feature, last decision. **No state file body copy.** |
 | Interactive `present_options` | Set `pending_decision` (interactive-prompt §8.1); clear on pick |
+| `/od auto` / `/od al` / board `mode=auto` | Set `autopilot: true`; clear when user cancels/revises off autopilot or flow `done` |
 
 ## 3. Session Log Format
 
@@ -43,6 +44,7 @@ mid_task_files: ["src/pages/users.tsx", "src/api/users.ts"]
 resume_payload: null
 resume_payload_at: null
 pending_decision: null
+autopilot: false
 ---
 
 ## Session Goal

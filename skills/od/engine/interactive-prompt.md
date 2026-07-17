@@ -42,11 +42,12 @@ OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|md_tabl
 |------|--------|
 | A | `interactive_mode=false` → §9 |
 | B | resolve platform (`platform_override` → activation §2) |
-| C | native in list → §3 catalog → §4/§5/§6 |
-| D | missing/error → §8 Markdown table (with platform hint) |
-| E | Write `pending_decision` (§8.1) → **STOP — WAIT** |
+| C | If `flow-board.autopilot`/`mode=auto` and decision is **soft** ([board.md](board.md) §2.5) → auto-pick default, log, **no STOP** |
+| D | native in list → §3 catalog → §4/§5/§6 |
+| E | missing/error → §8 Markdown table (with platform hint) |
+| F | Write `pending_decision` (§8.1); if autopilot hard gate → footer resume hint → **STOP — WAIT** |
 
-**UI pick** (same-turn tool return) = valid advance (clear pending). Next typed: `/od …`, `$od …`, `/od N`, or bare `N` if pending.
+**UI pick** (same-turn tool return) = valid advance (clear pending). If autopilot + affirmative → [board.md §2.5](board.md) resume (do not idle). Next typed: `/od …`, `$od …`, `/od N`, or bare `N` if pending.
 
 ---
 
@@ -96,13 +97,13 @@ Every decision point: **same turn** `present_options`. `checkpoint` (B.8) is **a
 ### 3.2 `phase0_complexity`
 
 - prompt: `Complexity: {complexity} — {reason_short}. Recommended: {phases}. Confirm?`
-- options: `confirm`→(/od n) Confirm · `adjust`→(/od ad) Adjust · `cancel`→(/od x)
-- §8 rows must match this catalog only (do not invent `/od sk` / `/od al` here)
+- options: `confirm`→(/od n) Confirm · `autopilot`→(/od auto) Confirm + full autopilot · `adjust`→(/od ad) Adjust · `cancel`→(/od x)
+- §8 rows must match this catalog (include `/od auto` row). If already `autopilot=true`, soft-accept `confirm` per board §2.5.
 
 ### 3.2b `phase0_s_fastpath` (S-level mandatory)
 
 - prompt: `Assessed as S (fast path). Confirm go straight to development, or upgrade complexity?`
-- options: `fast`→confirm S → development [default] (/od n) · `upgrade`→upgrade to M/L (/od ad) · `cancel`→(/od x)
+- options: `fast`→confirm S → development [default] (/od n) · `autopilot`→(/od auto) fast + full autopilot · `upgrade`→upgrade to M/L (/od ad) · `cancel`→(/od x)
 
 ### 3.3 `blueprint_approach`
 
@@ -245,9 +246,14 @@ When unavailable, hint once per session → §8 STOP — WAIT. May record `codex
 | **3** | Cancel | `/od x` |
 
 Reply **`/od 1`** (or bare **`1`**) for row 1 — or the Send command. Codex: `$od 1`.
+Full auto anytime: `/od auto` (hard gates still ask; confirm then continues).
 ```
 
 `pre_dev` Send column often `/od y` · `/od ad` · `/od x`.
+
+When `pending_decision.autopilot_resume: true`, append one line:
+
+`Autopilot paused · confirm to resume full flow · /od 1 or /od y`
 
 Hint (one line, native missing only): `No native UI here. Cursor: Claude/GPT or Plan · Codex: enable default_mode_request_user_input.`
 
@@ -272,7 +278,8 @@ pending_decision:
     - { id: cancel, command: "/od x" }
 ```
 
-Resolve: run that row's `command` (or catalog `id`) → clear `pending_decision` → continue. Out-of-range → one-line error + re-show table. Native UI pick also clears pending.
+Resolve: run that row's `command` (or catalog `id`) → clear `pending_decision` → continue. Out-of-range → one-line error + re-show table. Native UI pick also clears pending.  
+If `autopilot_resume` and pick is affirmative → **resume autopilot same turn** ([board.md §2.5](board.md)); do not STOP after confirm.
 
 ---
 

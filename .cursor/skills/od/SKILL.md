@@ -47,7 +47,7 @@ Activate **only** on **Signal A** (`/od` or `$od` line-start prefix) or **Signal
 | B.3 State Files | `docs/omnidev-state/` · active+history pair · append-only | [engine/document-history.md](engine/document-history.md) |
 | B.5 Context Lifecycle | HOT≤150 · WARM≤250 · COLD disk on-demand · purge on phase end | [engine/context-lifecycle.md](engine/context-lifecycle.md) |
 | B.6 Config | `/od cfg` · `interactive_mode`/`board_ui`/`auto_checkpoint`/`design_split` | [engine/user-preferences.md](engine/user-preferences.md) · [engine/board.md](engine/board.md) |
-| B.8 Checkpoint | ≤12 lines · 2-4 options · STOP-WAIT | [engine/special-flows.md](engine/special-flows.md) §3.1 |
+| B.8 Checkpoint | ≤12 lines · 2-4 options · STOP-WAIT · autopilot soft-skips | [engine/special-flows.md](engine/special-flows.md) §3.1 · [board.md](engine/board.md) §2.5 |
 | B.9 Progress | `[✅/🔄/⏳] Task — Time` → `03-progress.md` | [phases/03-development.md](phases/03-development.md) §1 |
 | B.10 Errors | Log → diagnose → propose fix → confirm (B.0) | [engine/special-flows.md](engine/special-flows.md) §5 |
 | B.12 Stash | `/od st` save, `/od po` restore | [engine/stash.md](engine/stash.md) |
@@ -79,6 +79,7 @@ Activate **only** on **Signal A** (`/od` or `$od` line-start prefix) or **Signal
 | Phase 5 / Deploy | [phases/05-deploy.md](phases/05-deploy.md) |
 | `/od push`, `/od change`, `/od report`, `/od compress`, `/od up`, `/od i` | [engine/special-flows.md](engine/special-flows.md) |
 | `/od board`, `/od board start\|next\|apply\|run\|reset` | [engine/board.md](engine/board.md) |
+| `/od auto`, `/od al` | [engine/board.md](engine/board.md) §2.5 autopilot |
 | `/od sy`, `/od db` | [engine/special-flows.md](engine/special-flows.md) §7–§8 |
 | `/od gv`, `/od governance` | [engine/governance.md](engine/governance.md) |
 | `/od learn`, `/od ln` | [engine/evolution.md](engine/evolution.md) |
@@ -196,12 +197,12 @@ Only when `docs/omnidev-state/config.json` → `"codex_auto_resolve": true` and 
 
 ### F.2.1 Flow Board shells (maps [board.md](engine/board.md))
 
-Shared state: `docs/omnidev-state/flow-board.json`. Commands: `/od board` · `$od board` (start/next/…). Default **manual**; only **`board start`** begins phases.
+Shared state: `docs/omnidev-state/flow-board.json`. Commands: `/od board` · `/od auto` · `$od board` / `$od auto`. Default **manual**; **`board start`** or **`/od auto`** begins phases. Autopilot: soft gates auto-default; hard gates STOP then **resume same turn** after confirm ([board.md §2.5](engine/board.md)).
 
 | Platform | Board UI |
 |----------|----------|
-| **All** | Rewrite `flow-board.md`; short chat table; STOP — WAIT when waiting |
-| **Codex / Claude / CLI** | Wizard via `board_mode` → skip → `board_confirm_start` (§3.10) |
+| **All** | Rewrite `flow-board.md`; short chat table; STOP — WAIT only on hard gates / manual pause |
+| **Codex / Claude / CLI** | Wizard via `board_mode` → skip → `board_confirm_start` (§3.10); offer `auto` |
 | **Cursor** | Same wizard (guaranteed) + optional Canvas from `templates/board.canvas.tsx` when `board_cursor_canvas: true` |
 
 ### F.3 Sub-Agent / Worker Dispatch (maps token-optimization §2, context-lifecycle §10, special-flows §2.2)

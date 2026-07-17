@@ -13,7 +13,7 @@
 
 **Resume / crash recovery**: `/od re` or `$od re` — reads `session-log.md` from disk, no chat-context inference.
 
-**Advance**: `/od n`, `/od 1`, `/od ad`, `/od ch`, … (Codex: `$od n` / `$od 1`) — or bare index when pending. Native UI pick in-turn is OK.
+**Advance**: `/od n`, `/od 1`, `/od auto`, `/od ad`, `/od ch`, … (Codex: `$od n` / `$od auto`) — or bare index when pending. Native UI pick in-turn is OK. Autopilot (`/od auto`): soft gates auto-default; after hard-gate confirm, continues remaining phases without another command.
 
 ## Platform support
 

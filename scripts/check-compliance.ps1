@@ -54,7 +54,7 @@ if (-not (Test-Path $r2)) {
 $checks = @(
   @{ Path = "skills\od\engine\interactive-prompt.md"; Need = @('STOP', 'WAIT', 'AskQuestion', 'phase0_s_fastpath', 'Decision Matrix', 'deploy_consent', 'Markdown Fallback Table', 'box-drawing', 'pending_decision', 'codex_auto_resolve', 'allow_auto_resolve') },
   @{ Path = "skills\od\engine\trigger-gate.md"; Need = @('[\/$]od', 'Explicit non-activation feedback', 'STOP', 'pending_decision', 'A-index') },
-  @{ Path = "skills\od\phases\00-assessment.md"; Need = @('phase0_s_fastpath') },
+  @{ Path = "skills\od\engine\board.md"; Need = @('autopilot', 'Resume-after-confirm', 'Hard gates', '/od auto') },
   @{ Path = "skills\od\phases\02-planning.md"; Need = @('phase2_plan_ready') },
   @{ Path = "skills\od\phases\05-deploy.md"; Need = @('deploy_consent', 'deploy_prod') },
   @{ Path = "docs\omnidev-state\config.json"; Need = @('codex_auto_resolve') },

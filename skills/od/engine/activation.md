@@ -25,7 +25,8 @@ Load path: resolve from installed skill root (`skills/od/engine/activation.md` o
 1. Read `session-log.md` `pending_decision` (tool call first)
 2. Resolve via [interactive-prompt.md](interactive-prompt.md) §8.1
 3. Clear pending → route as that option's `command` / `id`
-4. Do **not** re-run Phase 0 assessment
+4. If `autopilot=true` / `pending_decision.autopilot_resume` and pick is affirmative → [board.md](board.md) §2.5 **resume same turn** (do not re-run Phase 0; do not STOP)
+5. Else continue normal phase routing
 
 **Forbidden when triggered:**
 - Jumping straight to code without loading phase instruction file (except §0.1 after a prior decision)
@@ -106,8 +107,9 @@ Parse after stripping `/od` or `$od` (Signal A only):
 | `ch` / `change` | `engine/special-flows.md` §2 | — |
 | `gv` / `ln` / `st` / `po` / `x` / `cfg` / `compress` / `db` / `sy` / `rp` / `up` / `i` | per SKILL.md C.0 | — |
 | `n` / `next` | current phase + 1 · if board `paused`+manual → `engine/board.md` `next` | continue |
-| `1`–`9` (digit only) | [interactive-prompt.md](interactive-prompt.md) §8.1 index pick | pending option |
-| `ad` / `sk` / `bk` / `al` | current phase instruction · `al`≈`board run` | adjust |
+| `1`–`9` (digit only) | [interactive-prompt.md](interactive-prompt.md) §8.1 index pick · if `autopilot`+affirmative → [board.md](board.md) §2.5 resume | pending option |
+| `auto` / `al` / `all` | [board.md](board.md) §2.5 autopilot (`board run` + resume-after-confirm) | full flow |
+| `ad` / `sk` / `bk` | current phase instruction | adjust |
 | `[requirement]` (default) | `phases/00-assessment.md` | **0** |
 
 **Default flow**: full bootstrap. Stale `in_progress` → interactive resume vs restart — do not skip bootstrap.

@@ -24,9 +24,10 @@ Bare `n`/`ad`/`continue` or digit without pending → one-line tip:
 | Flow board (manual default) | `$od board` / `$od board start` / `$od board next` |
 | Next phase | `/od n` or `$od n` |
 | Index pick | `/od 1`…`/od 9` / `$od 1`… or bare `1`…`9` (pending) |
+| Full autopilot | `/od auto` / `$od auto` / `/od al` |
 | Revise | `/od ad` or `$od ad` |
 
-Checkpoint → `request_user_input` → **STOP — WAIT** → UI pick, `$od N`, or `/od`/`$od` command.
+Checkpoint → `request_user_input` → **STOP — WAIT** on hard gates → UI pick, `$od N`, or `/od`/`$od` command; autopilot then resumes.
 
 ## DO NOT ACTIVATE
 

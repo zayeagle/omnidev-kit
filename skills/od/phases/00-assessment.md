@@ -68,6 +68,7 @@ First output a brief summary to the conversation (NOT in the popup). **Hard cap:
 **Phase 0 complete** · Complexity **[S/M/L/XL]** — [reason, ≤1 sentence]
 Structure: [fullstack|frontend-only|backend-only|monorepo] · [fw stack]
 Path: [phases] · Confirm: [full|reduced|minimal]
+Full auto: `/od auto` — hard gates ask once, then continues
 ```
 
 Do **not** wrap this summary (or the §8 fallback) in box-drawing / `||` / `+--+` frames.

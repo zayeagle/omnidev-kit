@@ -62,10 +62,10 @@ All commands require **`/od` prefix** (except bare index pick — see below). Sh
 | `/od board start [--mode manual\|auto] [--skip N,N]` | — | **Only entry that starts execution** (default `--mode manual`) |
 | `/od board next` | — | Manual mode: advance after pause |
 | `/od board apply --skip N,N` | — | Set skip plan while idle |
-| `/od board run [--skip N,N]` | — | `start --mode auto` then continuous advance |
+| `/od board run [--skip N,N]` | `/od auto` | `start --mode auto` then continuous advance; **resume after hard-gate confirm** |
 | `/od board reset` | — | Back to idle |
 
-Required phases **0** and **3** cannot be skipped. Hard gates still confirm in `auto`.
+Required phases **0** and **3** cannot be skipped. Soft gates auto-default in `auto`; hard gates still confirm — then autopilot continues ([board.md §2.5](board.md)).
 
 ## Phase Navigation
 
@@ -76,7 +76,7 @@ Required phases **0** and **3** cannot be skipped. Hard gates still confirm in `
 | `/od ad [content]` | `/od adj` | Revise current phase output |
 | `/od sk [phase]` | `/od skip` | Skip phase (0–5); board idle → updates skip plan |
 | `/od bk [phase]` | `/od back` | Go back to phase |
-| `/od al` | `/od all` | Run remaining phases (≈ `board run`; **includes deploy_autonomy: full** — production execution still needs confirm) |
+| `/od auto [requirement?]` | `/od al` / `/od all` | **Full autopilot**: run all remaining enabled phases; hard gates ask once, then auto-continue ([board.md §2.5](board.md)); sets `deploy_autonomy: full` intent |
 
 ## Confirmation
 
