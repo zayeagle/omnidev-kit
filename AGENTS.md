@@ -6,13 +6,14 @@
 
 | Trigger | Load OmniDev workflow? |
 |---------|------------------------|
-| Message starts with `/od` or `$od` | **Yes** |
+| Message starts with `/od` or `$od` (incl. `/od 1`) | **Yes** |
+| Bare `1`–`9` **and** session-log has matching `pending_decision` | **Yes** (index pick only) |
 | `@od` skill attached without `/od` prefix | **No** (reference only) |
-| Anything else (incl. bare `1`, `n`, `continue`) | **No** — if bare workflow intent, one-line tip only |
+| Anything else (incl. bare `n`, `continue`, digit without pending) | **No** — if bare workflow intent, one-line tip only |
 
 **Resume / crash recovery**: `/od re` or `$od re` — reads `session-log.md` from disk, no chat-context inference.
 
-**Advance**: `/od n`, `/od ad`, `/od ch`, … (Codex: `$od n` etc.) — every typed step needs prefix. Native UI pick in-turn is OK.
+**Advance**: `/od n`, `/od 1`, `/od ad`, `/od ch`, … (Codex: `$od n` / `$od 1`) — or bare index when pending. Native UI pick in-turn is OK.
 
 ## Platform support
 

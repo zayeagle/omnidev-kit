@@ -22,6 +22,7 @@ Auto-generate/update `session-log.md` at:
 | Long no-response during Q&A Loop (session ends naturally) | On next `/od re`, backfill from available context |
 | `/od st` (stash) | Write session-log as part of stash |
 | Phase exit (every checkpoint) | Minimal snapshot: phase, group, feature, last decision. **No state file body copy.** |
+| Interactive `present_options` | Set `pending_decision` (interactive-prompt §8.1); clear on pick |
 
 ## 3. Session Log Format
 
@@ -41,6 +42,7 @@ mid_task: T6
 mid_task_files: ["src/pages/users.tsx", "src/api/users.ts"]
 resume_payload: null
 resume_payload_at: null
+pending_decision: null
 ---
 
 ## Session Goal

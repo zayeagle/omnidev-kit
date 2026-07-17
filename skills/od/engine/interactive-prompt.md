@@ -20,13 +20,14 @@
 1. Short chat summary (Phase 0 ≤6 lines; checkpoint ≤12 lines)
 2. Forbid `od_interactive` / YAML metadata in chat → session-log only
 3. Native success → do not also print an options table
-4. Labels and §8 always use `/od …` or `$od …` (forbid "reply 1/2/3")
+4. §8 rows show Send commands; user may reply **`/od N` / `$od N`** or (when `pending_decision` on disk) bare **`N`** — see §8.1. Forbid inventing options outside §3 catalog
 5. Tool exists but skipped = **violation**; no tool → §8 + environment hint
-6. **STOP — WAIT** until UI pick or next Signal A/B
+6. **STOP — WAIT** until UI pick, `/od`/`$od` command, `/od N`, or bare `N` with pending
 7. `interactive_mode` defaults to `true`. Setting `false` requires explicit user `/od cfg -i off` confirm (via `b0_confirm`); otherwise keep popups
 8. **Workers / sub-agents must not** prompt the user or make product decisions alone; only Orchestrator calls this file
 9. Codex: **do not set** `autoResolutionMs` by default. Only when `config.codex_auto_resolve: true` and the decision point marks `allow_auto_resolve` (non-default path)
 10. **Chat UX ban**: never emit box-drawing / pad-aligned frames (`+--+`, `╔═║└┘│─`, double `||` borders, code-fence "cards"). §8 = Markdown `|` table only; §9 = plain numbered lines
+11. On every `present_options` (native or §8/§9): persist `pending_decision` to session-log YAML; clear on pick
 
 ---
 
@@ -34,7 +35,7 @@
 
 ```
 INPUT:  decision_point (from §3), options[{id,label}]?, title_zh?, allow_multiple?, blocking?
-OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|md_table|text_fallback
+OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|md_table|text_fallback|index_pick
 ```
 
 | Step | Action |
@@ -43,9 +44,9 @@ OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|md_tabl
 | B | resolve platform (`platform_override` → activation §2) |
 | C | native in list → §3 catalog → §4/§5/§6 |
 | D | missing/error → §8 Markdown table (with platform hint) |
-| E | **STOP — WAIT** |
+| E | Write `pending_decision` (§8.1) → **STOP — WAIT** |
 
-**UI pick** (same-turn tool return) = valid advance. Next **typed** message still needs `/od` or `$od`.
+**UI pick** (same-turn tool return) = valid advance (clear pending). Next typed: `/od …`, `$od …`, `/od N`, or bare `N` if pending.
 
 ---
 
@@ -237,30 +238,51 @@ When unavailable, hint once per session → §8 STOP — WAIT. May record `codex
 
 [one-line prompt from §3]
 
-| | Action | Send |
+| # | Action | Send |
 |---|--------|------|
-| **1** | [Option A] · default | `/od y` |
+| **1** | [Option A] · default | `/od n` |
 | **2** | [Option B] | `/od ad` |
 | **3** | Cancel | `/od x` |
 
-Reply with a full `/od` / `$od` command — bare `1`/`2`/`3` invalid.
+Reply **`/od 1`** (or bare **`1`**) for row 1 — or the Send command. Codex: `$od 1`.
 ```
 
-`pre_dev` example Send column: `/od y` · `/od ad` · `/od x`. Other catalogs may use `/od n` etc.
+`pre_dev` Send column often `/od y` · `/od ad` · `/od x`.
 
 Hint (one line, native missing only): `No native UI here. Cursor: Claude/GPT or Plan · Codex: enable default_mode_request_user_input.`
 
-**STOP — WAIT**. Forbid YAML in chat; forbid "reply 1/2/3"; **forbid any drawn UI**.
+**Same turn** before STOP: write `pending_decision` (§8.1). **STOP — WAIT**. Forbid YAML/`od_interactive` in chat; **forbid any drawn UI**.
+
+### 8.1 Index pick (`/od N` or bare `N`)
+
+| User sends | When valid | Action |
+|------------|------------|--------|
+| `/od 1`…`/od 9` / `$od 1`… | Always (Signal A) | Map to `pending_decision.options[N-1]` |
+| Bare `1`…`9` (whole message) | Only if session-log has that index in `pending_decision` | Same map (disk-gated) |
+| Bare `1`…`9` without pending | Invalid | trigger-gate §2.1 tip |
+
+Persist (session-log YAML frontmatter; replace prior):
+
+```yaml
+pending_decision:
+  decision_point: phase0_complexity
+  options:
+    - { id: confirm, command: "/od n" }
+    - { id: adjust, command: "/od ad" }
+    - { id: cancel, command: "/od x" }
+```
+
+Resolve: run that row's `command` (or catalog `id`) → clear `pending_decision` → continue. Out-of-range → one-line error + re-show table. Native UI pick also clears pending.
 
 ---
 
 ## 9. Minimal Text — only when `interactive_mode=false`
 
-Plain numbered lines only (same ban on frames):
+Plain numbered lines; still write `pending_decision`:
 
 ```markdown
-Choose (full /od or $od; bare numbers invalid):
-1. [A] (default) → /od y
+Choose (`/od 1` or bare `1` OK when pending; or full command):
+1. [A] (default) → /od n
 2. [B] → /od ad
 3. Cancel → /od x
 ```
@@ -270,7 +292,7 @@ Choose (full /od or $od; bare numbers invalid):
 ## 10. Logging (session-log only)
 
 ```json
-{"type":"interactive_prompt","method":"cursor_ask|claude_ask|codex_input|md_table|text_fallback","platform":"cursor","decision_point":"phase0_complexity","native_attempted":true}
+{"type":"interactive_prompt","method":"cursor_ask|claude_ask|codex_input|md_table|text_fallback|index_pick","platform":"cursor","decision_point":"phase0_complexity","native_attempted":true,"index":1}
 ```
 
 ---
@@ -279,7 +301,7 @@ Choose (full /od or $od; bare numbers invalid):
 
 | Platform | Primary | Fallback |
 |----------|---------|----------|
-| Cursor | §4 | §8 |
-| Claude | §5 | §8 |
-| Codex | §6 (no autoResolution) | §6.1 + §8 |
+| Cursor | §4 | §8 + `/od N` / bare `N` |
+| Claude | §5 | §8 + `/od N` / bare `N` |
+| Codex | §6 (no autoResolution) | §6.1 + §8 + `$od N` |
 | CLI | §8 | §9 |

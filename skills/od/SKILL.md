@@ -26,11 +26,11 @@ description: >-
 → Full rules: [engine/context-lifecycle.md](engine/context-lifecycle.md) §1 · [engine/interactive-prompt.md](engine/interactive-prompt.md) §3.4 `b0_confirm`
 
 ### B.1 — Trigger & Activation
-Activate **only** on **Signal A** (`/od` or `$od` line-start prefix). Attaching `@od` / invoking the skill **without** that prefix does **not** start the workflow (reference only). Phases 0–5 in order; `/od re`/`$od re` resume from disk; bare `1`/`n`/`continue` do not trigger (may show a one-line "OmniDev not active" tip).
+Activate **only** on **Signal A** (`/od` or `$od` line-start prefix) or **Signal A-index** (bare `1`–`9` when session-log has `pending_decision`). Attaching `@od` / invoking the skill **without** that prefix does **not** start the workflow (reference only). Phases 0–5 in order; `/od re`/`$od re` resume from disk; bare `n`/`continue` do not trigger (may show a one-line tip). Index pick: `/od 1` or bare `1` with pending — see interactive-prompt §8.1.
 → [engine/trigger-gate.md](engine/trigger-gate.md) · [engine/activation.md](engine/activation.md)
 
 ### B.4 — Interactive Prompt (primary working mode)
-`interactive_mode: true` is on by default. At decision points **must call the native tool first**, same turn as the summary; prose-only is forbidden. Keep short chat summaries (Phase 0 ≤6 lines); forbid `od_interactive` metadata or "reply 1/2/3". On native failure → §8 **Markdown `/od` table** only. **Hard ban**: box-drawing / `||` / `+--+` / pad-aligned "fake modal" frames (CJK breaks them). **Always STOP — WAIT** (never auto-continue after §8).
+`interactive_mode: true` is on by default. At decision points **must call the native tool first**, same turn as the summary; prose-only is forbidden. Keep short chat summaries (Phase 0 ≤6 lines); forbid `od_interactive` metadata in chat. On native failure → §8 **Markdown `/od` table** + write `pending_decision`. User may reply **`/od N`** or bare **`N`** (with pending). **Hard ban**: box-drawing / `||` / `+--+` / pad-aligned "fake modal" frames. **Always STOP — WAIT**.
 → [engine/interactive-prompt.md](engine/interactive-prompt.md)
 
 ### B.11 — Session Resume
@@ -165,7 +165,7 @@ When `interactive_mode=true`:
 
 1. Output **short** summary only (Phase 0 ≤6 lines; checkpoint ≤12 lines) — do not paste the full assessment into chat
 2. **Immediately invoke** native tool using §3 catalog + §4/§5/§6 wrapper — **forbidden** to end turn with prose-only options when the tool exists
-3. On tool **absent**, error, or "unavailable in this chat mode" → **copy §8 Markdown table verbatim** same turn (forbid "reply 1/2/3"; forbid drawn frames) → **STOP — WAIT**
+3. On tool **absent**, error, or "unavailable in this chat mode" → **copy §8 Markdown table verbatim** same turn + write `pending_decision` (forbid drawn frames) → **STOP — WAIT**. Next: `/od N`, bare `N`, or Send command.
 4. Log `native_attempted: true` + method to **session-log** (do not paste into chat)
 5. Decision points: follow [interactive-prompt.md](engine/interactive-prompt.md) **§3 Decision Matrix** (full Phase 0–5 coverage, including S-level `phase0_s_fastpath`)
 
@@ -259,7 +259,7 @@ When `sub_agents` is `auto` or `on` and platform is Codex, dispatch tasks via th
 | **Claude Code** | `CLAUDE.md` + `rules/02-omnidev-workflow.claude.md` |
 | **Codex** | `rules/03-omnidev-workflow.codex.md` + skill `description` |
 
-**Not a trigger**: skill listing / `@od` without `/od` prefix; mid-sentence `/od` mention; bare checkpoint replies.
+**Not a trigger**: skill listing / `@od` without `/od` prefix; mid-sentence `/od` mention; bare `n`/`continue` (bare `1`–`9` only with disk `pending_decision`).
 
 **Iteration**: Every typed workflow step requires `/od` or `$od` prefix. Checkpoint → STOP → UI pick **or** next full `/od`/`$od` command.
 

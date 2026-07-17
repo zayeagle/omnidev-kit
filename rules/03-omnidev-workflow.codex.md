@@ -1,5 +1,5 @@
 ---
-description: OmniDev trigger gate for Codex — /od or $od line-start prefix only. Skill invoke without prefix does NOT activate.
+description: OmniDev trigger gate for Codex — /od, $od, or bare index with pending_decision. Skill invoke without prefix does NOT activate.
 alwaysApply: true
 ---
 
@@ -7,15 +7,14 @@ alwaysApply: true
 
 → Spec: `~/.codex/skills/od/engine/trigger-gate.md`
 
-## ACTIVATE — Signal A only
+## ACTIVATE
 
-1. **Signal A**: Message starts with `/od` **or** `$od` (equivalent)
-2. **Not a trigger**: od skill invoke / SKILL body without `/od`/`$od` prefix — reference only
+1. **Signal A**: Message starts with `/od` **or** `$od` (equivalent) — includes `/od 1` / `$od 1`
+2. **Signal A-index**: Bare `1`–`9` + session-log `pending_decision`
+3. **Not a trigger**: od skill invoke without `/od`/`$od` — reference only
 
-No session-context inference. No bare `1`/`n`/`continue`.
-
-Bare workflow-looking replies → one-line tip only:
-`⚠️ OmniDev is not active. Send /od n or $od n. Resume with /od re.`
+Bare `n`/`ad`/`continue` or digit without pending → one-line tip:
+`⚠️ OmniDev is not active. Use /od 1 or $od 1 (row index), /od n, or /od re.`
 
 ## Advance & resume
 
@@ -24,17 +23,13 @@ Bare workflow-looking replies → one-line tip only:
 | Resume / crash recovery | `/od re` or `$od re` |
 | Flow board (manual default) | `$od board` / `$od board start` / `$od board next` |
 | Next phase | `/od n` or `$od n` |
+| Index pick | `/od 1`…`/od 9` / `$od 1`… or bare `1`…`9` (pending) |
 | Revise | `/od ad` or `$od ad` |
 
-Checkpoint → `request_user_input` → **STOP — WAIT** → UI pick or `/od`/`$od` command.
+Checkpoint → `request_user_input` → **STOP — WAIT** → UI pick, `$od N`, or `/od`/`$od` command.
 
 ## DO NOT ACTIVATE
 
-Normal chat without `/od`/`$od` prefix. Do not touch `docs/omnidev-state/**` as OmniDev session.
-
-## Platform notes
-
-- Sub-agents: `create_thread` + `send_message_to_thread` (§F.3)
-- MCP: `list_mcp_resources` → `read_mcp_resource` (§F.6)
-- Compaction: §F.8 — persist state files before long tool runs
-- Enable: `[features] default_mode_request_user_input = true` in `~/.codex/config.toml`
+- No `/od`/`$od` / valid bare index
+- Mid-sentence prefix
+- Infer from chat history alone

@@ -1,6 +1,6 @@
 # OmniDev Activation Bootstrap (MANDATORY)
 
-**Execute this file only when [trigger-gate.md](trigger-gate.md) activates (Signal A — `/od` or `$od` prefix).**
+**Execute this file only when [trigger-gate.md](trigger-gate.md) activates (Signal A `/od`/`$od`, or Signal A-index bare digit + `pending_decision`).**
 
 Load path: resolve from installed skill root (`skills/od/engine/activation.md` or `.cursor/skills/od/engine/activation.md` or `~/.codex/skills/od/engine/activation.md`).
 
@@ -15,17 +15,25 @@ Load path: resolve from installed skill root (`skills/od/engine/activation.md` o
 | Signal | Condition | Action |
 |--------|-----------|--------|
 | **A** | `/^\s*[\/$]od(\s|$|[\u4e00-\u9fff])/i` | Full bootstrap §1–§6 |
-| **None** | No `/od`/`$od` line-start prefix (incl. `@od` attach alone) | **STOP** — zero OmniDev workflow; if looks like a bare command → [trigger-gate §2.1](trigger-gate.md) one-line tip |
+| **A-index** | `/^\s*[1-9]\s*$/` **and** session-log `pending_decision` covers index | §0.1 index pick only (skip Phase 0 bootstrap) |
+| **None** | Otherwise (incl. `@od` alone, bare digit without pending) | **STOP** — tip per [trigger-gate §2.1](trigger-gate.md) if looks like workflow |
 
 **Skill attach is not Signal A.** `@od` / skill invoke without `/od` prefix → normal chat (skill may be reference only). Resume → **`/od re` or `$od re` only**.
 
+### 0.1 Index pick path (A-index or `/od N` / `$od N`)
+
+1. Read `session-log.md` `pending_decision` (tool call first)
+2. Resolve via [interactive-prompt.md](interactive-prompt.md) §8.1
+3. Clear pending → route as that option's `command` / `id`
+4. Do **not** re-run Phase 0 assessment
+
 **Forbidden when triggered:**
-- Jumping straight to code without loading phase instruction file
+- Jumping straight to code without loading phase instruction file (except §0.1 after a prior decision)
 - Skipping Phase 0 (unless `/od -f` / `$od -f` or user confirms skip)
 
 **Forbidden when NOT triggered:**
 - Loading activation/phase files "just in case"
-- Touching `docs/omnidev-state/**` as OmniDev session during normal chat
+- Touching `docs/omnidev-state/**` as OmniDev session during normal chat (A-index may read session-log only to validate pending)
 
 ---
 
@@ -98,6 +106,7 @@ Parse after stripping `/od` or `$od` (Signal A only):
 | `ch` / `change` | `engine/special-flows.md` §2 | — |
 | `gv` / `ln` / `st` / `po` / `x` / `cfg` / `compress` / `db` / `sy` / `rp` / `up` / `i` | per SKILL.md C.0 | — |
 | `n` / `next` | current phase + 1 · if board `paused`+manual → `engine/board.md` `next` | continue |
+| `1`–`9` (digit only) | [interactive-prompt.md](interactive-prompt.md) §8.1 index pick | pending option |
 | `ad` / `sk` / `bk` / `al` | current phase instruction · `al`≈`board run` | adjust |
 | `[requirement]` (default) | `phases/00-assessment.md` | **0** |
 
@@ -126,7 +135,7 @@ At **every** decision point:
    - Codex → `request_user_input` (§6)
 3. Native missing/fails → **§8 Markdown table** (`/od` or `$od` commands; forbid "reply 1/2/3"; **forbid** box-drawing / `||` frames) → **always STOP — WAIT** (forbid autoResolution / auto-continue)
 4. **NEVER** end with prose-only "continue?" when `interactive_mode=true`
-5. Advance via UI pick (same turn) or next full `/od`/`$od` command
+5. Advance via UI pick (same turn), `/od N` / bare `N` (pending), or Send-column `/od`/`$od` command
 6. Cover [interactive-prompt.md](interactive-prompt.md) §3 Decision Matrix (including S-level `phase0_s_fastpath`, Phase 2/4/5 gates)
 
 **Failure fix**: Tool exists but was skipped → violation; re-call §4/§5/§6. Cursor without AskQuestion → §8 table + switch model/Plan. Codex → §6.1 flag; **do not add** autoResolutionMs by default.
@@ -155,7 +164,7 @@ Then phase work. Do not repeat SKILL.md.
 | AskQuestion failed → proceed | §8 Markdown table + **WAIT** |
 | Skip AskQuestion when tool exists | **Must call** §4 |
 | Dump Phase 0 + YAML in chat | ≤6 lines + native UI; details → session-log |
-| "Reply 1/2/3" | `/od` or `$od` commands |
+| "Reply 1/2/3" without pending / `/od` | `/od 1` or bare `1` **with** `pending_decision` |
 | Drawn ASCII / `||` "modal" | Copy §8 table only |
 | Auto-continue after §8 | **STOP — WAIT** |
 | Full state file in chat | Path pointer only (B.18) |

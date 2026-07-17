@@ -1,36 +1,39 @@
 ---
-description: OmniDev trigger gate — load workflow ONLY on /od or $od line-start prefix. @od attach alone does NOT activate.
+description: OmniDev trigger gate — load workflow on /od, $od, or bare index with pending_decision. @od attach alone does NOT activate.
 alwaysApply: true
 ---
 # OmniDev Trigger Gate (Cursor)
 
 → Spec: `.cursor/skills/od/engine/trigger-gate.md`
 
-## ACTIVATE — Signal A only
+## ACTIVATE
 
-1. **Signal A**: Message starts with `/od` (or `$od`)
-2. **Not a trigger**: `@od` skill attach / skill picker without `/od` prefix — reference only, **do not** Phase 0
+1. **Signal A**: Message starts with `/od` (or `$od`) — includes `/od 1`…`/od 9` index pick
+2. **Signal A-index**: Whole message is bare `1`–`9` **and** session-log has matching `pending_decision`
+3. **Not a trigger**: `@od` skill attach without `/od` — reference only, **do not** Phase 0
 
-On activate: Read SKILL.md → `engine/activation.md` §0–§6 → route. **Tool calls first.**
+On activate: Read SKILL.md → `engine/activation.md` §0–§6 (A-index → §0.1 only). **Tool calls first.**
 
 ## DO NOT ACTIVATE
 
-- Normal chat without `/od`/`$od` prefix (even if `@od` is attached)
+- Normal chat without `/od`/`$od` / valid bare index
 - Mid-sentence mentions of `/od …` (must be line-start)
-- Bare `1` / `n` / `continue` — **NOT** workflow input
-- Do NOT infer OmniDev from prior turns or `in_progress` on disk
+- Bare `n` / `ad` / `continue` / `y` — **NOT** workflow input
+- Bare `1`–`9` **without** disk `pending_decision`
+- Do NOT infer OmniDev from prior chat turns alone
 
-If bare `n`/`1`/`continue`/`ad`/`re` looks like workflow intent, reply **one line only**:
-`⚠️ OmniDev is not active. Send a full command, e.g. /od n. Resume with /od re.`
+If bare `n`/`ad`/`re`/`continue` or digit-without-pending looks like workflow intent, reply **one line only**:
+`⚠️ OmniDev is not active. Use /od 1 (row index), /od n, or /od re.`
 
-## Advance workflow (every typed step needs `/od`)
+## Advance workflow
 
 | Action | Command |
 |--------|---------|
 | Resume | `/od re` |
 | Next phase | `/od n` |
+| Index pick | `/od 1`…`/od 9` or bare `1`…`9` (with pending) |
 | Revise | `/od ad` |
 | End session | `/od x` |
 
-Checkpoint: **must call** `AskQuestion` when tool exists → user picks UI **or** sends `/od` next message. If tool absent → copy §8 Markdown `/od` table (never "reply 1/2/3"; **forbid** box-drawing / `||` / pad-aligned fake modals). **STOP & WAIT** (never auto-continue after §8).
+Checkpoint: **must call** `AskQuestion` when tool exists → UI pick **or** `/od N` / bare `N` / Send command. If tool absent → §8 Markdown table + write `pending_decision` (**forbid** box-drawing frames). **STOP & WAIT**.
 Phase 0 chat: ≤6 lines only; details → session-log.

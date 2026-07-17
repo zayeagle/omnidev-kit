@@ -2,9 +2,10 @@
 
 → Platform mapping: SKILL.md §F (Platform Abstraction Layer)
 
-All commands require **`/od` prefix**. Short aliases are used **after** `/od` (e.g. `/od n`, not bare `n`).
+All commands require **`/od` prefix** (except bare index pick — see below). Short aliases are used **after** `/od` (e.g. `/od n`, not bare `n`).
 
-**Strict rule**: bare `1`, `n`, `y`, `continue` without `/od` do **NOT** advance workflow. Resume → **`/od re` only**.
+**Strict rule**: bare `n`, `y`, `ad`, `continue` without `/od` do **NOT** advance workflow. Resume → **`/od re` only**.  
+**Index pick**: `/od 1`…`/od 9` always; bare `1`…`9` only when session-log has `pending_decision` (interactive-prompt §8.1).
 
 ## Core Commands
 
@@ -71,6 +72,7 @@ Required phases **0** and **3** cannot be skipped. Hard gates still confirm in `
 | Command | Alias | Description |
 |---------|-------|-------------|
 | `/od n` | `/od next` | Next phase (board paused → treat as `board next` when manual) |
+| `/od 1` … `/od 9` | bare `1`…`9` if pending | Pick row N of last decision table ([interactive-prompt §8.1](interactive-prompt.md)) |
 | `/od ad [content]` | `/od adj` | Revise current phase output |
 | `/od sk [phase]` | `/od skip` | Skip phase (0–5); board idle → updates skip plan |
 | `/od bk [phase]` | `/od back` | Go back to phase |
@@ -78,7 +80,7 @@ Required phases **0** and **3** cannot be skipped. Hard gates still confirm in `
 
 ## Confirmation
 
-Interactive confirmations use platform native prompt (SKILL.md §F.2). User confirms via UI **or** `/od y` / `/od x` / `/od n` etc. — not bare aliases.
+Interactive confirmations use platform native prompt (SKILL.md §F.2). User confirms via UI, **`/od N` / bare `N`**, or `/od y` / `/od x` / `/od n` etc.
 
 | Command | Alias | Description |
 |---------|-------|-------------|

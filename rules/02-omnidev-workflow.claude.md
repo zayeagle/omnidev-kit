@@ -1,5 +1,5 @@
 ---
-description: OmniDev trigger gate for Claude Code — /od or $od line-start prefix only. Skill invoke without /od does NOT activate.
+description: OmniDev trigger gate for Claude Code — /od, $od, or bare index with pending_decision. Skill invoke without /od does NOT activate.
 alwaysApply: true
 ---
 
@@ -7,14 +7,14 @@ alwaysApply: true
 
 → Spec: `skills/od/engine/trigger-gate.md` (or `.claude/skills/od/engine/trigger-gate.md`)
 
-## ACTIVATE — Signal A only
+## ACTIVATE
 
-1. **Signal A**: Message starts with `/od` (or `$od`)
-2. **Not a trigger**: `od` skill body in context without `/od` prefix — reference only
+1. **Signal A**: Message starts with `/od` (or `$od`) — includes `/od 1` index pick
+2. **Signal A-index**: Bare `1`–`9` + session-log `pending_decision`
+3. **Not a trigger**: `od` skill body without `/od` — reference only
 
-No session-context inference. No bare `1`/`n`/`continue`.
-
-Bare workflow-looking replies → one-line tip only: `⚠️ OmniDev is not active. Send /od n (or /od re).`
+Bare `n`/`ad`/`continue` or digit without pending → one-line tip:
+`⚠️ OmniDev is not active. Use /od 1 (row index), /od n, or /od re.`
 
 ## Advance & resume
 
@@ -22,15 +22,13 @@ Bare workflow-looking replies → one-line tip only: `⚠️ OmniDev is not acti
 |--------|---------|
 | Resume / crash recovery | `/od re` |
 | Next phase | `/od n` |
+| Index pick | `/od 1`…`/od 9` or bare `1`…`9` (pending) |
 | Revise | `/od ad` |
 
-Checkpoint → `AskUserQuestion` → **STOP — WAIT** → UI pick or `/od` command.
+Checkpoint → `AskUserQuestion` → **STOP — WAIT** → UI pick, `/od N`, or `/od` command.
 
 ## DO NOT ACTIVATE
 
-Normal chat without `/od`/`$od` prefix. Do not touch `docs/omnidev-state/**` as OmniDev session.
-
-## Platform notes
-
-- Sub-agents: `Task` tool (SKILL.md §F.3)
-- MCP: `.claude/mcp.json` or `~/.claude/mcp.json` (§F.6)
+- No `/od`/`$od` / valid bare index
+- Mid-sentence `/od`
+- Infer from chat history alone
