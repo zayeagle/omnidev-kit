@@ -26,7 +26,7 @@ Bare `n`/`ad`/`continue` or digit without pending → one-line tip:
 | Full autopilot | `/od auto` / `/od al` |
 | Revise | `/od ad` |
 
-Checkpoint → `AskUserQuestion` → **STOP — WAIT** on hard gates → UI pick, `/od N`, or `/od` command; autopilot then resumes.
+Phase end → Handoff (next + what to do + `/od n` + skip) → `AskUserQuestion` → **STOP — WAIT** on hard gates → UI pick, `/od N`, or `/od` command; autopilot then resumes.
 
 ## DO NOT ACTIVATE
 

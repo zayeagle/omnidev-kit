@@ -197,10 +197,10 @@ Record token estimate in `metrics.json` if `log_token_estimates: true`.
 
 ### Interactive gate (mandatory)
 
-After checklist prose (≤12 lines), **same turn** invoke [interactive-prompt.md](../engine/interactive-prompt.md):
+Print **Phase Handoff Block** (SKILL.md §C.1) for **Phase 3 — Dev** (what Dev will do, `/od n`, skip not allowed if phase 3 required). Then **same turn** invoke [interactive-prompt.md](../engine/interactive-prompt.md):
 
-1. §3.7 `phase2_plan_ready` — confirm design/plan ready for development
-2. Then §3.1 `checkpoint` (B.8) — next step `/od n`, etc.
+1. §3.11 `phase2_plan_ready` — confirm design/plan ready for development
+2. §3.1 `checkpoint` (B.8) — Continue (`/od n`) / Revise (`/od ad`) / …
 
 Platform: §4 / §5 / §6; on failure → §8 Markdown table. **STOP — WAIT**. Workers must not show options UI.
 

@@ -121,7 +121,7 @@ Parse after stripping `/od` or `$od` (Signal A only):
 1. Follow `context_requires` — load state **slices** only (B.18)
 2. Execute phase steps in order — skip only via interactive confirm
 3. **Phase 0 → next** after complexity confirm: **S→P3** · **M→P2** · **L/XL→P1**
-4. Phase exit → silent learning → checkpoint (≤12 lines) → interactive prompt (B.8) → **STOP — WAIT**
+4. Phase exit → silent learning → **Phase Handoff Block** (SKILL.md §C.1: next phase + what to do + `/od n` + skip) → interactive prompt (B.8) → **STOP — WAIT**
 5. Persist to state files — never conversation memory alone
 
 ---
@@ -130,7 +130,7 @@ Parse after stripping `/od` or `$od` (Signal A only):
 
 At **every** decision point:
 
-1. Brief summary only (Phase 0 ≤6; checkpoint ≤12) — forbid full assessment / YAML in chat
+1. Brief summary only (Phase 0 ≤6; phase-end Handoff ≤18) — forbid full assessment / YAML in chat
 2. **Same turn** [interactive-prompt.md](interactive-prompt.md):
    - Cursor → `AskQuestion` (§4) — **must call** when tool is in the list
    - Claude → `AskUserQuestion` (§5)

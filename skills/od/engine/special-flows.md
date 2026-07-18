@@ -121,25 +121,29 @@ context_requires:
 
 ## 3.1 Next-Step Prompt Format (B.8)
 
-After every phase checkpoint, call [interactive-prompt.md](interactive-prompt.md):
-- Cursor → §3.1 catalog + §4 `AskQuestion` (same turn, mandatory when tool present)
-- Claude Code → §3.1 catalog + §5 `AskUserQuestion` (same turn, mandatory)
-- Codex → §3.1 catalog + §6 `request_user_input` (same turn, mandatory)
-- On failure → §8 Markdown table → **STOP — WAIT**
+After every phase exit:
 
-Standard checkpoint options (Chinese labels when `interactive_mode=true` use English below):
+1. Print **Phase Handoff Block** (SKILL.md §C.1) — must state **next phase name**, **what will be done**, **`/od n` to continue**, and **`/od sk [N]` to skip** (or "skip not allowed").
+2. Same turn call [interactive-prompt.md](interactive-prompt.md) §3.1 `checkpoint`:
+   - Cursor → §4 `AskQuestion` (mandatory when tool present)
+   - Claude Code → §5 `AskUserQuestion`
+   - Codex → §6 `request_user_input`
+   - On failure → §8 Markdown table → **STOP — WAIT**
 
-| Option | Typical Label |
-|--------|---------------|
-| Continue next phase | Continue to next phase (`/od n`) |
-| Revise current output | Revise current output (`/od ad`) |
-| Skip optional phase | Skip [phase] (`/od sk`) |
-| End / Push / Deploy | End / Push / Deploy (context-dependent) |
-| Help | View commands (`/od h`) — **always last option** |
+Standard checkpoint options:
+
+| Option id | Label (must include command) | When |
+|-----------|------------------------------|------|
+| `next` | Continue to Phase [N+1] — [Name] (`/od n`) [default] | always |
+| `skip` | Skip Phase [N+1] (`/od sk [N+1]`) | only if next phase is **not** required |
+| `revise` | Revise current phase output (`/od ad`) | always |
+| `help` | View commands (`/od h`) | always |
+| `cancel` | Cancel / save exit (`/od x`) | always |
 
 **Rules**:
+- Handoff Block + options MUST make continue vs skip obvious; never bury skip only in `/od h`.
 - MUST STOP and WAIT after presenting options (native UI or text fallback).
-- User picks in UI **or** sends **full `/od` command** in next message (`/od n`, `/od ad`, …).
+- User picks in UI **or** sends **full `/od` command** (`/od n`, `/od sk 4`, `/od ad`, …).
 - Bare `n`/`ad`/`continue` without `/od` → **do NOT** activate — normal chat.
 - Bare `1`–`9` → activate **only** with disk `pending_decision` (trigger-gate A-index); else tip.
 - If native prompt fails → §8 Markdown table same turn ([interactive-prompt.md](interactive-prompt.md) §8) + `pending_decision`; advertise `/od 1` / bare `1`; never box-drawing frames.

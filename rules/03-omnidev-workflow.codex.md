@@ -27,7 +27,7 @@ Bare `n`/`ad`/`continue` or digit without pending → one-line tip:
 | Full autopilot | `/od auto` / `$od auto` / `/od al` |
 | Revise | `/od ad` or `$od ad` |
 
-Checkpoint → `request_user_input` → **STOP — WAIT** on hard gates → UI pick, `$od N`, or `/od`/`$od` command; autopilot then resumes.
+Phase end → Handoff (next + what to do + `/od n` + skip) → `request_user_input` → **STOP — WAIT** on hard gates → UI pick, `$od N`, or `/od`/`$od` command; autopilot then resumes.
 
 ## DO NOT ACTIVATE
 

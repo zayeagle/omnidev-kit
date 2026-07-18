@@ -124,7 +124,7 @@ Interactive confirmations use platform native prompt (SKILL.md §F.2). User conf
 | `context_mode` | `"slim"` | `slim` / `standard` — context occupancy strategy |
 | `max_hot_lines` | `150` | HOT layer line cap |
 | `max_resident_lines` | `300` | HOT+WARM combined cap |
-| `checkpoint_max_lines` | `12` | Checkpoint output cap |
+| `checkpoint_max_lines` | `18` | Phase Handoff Block + checkpoint prose cap (SKILL.md §C.1) |
 | `platform_override` | `null` | Manual platform override: `"cursor"`, `"claude_code"`, `"codex"`, `"cli_other"`, or `null` (auto) |
 | `codex_compaction_multiplier` | `1.3` | Codex token estimate multiplier (compensate invisible compaction cost) |
 | `codex_conservative_occupancy` | `true` | Whether Codex uses defensive context occupancy |

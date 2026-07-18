@@ -17,7 +17,7 @@
 | **Codex** | `request_user_input` — §6 (needs flag; **forbid** default `autoResolutionMs`) |
 | **CLI** | §8 Markdown fallback table |
 
-1. Short chat summary (Phase 0 ≤6 lines; checkpoint ≤12 lines)
+1. Short chat summary (Phase 0 ≤6 lines; phase-end Handoff Block ≤18 lines per SKILL.md §C.1)
 2. Forbid `od_interactive` / YAML metadata in chat → session-log only
 3. Native success → do not also print an options table
 4. §8 rows show Send commands; user may reply **`/od N` / `$od N`** or (when `pending_decision` on disk) bare **`N`** — see §8.1. Forbid inventing options outside §3 catalog
@@ -91,8 +91,17 @@ Every decision point: **same turn** `present_options`. `checkpoint` (B.8) is **a
 
 ### 3.1 `checkpoint` (B.8)
 
-- prompt: `Phase [N] complete. Choose next step:`
-- options: `next`→(/od n) · `revise`→(/od ad) · `help`→(/od h) · `cancel`→(/od x)
+**Before** invoking the tool: print Phase Handoff Block (SKILL.md §C.1) with next phase, what to do, `/od n`, and skip command.
+
+- prompt: `Next: Phase [N+1] — [Name]. [Do one-liner]. Continue, skip, or revise?`
+- options (include command in every label):
+  - `next` → Continue to Phase [N+1] (`/od n`) [default]
+  - `skip` → Skip Phase [N+1] (`/od sk [N+1]`) — **omit** if next is required (0/3 or `board_required_phases`)
+  - `revise` → Revise current output (`/od ad`)
+  - `help` → View commands (`/od h`)
+  - `cancel` → Cancel / exit (`/od x`)
+
+§8 Send column must show the same `/od n` / `/od sk …` / `/od ad` / `/od x` commands.
 
 ### 3.2 `phase0_complexity`
 

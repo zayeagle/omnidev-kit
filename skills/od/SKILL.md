@@ -47,7 +47,7 @@ Activate **only** on **Signal A** (`/od` or `$od` line-start prefix) or **Signal
 | B.3 State Files | `docs/omnidev-state/` · active+history pair · append-only | [engine/document-history.md](engine/document-history.md) |
 | B.5 Context Lifecycle | HOT≤150 · WARM≤250 · COLD disk on-demand · purge on phase end | [engine/context-lifecycle.md](engine/context-lifecycle.md) |
 | B.6 Config | `/od cfg` · `interactive_mode`/`board_ui`/`auto_checkpoint`/`design_split` | [engine/user-preferences.md](engine/user-preferences.md) · [engine/board.md](engine/board.md) |
-| B.8 Checkpoint | ≤12 lines · 2-4 options · STOP-WAIT · autopilot soft-skips | [engine/special-flows.md](engine/special-flows.md) §3.1 · [board.md](engine/board.md) §2.5 |
+| B.8 Checkpoint | Handoff Block (next/do/continue/skip) ≤18 lines · options · STOP-WAIT · autopilot soft-skips | [engine/special-flows.md](engine/special-flows.md) §3.1 · §C.1 · [board.md](engine/board.md) §2.5 |
 | B.9 Progress | `[✅/🔄/⏳] Task — Time` → `03-progress.md` | [phases/03-development.md](phases/03-development.md) §1 |
 | B.10 Errors | Log → diagnose → propose fix → confirm (B.0) | [engine/special-flows.md](engine/special-flows.md) §5 |
 | B.12 Stash | `/od st` save, `/od po` restore | [engine/stash.md](engine/stash.md) |
@@ -97,20 +97,43 @@ After reading the instruction file, follow its `context_requires` to load projec
 
 ### C.1 Phase Exit — Checkpoint & Learning
 
-After each phase, **first execute silent learning, then output checkpoint**.
+After each phase, **first execute silent learning, then output the Phase Handoff Block, then B.8 interactive prompt**.
 
 **Silent Learning**: Reflect on domain knowledge/architecture patterns → append to `00-project-context.md` (1-2 lines, max 50 total) → log to `evolution-log.jsonl` → update `metrics.json`.
 → Full protocol: [engine/evolution.md](engine/evolution.md) §1
 
-**Checkpoint Output** (≤12 lines per B.18 — no state file echo):
+**Phase Handoff Block** (mandatory, ≤18 lines — no state file body echo). Must make **next phase / what to do / continue vs skip** obvious:
+
 ```
 ✅ Phase N complete: [Name]
 📦 Artifacts: [state files created/updated]
-📍 Progress: Phase 0 ✅ → Phase 1 ✅ → Phase 2 🔧 → ...
-🔔 Next phase: Phase N+1 — [Name]
+📍 Progress: Phase 0 ✅ → … → Phase N ✅ → Phase N+1 ⏳
+
+## Next
+🔔 Phase: [N+1] — [Name]
+📋 Do: [1–2 concrete sentences: what will happen next]
+▶️ Continue: `/od n`     ← enter next phase (default)
+⏭️ Skip next: `/od sk [N+1]`   ← only if next phase is skippable; else: `⏭️ Skip: not allowed (required phase)`
+✏️ Revise this phase: `/od ad`
+🛑 Cancel / save exit: `/od x`
 ```
 
-**Phase 3 special rules**: Pre-Dev and Change Impact per B.15. Learning guard: phase_3 insights need 2+ observations unless error_resolution. After checkpoint, display next-step prompt (B.8). STOP — WAIT.
+**Next-phase "Do" cheat-sheet** (fill with project specifics):
+
+| Next | Name | Typical "Do" |
+|------|------|----------------|
+| 1 | Blueprint | Compare approaches, lock design assumptions, resolve open questions |
+| 2 | Plan | Write design + test plan + task plan (`04-design` / `05-test-plan` / `02-plan`) |
+| 3 | Dev | Implement tasks from plan; Pre-Dev scope then code + UNIT |
+| 4 | Test | Run UNIT/INT/E2E per plan; fix gates / gap backfill |
+| 5 | Deploy | Audit/create deploy scripts; release notes; prod needs confirm |
+| (done) | — | No next phase — offer `/od ps` / `/od board` / `/od x` |
+
+**Skip rules**: Phases in `board_required_phases` (default **0** and **3**) → never advertise skip. Optional phases (1/2/4/5 unless required) → show `/od sk [phase]`.
+
+Same turn after the block: B.8 `checkpoint` prompt ([interactive-prompt.md](engine/interactive-prompt.md) §3.1) including Continue / Skip (if allowed) / Revise / Help / Cancel. **STOP — WAIT**.
+
+**Phase 3 special rules**: Pre-Dev and Change Impact per B.15. Learning guard: phase_3 insights need 2+ observations unless error_resolution.
 
 ### C.2 Context Budget
 HOT ≤150 · WARM ≤250 · Total ≤300 lines. COLD = disk on-demand only.
@@ -164,7 +187,7 @@ Store detected platform in session memory; do not re-detect mid-session.
 
 When `interactive_mode=true`:
 
-1. Output **short** summary only (Phase 0 ≤6 lines; checkpoint ≤12 lines) — do not paste the full assessment into chat
+1. Output **short** summary only (Phase 0 ≤6 lines; phase-end Handoff ≤18 lines per §C.1) — do not paste the full assessment into chat
 2. **Immediately invoke** native tool using §3 catalog + §4/§5/§6 wrapper — **forbidden** to end turn with prose-only options when the tool exists
 3. On tool **absent**, error, or "unavailable in this chat mode" → **copy §8 Markdown table verbatim** same turn + write `pending_decision` (forbid drawn frames) → **STOP — WAIT**. Next: `/od N`, bare `N`, or Send command.
 4. Log `native_attempted: true` + method to **session-log** (do not paste into chat)

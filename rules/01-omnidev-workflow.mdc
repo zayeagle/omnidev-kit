@@ -36,5 +36,5 @@ If bare `n`/`ad`/`re`/`continue` or digit-without-pending looks like workflow in
 | Revise | `/od ad` |
 | End session | `/od x` |
 
-Checkpoint: **must call** `AskQuestion` when tool exists → UI pick **or** `/od N` / bare `N` / Send command. Autopilot soft-gates skip STOP; hard gates STOP then **resume after confirm** ([board.md](board.md) §2.5). If tool absent → §8 Markdown table + write `pending_decision` (**forbid** box-drawing frames). **STOP & WAIT** only when actually waiting.
+Phase end: print **Handoff** (next phase + what to do + `/od n` + skip `/od sk N` or "not allowed") then **must call** `AskQuestion` when tool exists → UI pick **or** `/od N` / bare `N` / Send command. Autopilot soft-gates skip STOP; hard gates STOP then **resume after confirm** ([board.md](board.md) §2.5). If tool absent → §8 Markdown table + write `pending_decision` (**forbid** box-drawing frames). **STOP & WAIT** only when actually waiting.
 Phase 0 chat: ≤6 lines + `Full auto: /od auto` hint; details → session-log.
