@@ -79,7 +79,8 @@ Every decision point: **same turn** `present_options`. `checkpoint` (B.8) is **a
 | 2 | `phase2_plan_ready` | Design+plan+test plan done, before development |
 | 3 | `pre_dev` | Pre-Dev Scope (B.15: M/L/XL required; S only when off-scope) |
 | 3 | `change_impact` | Change Impact (B.15: L/XL each group; M when off-scope) |
-| 3 | `checkpoint` | Phase end |
+| 3 | `security_audit` / `security_iterate_confirm` | Phase 3 exit security gate ([security-audit.md](security-audit.md)) |
+| 3 | `checkpoint` | Phase end (only after security PASS/WAIVED when blocking) |
 | 4 | `test_layers` | Layer disputes / skip E2E etc. |
 | 4 | `test_gate_fail` | Disposition after gate failure |
 | 4 | `gap_backfill` | Gap Backfill path |
@@ -154,6 +155,20 @@ Codex multi-select: sequential single-select or §8 "multi-select OK; explain in
 | `board_resume` | `start` while already running/paused | `continue`[default] · `reset`→`/od board reset` · `cancel` |
 
 Skip optional phases: Cursor/Claude may use multi-select on phases 1/2/4/5; Codex sequential or free-text `1,5` / `none`. Never offer skip for 0 or 3.
+
+### 3.15 Security Audit (`security_iterate_confirm`) — [security-audit.md](security-audit.md)
+
+After FAIL summary (≤12 lines):
+
+- prompt: `Security audit FAIL (iter {N}/{max}). {blocking_open} blocking finding(s). Start a fix iteration?`
+- options:
+  - `iterate` → Start fix iteration (`/od sec -i`) [default]
+  - `waive` → Waive with B.0 reasons (`/od sec --waive`)
+  - `cancel` → Stay in Phase 3 (`/od x` / cancel loop)
+
+**Manual**: hard gate → **STOP — WAIT** (do not code until `iterate` confirmed).  
+**Autopilot**: soft-pick `iterate` (no STOP); see security-audit §4.2.  
+After max iterations still FAIL → escalate `b0_confirm` (not this catalog).
 
 ### 3.11 Phase 2 `phase2_plan_ready`
 

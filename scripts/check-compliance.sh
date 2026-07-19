@@ -54,18 +54,20 @@ check_pat() {
 
 check_pat "skills/od/engine/trigger-gate.md" '\[\\/\$\]od' 'Explicit non-activation feedback' 'STOP' 'pending_decision' 'A-index'
 check_pat "skills/od/engine/activation.md" '\[\\/\$\]od' 'STOP' 'AskUserQuestion' 'WAIT'
-check_pat "skills/od/engine/interactive-prompt.md" 'STOP' 'WAIT' 'AskQuestion' 'phase0_s_fastpath' 'Decision Matrix' 'deploy_consent' 'Markdown Fallback Table' 'box-drawing' 'pending_decision'
+check_pat "skills/od/engine/interactive-prompt.md" 'STOP' 'WAIT' 'AskQuestion' 'phase0_s_fastpath' 'Decision Matrix' 'deploy_consent' 'security_iterate_confirm' 'Markdown Fallback Table' 'box-drawing' 'pending_decision'
 check_pat "skills/od/phases/00-assessment.md" 'phase0_s_fastpath'
-check_pat "skills/od/engine/board.md" 'autopilot' 'Resume-after-confirm' 'Hard gates' '/od auto'
+check_pat "skills/od/engine/board.md" 'autopilot' 'Resume-after-confirm' 'Hard gates' '/od auto' 'security_iterate_confirm'
+check_pat "skills/od/engine/security-audit.md" 'security_iterate_confirm' 'autopilot' '07-security-audit' 'FAIL'
 check_pat "skills/od/phases/02-planning.md" 'phase2_plan_ready'
+check_pat "skills/od/phases/03-development.md" 'Security Audit Gate' 'security-audit'
 check_pat "skills/od/phases/05-deploy.md" 'deploy_consent' 'deploy_prod'
-check_pat "docs/omnidev-state/config.json" 'codex_auto_resolve'
-check_pat "skills/od/SKILL.md" '\$od' '/od'
+check_pat "docs/omnidev-state/config.json" 'codex_auto_resolve' 'security_audit'
+check_pat "skills/od/SKILL.md" '\$od' '/od' 'B.22'
 check_pat "rules/03-omnidev-workflow.codex.md" '\$od' '/od'
 check_pat "AGENTS.md" '\$od' '/od'
 
 LINES=$(wc -l < "$ROOT/skills/od/engine/interactive-prompt.md" | tr -d ' ')
-if [[ "$LINES" -gt 320 ]]; then fail "interactive-prompt.md too large ($LINES lines; budget 320)"
+if [[ "$LINES" -gt 360 ]]; then fail "interactive-prompt.md too large ($LINES lines; budget 360)"
 else ok "interactive-prompt.md size ($LINES lines)"
 fi
 

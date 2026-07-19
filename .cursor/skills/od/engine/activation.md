@@ -103,6 +103,7 @@ Parse after stripping `/od` or `$od` (Signal A only):
 | `-f [requirement]` | `phases/03-development.md` | 3 (fast) |
 | `-p [requirement]` | `phases/01-blueprint.md` | 1 |
 | `qa` | `phases/04-testing.md` | 4 |
+| `sec` / `security` / `sec -i` / `sec --waive` | `engine/security-audit.md` | security gate / iterate / waive |
 | `ps` / `push` | `engine/special-flows.md` §1 | — |
 | `ch` / `change` | `engine/special-flows.md` §2 | — |
 | `gv` / `ln` / `st` / `po` / `x` / `cfg` / `compress` / `db` / `sy` / `rp` / `up` / `i` | per SKILL.md C.0 | — |
@@ -121,7 +122,7 @@ Parse after stripping `/od` or `$od` (Signal A only):
 1. Follow `context_requires` — load state **slices** only (B.18)
 2. Execute phase steps in order — skip only via interactive confirm
 3. **Phase 0 → next** after complexity confirm: **S→P3** · **M→P2** · **L/XL→P1**
-4. Phase exit → silent learning → **Phase Handoff Block** (SKILL.md §C.1: next phase + what to do + `/od n` + skip) → interactive prompt (B.8) → **STOP — WAIT**
+4. Phase exit → silent learning → **Phase 3 only: security audit (B.22)** until PASS/WAIVED → **Phase Handoff Block** (SKILL.md §C.1) → interactive prompt (B.8) → **STOP — WAIT**
 5. Persist to state files — never conversation memory alone
 
 ---

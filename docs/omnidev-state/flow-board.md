@@ -22,4 +22,4 @@
 - Next (manual pause): `/od board next`
 - Reset: `/od board reset`
 
-Required phases **0** and **3** cannot be skipped. Hard gates (`b0_confirm`, `deploy_prod`) always confirm.
+Required phases **0** and **3** cannot be skipped. Hard gates (`b0_confirm`, `deploy_prod`, manual `security_iterate_confirm`) always confirm. Autopilot soft-picks security iterate on FAIL.

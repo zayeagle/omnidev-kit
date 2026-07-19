@@ -13,7 +13,7 @@
 1. **Default `mode`: `manual`**. Never assume autopilot.
 2. **No phase work until `status` is `running` or `paused` after a successful `start`.** Showing the board alone must not advance phases.
 3. **Required phases** `0` (Assessment) and `3` (Development) cannot be skipped. Reject `--skip` that includes them.
-4. **Hard gates never auto**: `b0_confirm`, `deploy_prod`, `pre_dev` (M/L/XL). Even `mode=auto` must STOP — WAIT; **after user confirms proceed, resume autopilot same turn** (§2.5).
+4. **Hard gates never auto**: `b0_confirm`, `deploy_prod`, `pre_dev` (M/L/XL), `security_iterate_confirm` (**manual only**). Even `mode=auto` must STOP — WAIT on true hard gates; **after user confirms proceed, resume autopilot same turn** (§2.5). Autopilot soft-picks security **iterate** (no STOP) per [security-audit.md](security-audit.md).
 5. **Disk is truth**: `docs/omnidev-state/flow-board.json`. Chat/Canvas are views. After Codex compaction, re-read this file.
 6. Prefix: Cursor/Claude `/od board …` · Codex `$od board …` (either prefix accepted on all platforms per Signal A).
 7. **Autopilot resume is mandatory**: while `mode=auto`, never leave the user stranded after a successful hard-gate confirm — continue until next hard gate or `status=done`.
@@ -122,6 +122,7 @@ Prefer documenting `board *` + `/od auto` as the control-plane API; keep legacy 
 | `test_layers` | `accept_plan` |
 | `gap_backfill` | `implement_now` |
 | `deploy_consent` | `apply_fix` when `deploy_autonomy: full` (set by `/od auto`/`/od al`) |
+| `security_iterate_confirm` | `iterate` — fix loop without STOP ([security-audit.md](security-audit.md) §4.2) |
 
 Log each soft auto-pick to session-log `## Key Decisions` as `autopilot_default: {id}`.
 
@@ -129,10 +130,11 @@ Log each soft auto-pick to session-log `## Key Decisions` as `autopilot_default:
 
 | decision_point | Notes |
 |----------------|-------|
-| `b0_confirm` | Always |
+| `b0_confirm` | Always (includes security max-iter escalate / waive) |
 | `pre_dev` | Required for complexity M/L/XL |
 | `deploy_prod` | Always (production execution) |
 | `test_gate_fail` | Always (failure disposition) |
+| `security_iterate_confirm` | **Manual / non-autopilot only** — user must confirm before next security fix iteration |
 
 When presenting a hard gate under autopilot, footer **must** include:
 

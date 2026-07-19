@@ -11,6 +11,7 @@ context_requires:
     - 03-progress.md                 # unit_tests_written if exists
     - 04-design.md                   # INDEX ONLY
     - 05-test-plan.md                # lazy: ONE layer+feature section at a time
+    - 07-security-audit.md           # B.22 gate — PASS or WAIVED required when blocking
   read_on_demand:
     - features/{FN}.md               # gap backfill G1, failure investigation
     - user-preferences.md            # test_framework override
@@ -32,6 +33,10 @@ context_requires:
 ```
 
 → Occupancy: [context-lifecycle.md](../engine/context-lifecycle.md) §3 Phase 4
+
+### Entry gate (B.22)
+
+If `security_audit` and `security_audit_blocking` are enabled (defaults): require `07-security-audit.md` frontmatter `status: PASS` or `WAIVED` for current work. If missing/FAIL → **do not** run tests; load [security-audit.md](../engine/security-audit.md) and return to Phase 3 iterate loop.
 
 ```yaml
 context_occupancy:

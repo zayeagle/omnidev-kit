@@ -60,6 +60,7 @@ Activate **only** on **Signal A** (`/od` or `$od` line-start prefix) or **Signal
 | B.19 Doc History | active+history dual files · append-only · workflow loads active only | [engine/document-history.md](engine/document-history.md) |
 | B.20 Test Strategy | UNIT required · INT/E2E/SMK/REG by complexity · Gap Backfill | [engine/test-strategy.md](engine/test-strategy.md) |
 | B.21 Deploy | Makefile + one-click deploy · Greenfield docker+k8s · production needs confirm | [phases/05-deploy.md](phases/05-deploy.md) |
+| B.22 Security Audit | Phase 3 exit audit · FAIL→iterate loop · manual confirm before next iter · autopilot auto-iterates | [engine/security-audit.md](engine/security-audit.md) |
 
 ---
 
@@ -75,6 +76,7 @@ Activate **only** on **Signal A** (`/od` or `$od` line-start prefix) or **Signal
 | Phase 1 | [phases/01-blueprint.md](phases/01-blueprint.md) |
 | Phase 2 | [phases/02-planning.md](phases/02-planning.md) |
 | Phase 3 | [phases/03-development.md](phases/03-development.md) |
+| Phase 3 exit / `/od sec` | [engine/security-audit.md](engine/security-audit.md) |
 | Phase 4 / `/od qa` | [phases/04-testing.md](phases/04-testing.md) |
 | Phase 5 / Deploy | [phases/05-deploy.md](phases/05-deploy.md) |
 | `/od push`, `/od change`, `/od report`, `/od compress`, `/od up`, `/od i` | [engine/special-flows.md](engine/special-flows.md) |
@@ -124,8 +126,8 @@ After each phase, **first execute silent learning, then output the Phase Handoff
 |------|------|----------------|
 | 1 | Blueprint | Compare approaches, lock design assumptions, resolve open questions |
 | 2 | Plan | Write design + test plan + task plan (`04-design` / `05-test-plan` / `02-plan`) |
-| 3 | Dev | Implement tasks from plan; Pre-Dev scope then code + UNIT |
-| 4 | Test | Run UNIT/INT/E2E per plan; fix gates / gap backfill |
+| 3 | Dev | Implement tasks; Pre-Dev; code + UNIT; **security audit** before leave |
+| 4 | Test | Only after security PASS/WAIVED; run UNIT/INT/E2E; fix gates |
 | 5 | Deploy | Audit/create deploy scripts; release notes; prod needs confirm |
 | (done) | — | No next phase — offer `/od ps` / `/od board` / `/od x` |
 

@@ -25,4 +25,4 @@
 - Reset: `/od board reset`
 
 Required phases **0** and **3** cannot be skipped.
-Hard gates (`b0_confirm`, `pre_dev` M/L/XL, `deploy_prod`, `test_gate_fail`) always confirm — then autopilot **resumes automatically**.
+Hard gates (`b0_confirm`, `pre_dev` M/L/XL, `deploy_prod`, `test_gate_fail`, manual `security_iterate_confirm`) always confirm — then autopilot **resumes automatically**. Autopilot soft-picks security **iterate** on audit FAIL.

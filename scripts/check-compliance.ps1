@@ -52,13 +52,15 @@ if (-not (Test-Path $r2)) {
 }
 
 $checks = @(
-  @{ Path = "skills\od\engine\interactive-prompt.md"; Need = @('STOP', 'WAIT', 'AskQuestion', 'phase0_s_fastpath', 'Decision Matrix', 'deploy_consent', 'Markdown Fallback Table', 'box-drawing', 'pending_decision', 'codex_auto_resolve', 'allow_auto_resolve') },
+  @{ Path = "skills\od\engine\interactive-prompt.md"; Need = @('STOP', 'WAIT', 'AskQuestion', 'phase0_s_fastpath', 'Decision Matrix', 'deploy_consent', 'security_iterate_confirm', 'Markdown Fallback Table', 'box-drawing', 'pending_decision', 'codex_auto_resolve', 'allow_auto_resolve') },
   @{ Path = "skills\od\engine\trigger-gate.md"; Need = @('[\/$]od', 'Explicit non-activation feedback', 'STOP', 'pending_decision', 'A-index') },
-  @{ Path = "skills\od\engine\board.md"; Need = @('autopilot', 'Resume-after-confirm', 'Hard gates', '/od auto') },
+  @{ Path = "skills\od\engine\board.md"; Need = @('autopilot', 'Resume-after-confirm', 'Hard gates', '/od auto', 'security_iterate_confirm') },
+  @{ Path = "skills\od\engine\security-audit.md"; Need = @('security_iterate_confirm', 'autopilot', '07-security-audit', 'FAIL') },
   @{ Path = "skills\od\phases\02-planning.md"; Need = @('phase2_plan_ready') },
+  @{ Path = "skills\od\phases\03-development.md"; Need = @('Security Audit Gate', 'security-audit') },
   @{ Path = "skills\od\phases\05-deploy.md"; Need = @('deploy_consent', 'deploy_prod') },
-  @{ Path = "docs\omnidev-state\config.json"; Need = @('codex_auto_resolve') },
-  @{ Path = "skills\od\SKILL.md"; Need = @('\$od', '/od') },
+  @{ Path = "docs\omnidev-state\config.json"; Need = @('codex_auto_resolve', 'security_audit') },
+  @{ Path = "skills\od\SKILL.md"; Need = @('\$od', '/od', 'B.22') },
   @{ Path = "rules\03-omnidev-workflow.codex.md"; Need = @('\$od', '/od') },
   @{ Path = "AGENTS.md"; Need = @('\$od', '/od') }
 )
@@ -80,8 +82,8 @@ foreach ($c in $checks) {
 
 $ip = Join-Path $Root "skills\od\engine\interactive-prompt.md"
 $lines = (Get-Content -Encoding utf8 $ip | Measure-Object -Line).Lines
-if ($lines -gt 320) {
-  Fail "interactive-prompt.md too large ($lines lines; budget 320)"
+if ($lines -gt 360) {
+  Fail "interactive-prompt.md too large ($lines lines; budget 360)"
 } else {
   Ok "interactive-prompt.md size ($lines lines)"
 }

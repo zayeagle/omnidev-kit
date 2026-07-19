@@ -22,6 +22,9 @@ All commands require **`/od` prefix** (except bare index pick — see below). Sh
 | `/od gv --since <7d\|14d\|30d\|90d>` | — | Audit time window (default 14d) |
 | `/od rv` | `/od review` | Code review (read-only) |
 | `/od qa` | — | Testing phase shortcut (Phase 4) |
+| `/od sec` | `/od security` | Security audit of AI output (B.22) — Phase 3 exit gate |
+| `/od sec -i` | — | Confirm start of security fix iteration (manual FAIL loop) |
+| `/od sec --waive` | — | Waive open CRITICAL/HIGH findings via `b0_confirm` |
 | `/od ch [new requirement]` | `/od change` | Requirement change management |
 | `/od ln` | `/od learn` | Self-learning: error review + rule evolution |
 | `/od ln -r` | — | View learning log and pending proposals |
@@ -111,6 +114,10 @@ Interactive confirmations use platform native prompt (SKILL.md §F.2). User conf
 | `e2e_tool` | `"playwright"` | E2E tool: playwright / cypress / browser_mcp / auto |
 | `e2e_required_fullstack` | `true` | Force E2E for fullstack requirements |
 | `unit_gate_blocking` | `true` | Unpassed UNIT blocks Phase 4 completion |
+| `security_audit` | `true` | Run B.22 security audit at Phase 3 exit |
+| `security_audit_blocking` | `true` | FAIL blocks Phase 4 until PASS/WAIVED |
+| `security_audit_max_iterations` | `3` | Max security fix loops before escalate |
+| `security_audit_tools` | `"auto"` | `auto` = checklist + repo SAST/secret tools if present |
 | `regression_mode` | `"targeted"` | targeted / full |
 | `allow_e2e_sub_agent` | `true` | Phase 4 E2E may use sub-agent to isolate Playwright output |
 | `deploy_modes` | `["docker","k8s","binary"]` | Default deploy modes supported in Phase 5 |

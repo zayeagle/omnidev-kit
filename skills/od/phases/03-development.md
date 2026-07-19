@@ -60,13 +60,14 @@ context_occupancy:
    ```
    When `/od x` interrupts mid-task (`[-]`): record `[-] T3 · files: [comma-separated] · [time]` so `/od re` knows what was touched.
 8. **Change Impact** (B.15): Per complexity tier.
-9. Log token estimate + `metrics.json` on phase exit.
+9. **Security Audit (B.22)** — mandatory before phase-end Handoff when `security_audit: true` (§5).
+10. Log token estimate + `metrics.json` on phase exit.
 
 ---
 
 ## 1.1 Confirmation Levels (B.15) — Interactive Gates
 
-All complexity levels **must** show `checkpoint` (B.8) popup at **phase end**. Intermediate gates:
+All complexity levels **must** show `checkpoint` (B.8) popup at **phase end** (after security PASS/WAIVED). Intermediate gates:
 
 | Complexity | Pre-Dev (`pre_dev`) | Per-Group Impact (`change_impact`) | Phase End |
 |------------|---------------------|--------------------------------------|-----------|
@@ -99,9 +100,27 @@ Workers: same branch, disjoint files, ≤30 line report. Pre-Dev + Change Impact
 
 ---
 
-## 3. DevSecOps
+## 3. DevSecOps (light, per task)
 
-Unchanged — see stability level in `00-project-context.md`. Security checklist before task complete.
+Before marking a task `[x]`, quick scan touched files for obvious S1–S4 issues (secrets, injection, missing authz, dangerous APIs). Fix in-task when cheap. Full gate is §5.
+
+Stability level in `00-project-context.md` may raise expectations (e.g. regulated → stricter).
+
+---
+
+## 5. Security Audit Gate (B.22) — before Handoff / Phase 4
+
+**MUST** execute [security-audit.md](../engine/security-audit.md) when `config.security_audit` is not `false`:
+
+1. Audit AI-touched scope → write `07-security-audit.md`.
+2. **PASS** → Phase Handoff Block → B.8 `checkpoint` (next usually Phase 4 Test).
+3. **FAIL** → findings summary → iterate loop:
+   - **Non-autopilot**: `security_iterate_confirm` → **STOP — WAIT** → only after user confirms `iterate` apply fixes → re-audit.
+   - **Autopilot**: auto-pick `iterate` (no STOP) → fix → re-audit until PASS or max iterations → then hard `b0_confirm` if still FAIL.
+4. **WAIVED** (after B.0) → may advance like PASS; record reasons in report.
+5. Do **not** present phase-end `checkpoint` / board-next to Phase 4 while status is FAIL and `security_audit_blocking: true`.
+
+Chat: ≤12-line audit summary + path to `07-security-audit.md`. No full SAST log paste.
 
 ---
 
