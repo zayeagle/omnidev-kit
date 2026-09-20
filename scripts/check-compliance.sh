@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 # OmniDev kit compliance checks (static)
+# Requires bash (arrays, [[ ]], herestrings).
+# Windows: run scripts/check-compliance.ps1, or this script from Git Bash / WSL.
+if [ -z "${BASH_VERSION:-}" ]; then
+  echo "check-compliance.sh requires bash, not sh/dash. Run: bash $0" >&2
+  exit 2
+fi
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FAILED=0
@@ -8,6 +14,11 @@ ok() { echo "OK:   $*"; }
 
 SRC="$ROOT/skills/od"
 DST="$ROOT/.cursor/skills/od"
+
+# Leading byte of any CJK ideograph in UTF-8 (U+4000..U+9FFF all start with E4..E9).
+# printf keeps this POSIX-portable; GNU grep and BSD/macOS grep both accept it,
+# while -P/PCRE does not exist on macOS.
+CJK_PAT=$(printf '[\344-\351]')
 
 if [[ ! -f "$SRC/SKILL.md" ]]; then fail "skills/od/SKILL.md missing"; exit 1; fi
 
@@ -68,7 +79,8 @@ check_pat "skills/od/phases/05-deploy.md" 'deploy_consent' 'deploy_prod'
 check_pat "docs/omnidev-state/config.json" 'codex_auto_resolve' 'security_audit'
 check_pat "skills/od/SKILL.md" '\$od' '/od' 'B.22'
 check_pat "rules/03-omnidev-workflow.codex.md" '\$od' '/od'
-check_pat "AGENTS.md" '\$od' '/od'
+check_pat "AGENTS.md" '\$od' '/od' 'DeepSeek Harness'
+check_pat "INSTALL.md" 'DeepSeek Harness' '~/.dsh/skills/od' '<name>/SKILL.md' 'subagent'
 
 LINES=$(wc -l < "$ROOT/skills/od/engine/interactive-prompt.md" | tr -d ' ')
 if [[ "$LINES" -gt 360 ]]; then fail "interactive-prompt.md too large ($LINES lines; budget 360)"
@@ -92,7 +104,7 @@ fi
 for f in skills/od/engine/interactive-prompt.md skills/od/engine/activation.md; do
   if grep -qE 'auto-continue default|自动继续默认' "$ROOT/$f" 2>/dev/null; then
     # Only fail on the Chinese phrase if present
-    if grep -qP '[\x{4e00}-\x{9fff}]' "$ROOT/$f" 2>/dev/null || grep -qF $'自动继续默认' "$ROOT/$f" 2>/dev/null; then
+    if LC_ALL=C grep -q -- "$CJK_PAT" "$ROOT/$f" 2>/dev/null || grep -qF $'自动继续默认' "$ROOT/$f" 2>/dev/null; then
       : # checked below in CJK scan
     fi
   fi
@@ -100,7 +112,7 @@ for f in skills/od/engine/interactive-prompt.md skills/od/engine/activation.md; 
 done
 
 # No CJK in SSOT
-CJK_HITS=$(find "$ROOT/skills/od" "$ROOT/rules" -type f \( -name '*.md' -o -name '*.mdc' \) -print0 | xargs -0 grep -lP '[\x{4e00}-\x{9fff}]' 2>/dev/null || true)
+CJK_HITS=$(LC_ALL=C grep -rl --include='*.md' --include='*.mdc' -- "$CJK_PAT" "$ROOT/skills/od" "$ROOT/rules" 2>/dev/null || true)
 if [[ -n "$CJK_HITS" ]]; then
   fail "CJK characters found in: $CJK_HITS"
 else

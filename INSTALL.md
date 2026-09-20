@@ -1,6 +1,6 @@
 # OmniDev Kit Installation & Usage Guide
 
-> **To AI Assistant (Cursor / Claude Code / Codex)**:
+> **To AI Assistant (Cursor / Claude Code / Codex / DeepSeek Harness)**:
 > Read this file and install per platform below. Copy **`skills/od/`** (full overwrite) and **`rules/`** (Cursor only, merge if needed).
 >
 > **Install strategy**
@@ -27,10 +27,11 @@ See [README.md](README.md) for highlights; [SKILL.md](skills/od/SKILL.md) for fu
 | **Cursor** | `AskQuestion` | Built-in | `.cursor/skills/od/` (project) / `~/.cursor/skills/od/` (user) | `.cursor/rules/01-omnidev-workflow.mdc` + `AGENTS.md` |
 | **Claude Code** | `AskUserQuestion` | `Task` | `.claude/skills/od/` or `~/.claude/skills/od/` | `CLAUDE.md` + `rules/02-omnidev-workflow.claude.md` |
 | **Codex** | `request_user_input` | `create_thread` | `~/.codex/skills/od/` | `rules/03-omnidev-workflow.codex.md` |
+| **DeepSeek Harness (DSH)** | `ask_user_question` | `subagent` / `subagent_fork` | `~/.dsh/skills/od/` (user, default) · `<project>/.dsh/skills/od/` (project) | `AGENTS.md` + skill `description` (no `rules/`) |
 
 Workflow activates on **`/od` / `$od` line-start only**. Skill attach without that prefix does not start Phase 0.
 
-PAL (Platform Abstraction Layer): `skills/od/SKILL.md` §F — never hardcode Cursor-only APIs on Claude Code or Codex.
+PAL (Platform Abstraction Layer): `skills/od/SKILL.md` §F — never hardcode Cursor-only APIs on Claude Code, Codex, or DSH.
 
 **Codex Default-mode popups** (recommended):
 
@@ -67,10 +68,10 @@ Later updates: `/od up` (same scope rules; default `project`).
 
 #### Install scope
 
-| Scope | Cursor | Claude Code | Codex |
-|-------|--------|-------------|-------|
-| **`project` (default)** | `.cursor/skills/od/` + `.cursor/rules/` + `AGENTS.md` | `.claude/skills/od/` | Remap to user (`~/.codex/skills/od/`) |
-| **`user`** | `~/.cursor/skills/od/` | `~/.claude/skills/od/` | `~/.codex/skills/od/` |
+| Scope | Cursor | Claude Code | Codex | DeepSeek Harness (DSH) |
+|-------|--------|-------------|-------|------------------------|
+| **`project` (default)** | `.cursor/skills/od/` + `.cursor/rules/` + `AGENTS.md` | `.claude/skills/od/` | Remap to user (`~/.codex/skills/od/`) | `<project>/.dsh/skills/od/` (no `rules/`) |
+| **`user`** | `~/.cursor/skills/od/` | `~/.claude/skills/od/` | `~/.codex/skills/od/` | `~/.dsh/skills/od/` (recommended) |
 
 #### Cursor
 
@@ -109,6 +110,15 @@ Later updates: `/od up` (same scope rules; default `project`).
 5. Create `docs/omnidev-state/`; copy `config.json` + `metrics.json`.
 6. Recommend `platform_override: "codex"` in `config.json` if auto-detect fails.
 7. Enable `default_mode_request_user_input` in `~/.codex/config.toml` (see §1).
+
+#### DeepSeek Harness (DSH)
+
+1. Target: `~/.dsh/skills/od/` (**user** — recommended) or `<project>/.dsh/skills/od/` (**project**). DSH scans project roots (`.dsh/skills/`, `.agents/skills/`) before the user root (`~/.dsh/skills/`).
+2. **Full overwrite including subdirectories**: DSH discovers only `<root>/<name>/SKILL.md`; `engine/`, `phases/`, and `templates/` are bundle resources and must be copied along. A flat copy breaks every `engine/...` reference inside `SKILL.md`.
+3. No restart required (roots are watched); a fresh session gives the cleanest catalog refresh. `codex skills refresh` has no DSH equivalent.
+4. Create `docs/omnidev-state/`; copy `config.json` + `metrics.json`.
+5. Optional: set `platform_override: "dsh"` in `config.json` if auto-detect (presence of the `ask_user_question` tool) is wrong.
+6. No `rules/` on DSH — the trigger relies on `AGENTS.md` plus the skill `description`.
 
 ---
 
@@ -159,6 +169,7 @@ Phase 5 may add project **`Makefile`** and **`deploy/`** (docker · k8s · binar
 | Cursor | rules → `.cursor/rules/`; skills → `.cursor/skills/od/`; state dir + config |
 | Claude | skills → `.claude/skills/od/`; CLAUDE.md trigger; state dir + config |
 | Codex | skills → `~/.codex/skills/od/`; state dir + config; Codex popup flag |
+| DeepSeek Harness (DSH) | skills → `~/.dsh/skills/od/` (keep `engine/` `phases/` `templates/`); state dir + config; no `rules/` |
 
 Then: `/od ob` or `/od [requirement]`.
 
@@ -168,6 +179,7 @@ Then: `/od ob` or `/od [requirement]`.
 
 - Map tools via **PAL** (`SKILL.md` §F) — never hardcode Cursor-only APIs on Claude/Codex.
 - **Codex prefixes**: `/od` and `$od` are equivalent.
+- **DSH**: install the whole bundle (subdirectories included) — only top-level `<name>/SKILL.md` is discovered, nested files are resources. Use the `subagent` / `subagent_fork` tools as workers.
 - **Never auto-commit** — `/od ps` only when user asks.
 - **Legacy deploy**: Phase 5 audits existing Makefile/deploy; modifications need user consent unless `deploy_autonomy: full` or `/od al`.
 - **Codex compaction**: persist to state files before long tool runs (`session-memory.md`, §F.8).
@@ -176,7 +188,7 @@ Then: `/od ob` or `/od [requirement]`.
 
 ## 7. Kit maintainers (this repo)
 
-`skills/od/` is the **single source of truth**. `.cursor/skills/od/` is a deploy mirror for Cursor.
+`skills/od/` is the **single source of truth**. `.cursor/skills/od/` is a deploy mirror for Cursor; `scripts/sync-skills.*` also mirrors the bundle into `$DSH_HOME/skills/od` (default `~/.dsh/skills/od`) whenever the DSH home exists — force with `--dsh` / `-Dsh`, skip with `--no-dsh` / `-NoDsh`.
 
 ```powershell
 # After editing skills/od or rules/
@@ -188,4 +200,10 @@ powershell -File scripts/check-compliance.ps1
 bash scripts/sync-skills.sh
 bash scripts/check-compliance.sh
 ```
-`check-compliance` fails if the two trees drift, required fixtures (`$od`, STOP-WAIT, AskQuestion) are missing, or `interactive-prompt.md` exceeds the size budget.
+`check-compliance` fails if the two trees drift, required fixtures (`$od`, STOP-WAIT, AskQuestion, `DeepSeek Harness`, `~/.dsh/skills/od`) are missing, or `interactive-prompt.md` exceeds the size budget.
+
+**Cross-platform notes**
+
+- `.gitattributes` pins `*.sh` to **LF** (bash rejects CRLF builds of `set -euo pipefail`) and `*.ps1` to **CRLF**, so a Windows checkout with `core.autocrlf=true` still runs the bash path.
+- The `.sh` scripts require **bash** (Git Bash / WSL on Windows) and exit with a clear message under `sh`/`dash`. Without bash, use the `.ps1` pair with Windows PowerShell 5.1 or PowerShell 7+.
+- `check-compliance.sh` detects CJK through a C-locale byte range instead of `grep -P` (PCRE), which BSD/macOS grep does not ship.

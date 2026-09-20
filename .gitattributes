@@ -1,0 +1,6 @@
+# Line-ending policy so the maintainer scripts run on every platform.
+# bash rejects CRLF builds of `set -euo pipefail`, so shell entry points stay LF;
+# PowerShell modules stay CRLF for consistent Windows checkouts regardless of
+# the local core.autocrlf setting.
+*.sh  text eol=lf
+*.ps1 text eol=crlf

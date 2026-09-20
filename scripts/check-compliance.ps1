@@ -51,18 +51,26 @@ if (-not (Test-Path $r2)) {
   Ok "Cursor trigger rule synced"
 }
 
+# Fixture inventory mirrors scripts/check-compliance.sh - keep both in sync.
 $checks = @(
-  @{ Path = "skills\od\engine\interactive-prompt.md"; Need = @('STOP', 'WAIT', 'AskQuestion', 'ask_user_question', 'phase0_s_fastpath', 'Decision Matrix', 'deploy_consent', 'security_iterate_confirm', 'Markdown Fallback Table', 'box-drawing', 'pending_decision', 'codex_auto_resolve', 'allow_auto_resolve') },
   @{ Path = "skills\od\engine\trigger-gate.md"; Need = @('[\/$]od', 'Explicit non-activation feedback', 'STOP', 'pending_decision', 'A-index') },
+  @{ Path = "skills\od\engine\activation.md"; Need = @('[\/$]od', 'STOP', 'AskUserQuestion', 'dsh', 'WAIT') },
+  @{ Path = "skills\od\engine\interactive-prompt.md"; Need = @('STOP', 'WAIT', 'AskQuestion', 'ask_user_question', 'phase0_s_fastpath', 'Decision Matrix', 'deploy_consent', 'security_iterate_confirm', 'Markdown Fallback Table', 'box-drawing', 'pending_decision', 'codex_auto_resolve', 'allow_auto_resolve') },
+  @{ Path = "skills\od\phases\00-assessment.md"; Need = @('phase0_s_fastpath') },
   @{ Path = "skills\od\engine\board.md"; Need = @('autopilot', 'Resume-after-confirm', 'Hard gates', '/od auto', 'security_iterate_confirm') },
   @{ Path = "skills\od\engine\security-audit.md"; Need = @('security_iterate_confirm', 'autopilot', '07-security-audit', 'FAIL') },
   @{ Path = "skills\od\phases\02-planning.md"; Need = @('phase2_plan_ready') },
-  @{ Path = "skills\od\phases\03-development.md"; Need = @('Security Audit Gate', 'security-audit') },
+  @{ Path = "skills\od\engine\spec-driven.md"; Need = @('spec_mode', 'RED-GREEN-REFACTOR', '08-spec.md', 'specs.md', 'Two-Stage Review') },
+  @{ Path = "skills\od\engine\document-history.md"; Need = @('Per branch', '\[branch\]', 'sanitized', 'Flat-Layout Migration', 'dated history copies') },
+  @{ Path = "skills\od\engine\activation.md"; Need = @('Branch resolution', 'state_dir') },
+  @{ Path = "skills\od\engine\special-flows.md"; Need = @('~/.dsh/skills/od') },
+  @{ Path = "skills\od\phases\03-development.md"; Need = @('Security Audit Gate', 'security-audit', 'RED-GREEN-REFACTOR') },
   @{ Path = "skills\od\phases\05-deploy.md"; Need = @('deploy_consent', 'deploy_prod') },
   @{ Path = "docs\omnidev-state\config.json"; Need = @('codex_auto_resolve', 'security_audit') },
   @{ Path = "skills\od\SKILL.md"; Need = @('\$od', '/od', 'B.22') },
   @{ Path = "rules\03-omnidev-workflow.codex.md"; Need = @('\$od', '/od') },
-  @{ Path = "AGENTS.md"; Need = @('\$od', '/od') }
+  @{ Path = "AGENTS.md"; Need = @('\$od', '/od', 'DeepSeek Harness') },
+  @{ Path = "INSTALL.md"; Need = @('DeepSeek Harness', '~/.dsh/skills/od', '<name>/SKILL.md', 'subagent') }
 )
 
 foreach ($c in $checks) {
