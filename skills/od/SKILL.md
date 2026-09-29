@@ -187,14 +187,14 @@ Store detected platform in session memory; do not re-detect mid-session.
 | **Cursor** | **`AskQuestion` tool — REQUIRED same turn** when present. Copy-paste JSON from interactive-prompt.md **§4**. Chat: short summary only; no YAML metadata dump. |
 | **Claude Code** | **`AskUserQuestion` tool — REQUIRED same turn** at every checkpoint. Copy-paste JSON from interactive-prompt.md **§5**. Works in **all collaboration modes**. |
 | **Codex** | **`request_user_input` tool — REQUIRED same turn** in **Plan AND Default/Code mode**. Copy-paste JSON from interactive-prompt.md **§6**. Enable Default mode: `[features] default_mode_request_user_input = true` in `~/.codex/config.toml`. |
-| **DeepSeek Harness (DSH)** | **`ask_user_question` tool — REQUIRED same turn** at every checkpoint. Copy-paste JSON from interactive-prompt.md **§7**. Multi-select is native; use `multi_select: true` instead of Codex sequential simulation. |
+| **DeepSeek Harness (DSH)** | **`ask_user_question` tool — REQUIRED same turn** at every checkpoint. Copy-paste JSON from interactive-prompt.md **§7**. Multi-select is native. `question` is plain text (no Markdown, one line); long context → Rule 12 Decision Brief. |
 | **CLI / Other** | §8 Markdown fallback table → §9 minimal text |
 
 #### Mandatory Tool Invocation (Cursor / Claude Code / Codex / DSH)
 
 When `interactive_mode=true`:
 
-1. Output **short** summary only (Phase 0 ≤6 lines; phase-end Handoff ≤18 lines per §C.1) — do not paste the full assessment into chat
+1. Output **short** summary only (Phase 0 ≤6 lines; phase-end Handoff ≤18 lines per §C.1) — do not paste the full assessment into chat. Sole exception: the Rule 12 **Decision Brief** (≤20 lines) carrying a decision's rationale, posted just before the tool call
 2. **Immediately invoke** native tool using §3 catalog + §4/§5/§6/§7 wrapper — **forbidden** to end turn with prose-only options when the tool exists
 3. On tool **absent**, error, or "unavailable in this chat mode" → **copy §8 Markdown table verbatim** same turn + write `pending_decision` (forbid drawn frames) → **STOP — WAIT**. Next: `/od N`, bare `N`, or Send command.
 4. Log `native_attempted: true` + method to **session-log** (do not paste into chat)

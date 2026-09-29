@@ -18,7 +18,7 @@
 | **DeepSeek Harness (DSH)** | `ask_user_question` — §7 (native multi-select) |
 | **CLI** | §8 Markdown fallback table |
 
-1. Short chat summary (Phase 0 ≤6 lines; phase-end Handoff Block ≤18 lines per SKILL.md §C.1)
+1. Short chat summary (Phase 0 ≤6 lines; phase-end Handoff Block ≤18 lines per SKILL.md §C.1). Rule 12 Decision Brief is the only allowed expansion
 2. Forbid `od_interactive` / YAML metadata in chat → session-log only
 3. Native success → do not also print an options table
 4. §8 rows show Send commands; user may reply **`/od N` / `$od N`** or (when `pending_decision` on disk) bare **`N`** — see §8.1. Forbid inventing options outside §3 catalog
@@ -29,6 +29,7 @@
 9. Codex: **do not set** `autoResolutionMs` by default. Only when `config.codex_auto_resolve: true` and the decision point marks `allow_auto_resolve` (non-default path)
 10. **Chat UX ban**: never emit box-drawing / pad-aligned frames (`+--+`, `╔═║└┘│─`, double `||` borders, code-fence "cards"). §8 = Markdown `|` table only; §9 = plain numbered lines
 11. On every `present_options` (native or §8/§9): persist `pending_decision` to session-log YAML; clear on pick
+12. **Short ask, brief long**: the native prompt field is ONE line (≤60 chars) from §3. Rationale, comparison, and the "why" go into a chat **Decision Brief** posted in the same turn immediately before the tool call — a bold one-line verdict plus ≤6 `-` bullets, ≤20 lines, Markdown OK, no drawn frames (rule 10). Never put a paragraph into the prompt field, `header`, or option labels
 
 ---
 
@@ -61,6 +62,7 @@ OUTPUT: selected id(s) | null; method: cursor_ask|claude_ask|codex_input|dsh_ask
 | Auto-continue after §8 table | STOP — WAIT |
 | Worker asks user | Write disk only; return ≤30 lines to Orchestrator |
 | Phase 5 numbered prose options | `deploy_consent` / `deploy_prod` catalog |
+| Paragraph / full analysis inside the native prompt or option labels | Rule 12 Decision Brief + the one-line §3 prompt |
 | Drawn frames / "fake modal" ASCII | Copy §8 table template verbatim |
 
 ---
@@ -260,7 +262,7 @@ When unavailable, hint once per session → §8 STOP — WAIT. May record `codex
   "questions": [
     {
       "id": "<decision_point>",
-      "question": "<prompt from §3>",
+      "question": "<one-line prompt from §3>",
       "header": "<title_zh>",
       "options": [
         {"label": "<label incl. command>", "description": "<one sentence>"}
@@ -272,6 +274,7 @@ When unavailable, hint once per session → §8 STOP — WAIT. May record `codex
 ```
 
 - **Must call same turn**; send all pending questions in one call (multiple `questions` supported).
+- `question` and `header` render as **plain text** in the DSH card (no Markdown, no newlines) — keep the prompt to one sentence (rule 12); `detail`, the card's Markdown body region, is **not settable** through this tool, so long context goes into the Decision Brief and `options[].description` stays one sentence.
 - `id` MUST equal the §3 `decision_point` — it is echoed verbatim in the answer.
 - `options[].label` MUST include the Send command (e.g. `Continue (/od n)`), matching §3 catalog.
 - **Native multi-select**: set `multi_select: true` when `allow_multiple: true` (e.g. §3.5 `skill_select`, board optional-phase skip). No sequential-single workaround needed.
@@ -304,11 +307,7 @@ Reply **`/od 1`** (or bare **`1`**) for row 1 — or the Send command. Codex: `$
 Full auto anytime: `/od auto` (hard gates still ask; confirm then continues).
 ```
 
-`pre_dev` Send column often `/od y` · `/od ad` · `/od x`.
-
-When `pending_decision.autopilot_resume: true`, append one line:
-
-`Autopilot paused · confirm to resume full flow · /od 1 or /od y`
+`pre_dev` Send column often `/od y` · `/od ad` · `/od x`. When `pending_decision.autopilot_resume: true`, append: `Autopilot paused · confirm to resume full flow · /od 1 or /od y`
 
 Hint (one line, native missing only): `No native UI here. Cursor: Claude/GPT or Plan · Codex: enable default_mode_request_user_input · DSH: ensure ask_user_question is available.`
 
@@ -340,7 +339,7 @@ If `autopilot_resume` and pick is affirmative → **resume autopilot same turn**
 
 ## 9. Minimal Text — only when `interactive_mode=false`
 
-Plain numbered lines; still write `pending_decision`:
+Still write `pending_decision`:
 
 ```markdown
 Choose (`/od 1` or bare `1` OK when pending; or full command):
