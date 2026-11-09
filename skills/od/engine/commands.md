@@ -20,7 +20,7 @@ All commands require **`/od` prefix** (except bare index pick — see below). Sh
 | `/od gv` | `/od governance` | AI governance and cost audit (manual) |
 | `/od gv --scope <...>` | — | phase0–5 / learning / cost / compliance / quality |
 | `/od gv --since <7d\|14d\|30d\|90d>` | — | Audit time window (default 14d) |
-| `/od rv` | `/od review` | Code review (read-only) |
+| `/od rv` | `/od review` | Code review (read-only) - scans local review skills first, user picks skill or builtin ([skill-composition.md](skill-composition.md) §8) |
 | `/od qa` | — | Testing phase shortcut (Phase 4) |
 | `/od sec` | `/od security` | Security audit of AI output (B.22) — Phase 3 exit gate |
 | `/od sec -i` | — | Confirm start of security fix iteration (manual FAIL loop) |

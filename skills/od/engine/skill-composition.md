@@ -2,7 +2,9 @@
 
 → Platform mapping: SKILL.md §F.2 (Interactive Prompt), §F.5 (Skill Discovery Paths)
 
-When the user raises a **troubleshooting, debugging, error investigation, or problem diagnosis** request within an `/od` session, OmniDev acts as an **orchestrator** that dynamically discovers and loads specialized external skills rather than handling everything itself.
+When the user raises a **troubleshooting, debugging, error investigation, or problem diagnosis** request within an `/od` session, OmniDev acts as an **orchestrator** that dynamically discovers and loads specialized external skills rather than handling everything itself (flow: §1-§7).
+
+The same discovery idea applies to **code review**: on `/od rv` / `/od review`, scan local review skills first and let the user choose between a specialized review skill and the built-in review flow (flow: §8). **Never self-review silently while a matching local review skill exists.**
 
 ## 1. Trigger Detection
 
@@ -26,11 +28,15 @@ Scan the following directories for `SKILL.md` files (using `Glob` tool with patt
 | Scan Path | Priority | Description |
 |-----------|----------|-------------|
 | `.cursor/skills/` | 1 (highest) | Project-level skills |
-| `.claude/skills/` | 2 | Project-level Claude skills |
-| `~/.cursor/skills/` | 3 | User-level Cursor skills |
-| `~/.claude/skills/` | 4 | User-level Claude skills |
-| `~/.codex/skills/` | 5 | User-level Codex skills |
-| `~/.agents/skills/` | 6 | User-level agent skills |
+| `<repo>/.dsh/skills/` | 2 | Project-level DSH skills |
+| `.claude/skills/` | 3 | Project-level Claude skills |
+| `~/.cursor/skills/` | 4 | User-level Cursor skills |
+| `~/.claude/skills/` | 5 | User-level Claude skills |
+| `~/.codex/skills/` | 6 | User-level Codex skills |
+| `~/.dsh/skills/` | 7 | User-level DSH skills (source of the DSH session catalog) |
+| `~/.agents/skills/` | 8 | User-level agent skills |
+
+**DSH shortcut (preferred)**: when the harness already injects an `available_skills` catalog (DSH does), treat that list as the scan result - it is the harness's own view of the DSH skill directory. Do not walk the filesystem again in that case.
 
 **For each discovered `SKILL.md`**, read only the **YAML frontmatter** (`name` and `description` fields) — do NOT read the full file body. This keeps the scan lightweight.
 
@@ -116,3 +122,83 @@ When the external skill's workflow completes (user selects "end" or the skill re
 - **Conflict resolution**: If the external skill's rules conflict with OmniDev's core rules (B.0–B.2), OmniDev's core rules take precedence (they are safety guardrails).
 - **No recursive composition**: An external skill loaded by OmniDev cannot itself trigger §1 to load another skill. Only OmniDev acts as the orchestrator.
 - **Session isolation**: External skill execution does not produce OmniDev state files (`02-plan.md`, `03-progress.md`, etc.). It only produces its own artifacts (if any). OmniDev state files are only written when the user returns to the OmniDev workflow.
+
+---
+
+## 8. Review Skill Discovery (`/od rv` / `/od review`)
+
+Review is the one place where the kit must **not** default to self-review. If a local skill already encodes review rules (scoring baseline, security checklist, layer conventions), the user picks it explicitly.
+
+### 8.1 Trigger
+
+Runs **only** on an explicit Signal A command: `/od rv` or `/od review`.
+
+- Bare natural language ("review this code", "check this MR") does **not** enter this flow. It stays normal chat; the model may add at most one line: `Tip: /od rv runs the review-skill discovery flow.` - no workflow loading, per [trigger-gate.md](trigger-gate.md) §2.1.
+- Review is **read-only**. No edits, commits, or phase artifacts. Fixes start only after §8.6.
+
+### 8.2 Discovery
+
+1. **Prefer the harness catalog** if the platform injects one (DSH `available_skills`): use it as the scan result, skip the filesystem.
+2. **Otherwise scan** the paths in §2 and read **YAML frontmatter only** (`name`, `description`). Never read full bodies during discovery.
+
+### 8.3 Matching and applicability (two gates)
+
+**Gate 1 - capability match.** Keep skills whose `name` / `description` covers review work: `review`, `code review`, `CR`, `audit`, `checklist`, `lint rules`, `code quality`.
+
+**Gate 2 - applicability.** Read the description's scope clauses ("Use when" / "Not for", applicable / not-applicable sections) and compare against the target repo: language, layer or path, frontend-only, docs-only.
+
+| Verdict | Handling |
+|---------|----------|
+| **Exact** - description names the repo, layer, or stack under review | List first, prefix `[exact]` |
+| **Generic** - language- or framework-level review rules | List after, prefix `[generic]` |
+| **Not applicable** - description excludes this code (e.g. V2 `internal/`, frontend-only repos) | **Exclude from options**; state the reason in one line |
+
+A skill is a *procedure*, not evidence: its checklist still requires `file:line` proof before any finding is graded.
+
+### 8.4 Mandatory confirmation (STOP - WAIT)
+
+**NEVER auto-load a review skill.** List matches, then invoke [interactive-prompt.md](interactive-prompt.md) §3.5 `review_skill_select` and **STOP - WAIT**.
+
+Prompt: `Review request. Local review skills found for this code:`
+
+| id | label |
+|----|-------|
+| `skill_N` | `[exact]` or `[generic]` - skill name plus a one-line scope |
+| `builtin` | Built-in review flow (no scoring baseline) |
+| `cancel` | Cancel, let me rephrase |
+
+Rules:
+- **Single-select** (`allow_multiple: false`): two scoring baselines in one report are not comparable.
+- **No match found**: do not pop up. Say one line `No local review skill matched; using the built-in review flow.` and continue with §8.5 `builtin`.
+- **Autopilot** (`/od auto`): soft gate - auto-pick the top-ranked skill, print the one-line choice, record it in Key Decisions.
+- Platform invoke: §4 / §5 / §6 / §7 mapping (DSH: `ask_user_question`).
+
+### 8.5 Execution
+
+| Choice | Behavior |
+|--------|----------|
+| **Skill** | Read the full `SKILL.md` body, then follow that skill's steps, scoring, and report path. OmniDev core rules (B.0-B.2) stay active as guardrails; the skill's own write-scope rules win over any od default. |
+| **`builtin`** | Built-in checklist: correctness, security (injection, authz, secrets), error handling (swallowed errors, wrong codes), concurrency and state, testability. Every finding carries `file:line` evidence. Chat summary <=20 lines; full report to a file only when asked. |
+
+### 8.6 Record and hand-off
+
+Record two lines in `session-log.md` `## Key Decisions`:
+
+```
+review_skill: <skill-name> | builtin
+review_scope: baseline | diff <base>..<head>
+```
+
+No phase files are created. Then offer the hand-off (`present_options`, **STOP - WAIT**):
+
+| id | label |
+|----|-------|
+| `fix_fast` | Fix findings now (`/od -f`) |
+| `fix_plan` | Plan the fixes first (`/od [fix requirement]`) |
+| `done` | Done, no fixes |
+
+### 8.7 Constraints
+
+- **Read-only**: no edits, no commits, no state writes beyond the §8.6 lines.
+- **One skill only**; no recursive composition (a loaded skill cannot re-enter §8.2 or §1).
+- **Token budget**: frontmatter scan first, then read exactly one skill body.

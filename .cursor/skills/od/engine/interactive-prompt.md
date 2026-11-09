@@ -134,6 +134,7 @@ Every decision point: **same turn** `present_options`. `checkpoint` (B.8) is **a
 |----|-------|
 | `open_questions` | Prose table first; `accept_defaults`[default] · `review_one_by_one` · `cancel` |
 | `skill_select` | `allow_multiple: true`; skill list + `od_only` + `cancel` |
+| `review_skill_select` | single-select: skill list (`[exact]`/`[generic]`) + `builtin` + `cancel` - `/od rv`, [skill-composition.md](skill-composition.md) §8 |
 
 Codex multi-select: sequential single-select or §8 "multi-select OK; explain in next message".
 

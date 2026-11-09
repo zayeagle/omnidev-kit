@@ -55,7 +55,8 @@ if (-not (Test-Path $r2)) {
 $checks = @(
   @{ Path = "skills\od\engine\trigger-gate.md"; Need = @('[\/$]od', 'Explicit non-activation feedback', 'STOP', 'pending_decision', 'A-index') },
   @{ Path = "skills\od\engine\activation.md"; Need = @('[\/$]od', 'STOP', 'AskUserQuestion', 'dsh', 'WAIT') },
-  @{ Path = "skills\od\engine\interactive-prompt.md"; Need = @('STOP', 'WAIT', 'AskQuestion', 'ask_user_question', 'phase0_s_fastpath', 'Decision Matrix', 'deploy_consent', 'security_iterate_confirm', 'Markdown Fallback Table', 'box-drawing', 'pending_decision', 'codex_auto_resolve', 'allow_auto_resolve') },
+  @{ Path = "skills\od\engine\interactive-prompt.md"; Need = @('STOP', 'WAIT', 'AskQuestion', 'ask_user_question', 'phase0_s_fastpath', 'Decision Matrix', 'deploy_consent', 'security_iterate_confirm', 'Markdown Fallback Table', 'box-drawing', 'pending_decision', 'codex_auto_resolve', 'allow_auto_resolve', 'review_skill_select') },
+  @{ Path = "skills\od\engine\skill-composition.md"; Need = @('review_skill_select', 'NEVER auto-load', '/od rv', 'Local Skill Scan|Skill Discovery', 'STOP') },
   @{ Path = "skills\od\phases\00-assessment.md"; Need = @('phase0_s_fastpath') },
   @{ Path = "skills\od\engine\board.md"; Need = @('autopilot', 'Resume-after-confirm', 'Hard gates', '/od auto', 'security_iterate_confirm') },
   @{ Path = "skills\od\engine\security-audit.md"; Need = @('security_iterate_confirm', 'autopilot', '07-security-audit', 'FAIL') },

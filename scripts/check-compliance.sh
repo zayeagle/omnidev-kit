@@ -65,7 +65,8 @@ check_pat() {
 
 check_pat "skills/od/engine/trigger-gate.md" '\[\\/\$\]od' 'Explicit non-activation feedback' 'STOP' 'pending_decision' 'A-index'
 check_pat "skills/od/engine/activation.md" '\[\\/\$\]od' 'STOP' 'AskUserQuestion' 'dsh' 'WAIT'
-check_pat "skills/od/engine/interactive-prompt.md" 'STOP' 'WAIT' 'AskQuestion' 'ask_user_question' 'phase0_s_fastpath' 'Decision Matrix' 'deploy_consent' 'security_iterate_confirm' 'Markdown Fallback Table' 'box-drawing' 'pending_decision'
+check_pat "skills/od/engine/interactive-prompt.md" 'STOP' 'WAIT' 'AskQuestion' 'ask_user_question' 'phase0_s_fastpath' 'Decision Matrix' 'deploy_consent' 'security_iterate_confirm' 'Markdown Fallback Table' 'box-drawing' 'pending_decision' 'review_skill_select'
+check_pat "skills/od/engine/skill-composition.md" 'review_skill_select' 'NEVER auto-load' '/od rv' 'Local Skill Scan|Skill Discovery' 'STOP'
 check_pat "skills/od/phases/00-assessment.md" 'phase0_s_fastpath'
 check_pat "skills/od/engine/board.md" 'autopilot' 'Resume-after-confirm' 'Hard gates' '/od auto' 'security_iterate_confirm'
 check_pat "skills/od/engine/security-audit.md" 'security_iterate_confirm' 'autopilot' '07-security-audit' 'FAIL'

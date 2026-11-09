@@ -79,6 +79,7 @@ Activate **only** on **Signal A** (`/od` or `$od` line-start prefix) or **Signal
 | Phase 2 | [phases/02-planning.md](phases/02-planning.md) |
 | Phase 3 | [phases/03-development.md](phases/03-development.md) |
 | Phase 3 exit / `/od sec` | [engine/security-audit.md](engine/security-audit.md) |
+| `/od rv`, `/od review` | [engine/skill-composition.md](engine/skill-composition.md) §8 |
 | Phase 4 / `/od qa` | [phases/04-testing.md](phases/04-testing.md) |
 | Phase 5 / Deploy | [phases/05-deploy.md](phases/05-deploy.md) |
 | `/od push`, `/od change`, `/od report`, `/od compress`, `/od up`, `/od i` | [engine/special-flows.md](engine/special-flows.md) |
